@@ -1,0 +1,22 @@
+#projects
+\.idea
+
+#temp files
+\.pyc
+\.orig
+
+#os files
+\.DS_Store
+Thumbs.db
+
+#project-specific files
+\.tox
+stuff
+MANIFEST$
+^docs/_
+^build
+^pymorphy2.egg-info
+^pymorphy2/.*\.html$
+^dicts
+^pymorphy2/.*\.pxd$
+
