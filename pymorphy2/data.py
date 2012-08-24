@@ -13,13 +13,17 @@ except ImportError:
     import pickle
 
 import datrie
+import marisa_trie
 
 logger = logging.getLogger(__name__)
 
 ALPHABET = '.-АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ'
 POSSIBLE_PREFIXES = ['ПО']
 
-DictTuple = collections.namedtuple('DictTuple', 'meta gramtab paradigms stems stems_values suffixes suffixes_values')
+DictTuple = collections.namedtuple('DictTuple', 'meta gramtab paradigms stems suffixes')
+
+STEMS_DATA_FORMAT = str(">H")
+SUFFIXES_DATA_FORMAT = str(">HH")
 
 def _full_lemmas(filename):
     """
@@ -147,8 +151,11 @@ def _gram_structures(filename):
     seen_tags = dict()
     seen_paradigms = dict()
 
-    stems_trie = datrie.Trie(ALPHABET)
-    suffixes_trie = datrie.Trie(ALPHABET)
+#    stems_trie = datrie.Trie(ALPHABET)
+#    suffixes_trie = datrie.Trie(ALPHABET)
+
+    stems_data = set()
+    suffixes_data = set()
 
     logger.debug("%20s %15s %15s %15s %15s", "stem", "len(gramtab)", "len(stems)", "len(paradigms)", "len(suffixes)")
 
@@ -171,16 +178,20 @@ def _gram_structures(filename):
         para_id = seen_paradigms[paradigm]
 
         # build stems dict
-        if stem not in stems_trie:
-            stems_trie[stem] = set()
-        stems_trie[stem].add(para_id)
+        stems_data.add((stem, (para_id, )))
+
+#        if stem not in stems_trie:
+#            stems_trie[stem] = set()
+#        stems_trie[stem].add(para_id)
 
         # build suffixes dict
         for idx, (suff, tag, pref) in enumerate(paradigm):
-            if suff not in suffixes_trie:
-                suffixes_trie[suff] = set()
+            suffixes_data.add((suff, (para_id, idx)))
 
-            suffixes_trie[suff].add((para_id, idx))
+#            if suff not in suffixes_trie:
+#                suffixes_trie[suff] = set()
+#
+#            suffixes_trie[suff].add((para_id, idx))
 
 #            suff_dct = suffixes_trie[suff]
 #            if para_id not in suff_dct:
@@ -190,23 +201,25 @@ def _gram_structures(filename):
 
         if not (index % 10000):
             logger.debug("%20s %15s %15s %15s %15s",
-                stem, len(gramtab), len(stems_trie), len(paradigms), len(suffixes_trie))
+                stem, len(gramtab), len(stems_data), len(paradigms), len(suffixes_data))
 
-    logger.debug('reducing memory usage..')
-    # convert sets to arrays in order to reduce memory usage
-    for key, value in stems_trie.items():
-        stems_trie[key] = tuple(sorted(list(value)))
+#    logger.debug('reducing memory usage..')
+#    # convert sets to arrays in order to reduce memory usage
+#    for key, value in stems_trie.items():
+#        stems_trie[key] = tuple(sorted(list(value)))
+#
+#    for key, value in suffixes_trie.items():
+##        for para_id in value:
+##            suffixes_trie[key][para_id] = tuple(value[para_id])
+#        suffixes_trie[key] = tuple(sorted(list(value)))
 
-    for key, value in suffixes_trie.items():
-#        for para_id in value:
-#            suffixes_trie[key][para_id] = tuple(value[para_id])
-        suffixes_trie[key] = tuple(sorted(list(value)))
+    logger.debug('building tries..')
+    stems_trie = marisa_trie.RecordTrie(STEMS_DATA_FORMAT, stems_data, order=marisa_trie.LABEL_ORDER)
+    suffixes_trie = marisa_trie.RecordTrie(SUFFIXES_DATA_FORMAT, suffixes_data, order=marisa_trie.LABEL_ORDER)
 
-
-    logger.debug('compacting tries..')
-    stems_trie_and_values = _compact_stems_trie(stems_trie)
-    suffixes_trie_and_values = _compact_suffixes_trie(suffixes_trie)
-    return tuple(gramtab), stems_trie_and_values, paradigms, suffixes_trie_and_values
+#    stems_trie_and_values = _compact_stems_trie(stems_trie)
+#    suffixes_trie_and_values = _compact_suffixes_trie(suffixes_trie)
+    return tuple(gramtab), stems_trie, paradigms, suffixes_trie
 
 def _new_4byte_array():
     """
@@ -329,31 +342,34 @@ def convert_opencorpora_dict(opencorpora_txt_path, out_path):
     Converts a dictionary from OpenCorpora txt format to
     Pymorphy2 compacted internal format.
     """
-    gramtab, (stems_trie, stems_values), paradigms, (suffixes_trie, suffixes_values) = _gram_structures(opencorpora_txt_path)
+    gramtab, stems_trie, paradigms, suffixes_trie = _gram_structures(opencorpora_txt_path)
     meta = {'version': 1}
     with open(out_path, 'wb', buffering=0) as f:
         pickle.dump(meta, f, 0)
         pickle.dump(gramtab, f, 2)
         pickle.dump(paradigms, f, 2)
-        pickle.dump(stems_values, f, 2)
-        pickle.dump(suffixes_values, f, 2)
         stems_trie.write(f)
         suffixes_trie.write(f)
+#        pickle.dump(stems_values, f, 2)
+#        pickle.dump(suffixes_values, f, 2)
+#        stems_trie.write(f)
+#        suffixes_trie.write(f)
 
 
 def load_dict(path):
     """
     Loads Pymorphy2 dictionary from a file.
     """
-    meta, gramtab, paradigms, stems_trie, stems_values, suffixes_trie, suffixes_values = [None]*7
+    meta, gramtab, paradigms, stems_trie, suffixes_trie = [None]*5
     with open(path, 'rb', buffering=0) as f:
         meta = pickle.load(f)
         gramtab = pickle.load(f)
         paradigms = pickle.load(f)
-        stems_values = pickle.load(f)
-        suffixes_values = pickle.load(f)
 
-        stems_trie = datrie.BaseTrie.read(f)
-        suffixes_trie = datrie.BaseTrie.read(f)
+        stems_trie = marisa_trie.RecordTrie(STEMS_DATA_FORMAT)
+        stems_trie.read(f)
 
-    return DictTuple(meta, gramtab, paradigms, stems_trie, stems_values, suffixes_trie, suffixes_values)
+        suffixes_trie = marisa_trie.RecordTrie(SUFFIXES_DATA_FORMAT)
+        suffixes_trie.read(f)
+
+    return DictTuple(meta, gramtab, paradigms, stems_trie, suffixes_trie)

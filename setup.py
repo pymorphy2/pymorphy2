@@ -20,7 +20,7 @@ setup(
     long_description = open('README.rst').read() + open('docs/CHANGES.rst').read(),
 
     license = 'MIT license',
-    packages = ['pymorphy2'],
+    packages = ['pymorphy2', 'pymorphy2.vendor'],
     scripts=['bin/pymorphy'],
 
 #    cmdclass = {'build_ext': build_ext},

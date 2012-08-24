@@ -15,7 +15,7 @@ Options:
 import logging
 import sys
 import os
-from pymorphy2.vendor import docopt
+from pymorphy2.vendor.docopt import docopt
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 

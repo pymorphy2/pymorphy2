@@ -37,7 +37,7 @@ def merge_intersect(pref_paradigms, suff_paradigms_ids, suff_indices):
     return res
 
 
-def bisect_intersect(pref_paradigms, suff_paradigms_ids, suff_indices):
+def bisect_intersect(pref_paradigms, suff_data):
     """
     Intersection of 2 sorted tuples; binary search is used for
     items from pref_paradigms.
@@ -47,7 +47,7 @@ def bisect_intersect(pref_paradigms, suff_paradigms_ids, suff_indices):
     """
     i = 0
     res = []
-    for para_id, info_idx in zip(suff_paradigms_ids, suff_indices):
+    for para_id, info_idx in suff_data:
         i = bisect.bisect_left(pref_paradigms, para_id, lo=i)
         if i >= len(pref_paradigms):
             break
@@ -58,7 +58,7 @@ def bisect_intersect(pref_paradigms, suff_paradigms_ids, suff_indices):
     return res
 
 
-def bisect_intersect2(pref_paradigms, suff_paradigms_ids, suff_indices):
+def bisect_intersect2(pref_paradigms, suff_data):
     """
     Intersection of 2 sorted tuples; binary search is used for
     items from suff_paradigms.
@@ -68,40 +68,42 @@ def bisect_intersect2(pref_paradigms, suff_paradigms_ids, suff_indices):
     """
     i = 0
     res = []
-    suff_paradigms_len = len(suff_paradigms_ids)
+    suff_paradigms_len = len(suff_data)
 
     for prefix_para_id in pref_paradigms:
-        #base = pref_para_id, 0
+        base = prefix_para_id, 0
 
-        i = bisect.bisect_left(suff_paradigms_ids, prefix_para_id, lo=i)
-        #i = bisect.bisect_left(suff_paradigms, base, lo=i)
+        #i = bisect.bisect_left(suff_paradigms_ids, prefix_para_id, lo=i)
+        i = bisect.bisect_left(suff_data, base, lo=i)
         if i >= suff_paradigms_len:
             break
 
-        para_id = suff_paradigms_ids[i]
+        para_id, info_idx = suff_data[i]
+        #para_id = suff_paradigms_ids[i]
         while prefix_para_id == para_id:
-            info_idx = suff_indices[i]
+            #info_idx = suff_indices[i]
             res.append((para_id, info_idx))
             i += 1
             if i >= suff_paradigms_len:
                 break
-            para_id = suff_paradigms_ids[i]
+            #para_id = suff_paradigms_ids[i]
             #info_idx = suff_indices[i]
-            #para_id, info_idx = suff_paradigms[i]
+            para_id, info_idx = suff_data[i]
 
     return res
 
 def get_prefix_paradigms(dictionary, inversed_prefix):
-    _idx = dictionary.stems[inversed_prefix]
-    start, end = _idx+1, _idx+dictionary.stems_values[_idx]+1
-    return dictionary.stems_values[start:end]
+    return [p[0] for p in dictionary.stems[inversed_prefix]]
 
 def get_suffix_paradigms(dictionary, suff):
-    _idx = dictionary.suffixes[suff]
-    para_ids, indices = dictionary.suffixes_values
-    start, end = _idx+1, _idx+para_ids[_idx]+1
-    return para_ids[start:end], indices[start:end]
+    suff_data = dictionary.suffixes[suff]
+    return suff_data
+    #return list(zip(*suff_data))
 
+#    _idx = dictionary.suffixes[suff]
+#    para_ids, indices = dictionary.suffixes_values
+#    start, end = _idx+1, _idx+para_ids[_idx]+1
+#    return para_ids[start:end], indices[start:end]
 
 
 def tag(dictionary, word, form_prefix=''):
@@ -123,8 +125,11 @@ def tag(dictionary, word, form_prefix=''):
         inversed_prefix = inversed_word[len(suff):]
         if inversed_prefix in dictionary.stems:
 
+#            pref_para = dictionary.stems[inversed_prefix]
+#            suff_para = dictionary.suffixes(suff)
+
             pref_paradigms = get_prefix_paradigms(dictionary, inversed_prefix)
-            suff_paradigms_ids, suff_indices = get_suffix_paradigms(dictionary, suff)
+            suff_paradigms = get_suffix_paradigms(dictionary, suff)
 
             # We can use python sets but they require much more memory.
             # So the intersection works on 2 sorted tuples.
@@ -132,7 +137,7 @@ def tag(dictionary, word, form_prefix=''):
             # when one of tuples is much greater than an another,
             # binary search is better.
 
-            L1, L2 = len(suff_paradigms_ids), len(pref_paradigms)
+            L1, L2 = len(suff_paradigms), len(pref_paradigms)
 #            merge_estimation = L1 + L2
 #            bisect_estimation = L1 * (1 + math.log(L2+1, 2))
 #            bisect_estimation2 = L2 * (1 + math.log(L1+1, 2))
@@ -149,9 +154,9 @@ def tag(dictionary, word, form_prefix=''):
 #                res = merge_intersect(pref_paradigms, suff_paradigms_ids, suff_indices)
 #            elif (bisect_estimation < bisect_estimation2):
             if (L1 < L2):
-                res = bisect_intersect(pref_paradigms, suff_paradigms_ids, suff_indices)
+                res = bisect_intersect(pref_paradigms, suff_paradigms)
             else:
-                res = bisect_intersect2(pref_paradigms, suff_paradigms_ids, suff_indices)
+                res = bisect_intersect2(pref_paradigms, suff_paradigms)
 
             if res:
                 # remove forms that don't have a required prefix
