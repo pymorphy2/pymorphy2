@@ -14,11 +14,6 @@ DICT_PATH = os.path.abspath(
     os.path.join(os.path.dirname(__file__), '..', 'dict')
 )
 
-def get_dict():
-    return data.load_dict(DICT_PATH)
-
-dct = get_dict()
-
 def load_words(path=DATA_PATH):
     words = []
     with codecs.open(path, 'r', 'utf8') as f:
@@ -28,7 +23,7 @@ def load_words(path=DATA_PATH):
             words.append((word.upper(), count))
     return words
 
-def bench_tag():
+def bench_tag(use_mmap=False):
     logger.debug("loading benchmark data...")
     all_words = load_words()
 
@@ -39,7 +34,7 @@ def bench_tag():
     logger.debug("benchmarking...")
     logger.debug("Words: %d, usages: %d", len(words), total_usages)
 
-    morph = tagger.Morph(dct)
+    morph = tagger.Morph.load(DICT_PATH, use_mmap=use_mmap)
 
     def _run():
         for word, cnt in words:
@@ -50,6 +45,6 @@ def bench_tag():
 
 
 
-def bench_all():
+def bench_all(use_mmap):
     """ Run all benchmarks """
-    bench_tag()
+    bench_tag(use_mmap)

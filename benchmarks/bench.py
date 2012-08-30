@@ -4,12 +4,13 @@
 Pymorphy2 benchmark utility.
 
 Usage:
-    bench.py run [--verbose]
+    bench.py run [--verbose] [--mmap]
     bench.py -h | --help
     bench.py --version
 
 Options:
     -v --verbose        Be more verbose
+    --mmap              Use memory mapped IO
 
 """
 import logging
@@ -38,9 +39,9 @@ def main():
         logger.setLevel(logging.INFO)
 
     if args['run']:
-        speed.bench_all()
+        logger.debug('mmap: %s', args['--mmap'])
+        speed.bench_all(args['--mmap'])
 
-    #logger.debug(args)
     return 0
 
 
