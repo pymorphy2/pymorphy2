@@ -11,7 +11,7 @@ logger = logging.getLogger('pymorphy2.bench')
 
 DATA_PATH = os.path.join(os.path.dirname(__file__), 'unigrams.cyr.lc')
 DICT_PATH = os.path.abspath(
-    os.path.join(os.path.dirname(__file__), '..', 'ru.dct')
+    os.path.join(os.path.dirname(__file__), '..', 'dict')
 )
 
 def get_dict():

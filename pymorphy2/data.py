@@ -4,6 +4,7 @@ import os
 import codecs
 import collections
 import logging
+import json
 
 try:
     import cPickle as pickle
@@ -204,24 +205,55 @@ def convert_opencorpora_dict(opencorpora_txt_path, out_path):
     """
     gramtab, paradigms, words_trie = _gram_structures(opencorpora_txt_path)
     meta = {'version': 1}
-    with open(out_path, 'wb', buffering=0) as f:
-        pickle.dump(meta, f, 0)
-        pickle.dump(gramtab, f, 2)
-        pickle.dump(paradigms, f, 2)
-        words_trie.write(f)
+
+    # create the output folder
+    try:
+        logger.debug("Creating output folder %s", out_path)
+        os.mkdir(out_path)
+    except OSError:
+        logger.warning("Output folder already exists")
+
+    _f = lambda path: os.path.join(out_path, path)
+
+    logger.info("Saving...")
+
+    with codecs.open(_f('meta.json'), 'w', 'utf8') as f:
+        json.dump(meta, f, ensure_ascii=False)
+
+    with codecs.open(_f('gramtab.json'), 'w', 'utf8') as f:
+        json.dump(gramtab, f, ensure_ascii=False)
+
+    with codecs.open(_f('paradigms.json'), 'w', 'utf8') as f:
+        json.dump(paradigms, f, ensure_ascii=False)
+
+    words_trie.save(_f('words.marisa'))
 
 
-def load_dict(path):
+def load_dict(path, use_mmap=False):
     """
-    Loads Pymorphy2 dictionary from a file.
+    Loads Pymorphy2 dictionary.
+    ``path`` is a folder name where dictionary data reside.
     """
-    #meta, gramtab, paradigms, lemmas_trie, suffixes_trie = [None]*5
-    with open(path, 'rb', buffering=0) as f:
-        meta = pickle.load(f)
-        gramtab = pickle.load(f)
-        paradigms = pickle.load(f)
+    #meta, gramtab, paradigms, words_trie = [None]*4
 
-        words_trie = WordsTrie()
-        words_trie.read(f)
+    _f = lambda p: os.path.join(path, p)
+
+    with open(_f('meta.json'), 'r') as f:
+        meta = json.load(f)
+
+    if meta['version'] != 1:
+        raise ValueError("This dictionary format is not supported")
+
+    with open(_f('gramtab.json'), 'r') as f:
+        gramtab = json.load(f)
+
+    with open(_f('paradigms.json'), 'r') as f:
+        paradigms = json.load(f)
+
+    words_trie = WordsTrie()
+    if use_mmap:
+        words_trie.mmap(_f('words.marisa'))
+    else:
+        words_trie.load(_f('words.marisa'))
 
     return DictTuple(meta, gramtab, paradigms, words_trie)

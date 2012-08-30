@@ -3,17 +3,18 @@
 Pymorphy2 is a Russian POS tagger and inflection engine.
 
 Usage:
-    pymorphy dict compile <IN_FILE> [--out <OUT_FILE>] [--verbose]
+    pymorphy dict compile <IN_FILE> [--out <PATH>] [--verbose]
     pymorphy dict download [--verbose]
-    pymorphy dict mem_usage <FILE> [--verbose]
+    pymorphy dict mem_usage <FILE> [--mmap] [--verbose]
     pymorphy dict make_test_suite <IN_FILE> <OUT_FILE> [--limit <NUM>] [--verbose]
     pymorphy -h | --help
     pymorphy --version
 
 Options:
-    -v --verbose   Be more verbose
-    -o --out       Output file name
-    --limit <NUM>  Min. number of words per gram. tag
+    -v --verbose        Be more verbose
+    -o --out <PATH>     Output folder name [default: dict]
+    --limit <NUM>       Min. number of words per gram. tag
+    --mmap              Use memory mapped I/O
 
 """
 from __future__ import absolute_import, unicode_literals, print_function, division
@@ -39,21 +40,23 @@ def get_mem_usage():
 
 # ============================ Commands ===========================
 
-def compile_dict(in_filename, out_filename='ru.dict'):
+def compile_dict(in_filename, out_folder=None):
     """
     Makes a Pymorphy2 dictionary from OpenCorpora .txt dictionary.
     """
-    pymorphy2.data.convert_opencorpora_dict(in_filename, out_filename)
+    if out_folder is None:
+        out_folder = 'dict'
+    pymorphy2.data.convert_opencorpora_dict(in_filename, out_folder)
 
 
-def show_dict_mem_usage(dict_filename, verbose=False):
+def show_dict_mem_usage(dict_filename, verbose=False, use_mmap=False):
     """
     Shows dictionary memory usage.
     """
     initial_mem = get_mem_usage()
     initial_time = time.time()
 
-    dct = pymorphy2.data.load_dict(dict_filename)
+    dct = pymorphy2.data.load_dict(dict_filename, use_mmap=use_mmap)
 
     end_time = time.time()
     mem_usage = get_mem_usage()
@@ -94,9 +97,9 @@ def main():
 
     if args['dict']:
         if args['compile']:
-            return compile_dict(args['<IN_FILE>'], args['<OUT_FILE>'])
+            return compile_dict(args['<IN_FILE>'], args['--out'])
         elif args['mem_usage']:
-            return show_dict_mem_usage(args['<FILE>'], args['--verbose'])
+            return show_dict_mem_usage(args['<FILE>'], args['--verbose'], args['--mmap'])
         elif args['make_test_suite']:
             return make_test_suite(args['<IN_FILE>'], args['<OUT_FILE>'], int(args['--limit']))
         elif args['download']:

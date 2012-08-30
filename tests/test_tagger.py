@@ -20,11 +20,9 @@ def load_suite(path):
 
 
 suite70k = load_suite('tests/data/suite.txt')
-dct = data.load_dict('ru.dct')
-
+morph = tagger.Morph.load()
 
 def test_tagger():
     for word, tags in suite70k:
-        parse_result = set(tagger.tag(dct, word))
+        parse_result = set(morph.tag(word))
         assert parse_result == tags
-

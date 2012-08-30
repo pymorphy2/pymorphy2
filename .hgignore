@@ -17,6 +17,6 @@ MANIFEST$
 ^build
 ^pymorphy2.egg-info
 ^pymorphy2/.*\.html$
-^dicts
+^dict
 ^pymorphy2/.*\.pxd$
 

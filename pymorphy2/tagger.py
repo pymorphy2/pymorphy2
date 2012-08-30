@@ -13,7 +13,7 @@ class Morph(object):
         self._dictionary = dct
 
     @classmethod
-    def load(cls, path=None):  # , use_mmap=False
+    def load(cls, path=None, use_mmap=False):
         """
         Creates a Morph object using dictionaries at ``path``.
 
@@ -25,7 +25,7 @@ class Morph(object):
                 raise ValueError("Please pass a path to dictionaries or set %s environment variable" % cls.env_variable)
             path = os.environ[cls.env_variable]
 
-        dct = data.load_dict(path)
+        dct = data.load_dict(path, use_mmap=use_mmap)
         return cls(dct)
 
     def tag(self, word):

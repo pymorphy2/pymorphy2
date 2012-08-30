@@ -13,6 +13,8 @@ Source code:
 
 Bug tracker: https://github.com/kmike/pymorphy2/issues
 
+Support: https://groups.google.com/forum/?fromgroups#!forum/pymorphy
+
 Licensed under MIT.
 
 (ru) pymorphy II
@@ -28,5 +30,7 @@ Licensed under MIT.
 * https://bitbucket.org/kmike/pymorphy2
 
 Баг-трекер: https://github.com/kmike/pymorphy2/issues
+
+Поддержка/обсуждение: https://groups.google.com/forum/?fromgroups#!forum/pymorphy
 
 Лицензия - MIT.
