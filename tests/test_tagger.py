@@ -20,7 +20,7 @@ def load_suite(path):
 
 
 suite70k = load_suite('tests/data/suite.txt')
-dct = data.load_dict('ru.dict')
+dct = data.load_dict('ru.dct')
 
 
 def test_tagger():

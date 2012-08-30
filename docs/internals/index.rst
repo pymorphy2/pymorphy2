@@ -11,3 +11,4 @@
 
    dict
    analyze
+   2trie

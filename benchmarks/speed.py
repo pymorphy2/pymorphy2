@@ -11,7 +11,7 @@ logger = logging.getLogger('pymorphy2.bench')
 
 DATA_PATH = os.path.join(os.path.dirname(__file__), 'unigrams.cyr.lc')
 DICT_PATH = os.path.abspath(
-    os.path.join(os.path.dirname(__file__), '..', 'ru.dict')
+    os.path.join(os.path.dirname(__file__), '..', 'ru.dct')
 )
 
 def get_dict():
@@ -28,26 +28,23 @@ def load_words(path=DATA_PATH):
             words.append((word.upper(), count))
     return words
 
-def scale_usages(words, result_size):
-    total = sum(w[1] for w in words) + len(words)  # add-one smoothing
-    return [(w[0], int(round((w[1]+1)*result_size/total))) for w in words]
-
 def bench_tag():
     logger.debug("loading benchmark data...")
     all_words = load_words()
 
-    words = all_words[0:2000]
-    #words = scale_usages(words, corpus_size)
+    words = all_words
 
     total_usages = sum(w[1] for w in words)
 
     logger.debug("benchmarking...")
     logger.debug("Words: %d, usages: %d", len(words), total_usages)
 
+    morph = tagger.Morph(dct)
+
     def _run():
         for word, cnt in words:
             for x in range(cnt):
-                tagger.tag(dct, word)
+                morph.tag(word)
 
     logger.info("    tagger.tag: %0.0f words/sec", utils.measure(_run, total_usages, 1))
 
