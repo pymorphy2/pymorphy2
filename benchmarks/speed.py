@@ -23,7 +23,7 @@ def load_words(path=DATA_PATH):
             words.append((word.upper(), count))
     return words
 
-def bench_tag(use_mmap=False):
+def bench_tag(use_mmap=False, use_dawg=False):
     logger.debug("loading benchmark data...")
     all_words = load_words()
 
@@ -34,7 +34,7 @@ def bench_tag(use_mmap=False):
     logger.debug("benchmarking...")
     logger.debug("Words: %d, usages: %d", len(words), total_usages)
 
-    morph = tagger.Morph.load(DICT_PATH, use_mmap=use_mmap)
+    morph = tagger.Morph.load(DICT_PATH, use_mmap=use_mmap, use_dawg=use_dawg)
 
     def _run():
         for word, cnt in words:
@@ -45,6 +45,6 @@ def bench_tag(use_mmap=False):
 
 
 
-def bench_all(use_mmap):
+def bench_all(use_mmap, use_dawg):
     """ Run all benchmarks """
-    bench_tag(use_mmap)
+    bench_tag(use_mmap, use_dawg)

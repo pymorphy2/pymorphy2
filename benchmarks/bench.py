@@ -4,7 +4,7 @@
 Pymorphy2 benchmark utility.
 
 Usage:
-    bench.py run [--verbose] [--mmap]
+    bench.py run [--verbose] [--mmap] [--dawg]
     bench.py -h | --help
     bench.py --version
 
@@ -39,8 +39,7 @@ def main():
         logger.setLevel(logging.INFO)
 
     if args['run']:
-        logger.debug('mmap: %s', args['--mmap'])
-        speed.bench_all(args['--mmap'])
+        speed.bench_all(args['--mmap'], args['--dawg'])
 
     return 0
 

@@ -12,6 +12,7 @@ except ImportError:
     import pickle
 
 import marisa_trie
+import dawg
 
 logger = logging.getLogger(__name__)
 
@@ -22,7 +23,7 @@ DictTuple = collections.namedtuple('DictTuple', 'meta gramtab paradigms words')
 
 class WordsTrie(marisa_trie.RecordTrie):
     """
-    Trie wor storing words.
+    Trie for storing words.
     """
 
     # We are storing 2 unsigned short ints as values:
@@ -30,13 +31,25 @@ class WordsTrie(marisa_trie.RecordTrie):
     # Byte order is big-endian (this makes word forms properly sorted).
     DATA_FORMAT = str(">HH")
 
-    def __init__(self, words=None):
+    def __init__(self, data=None):
         super(WordsTrie, self).__init__(
             self.DATA_FORMAT,
-            words,
+            data,
             order = marisa_trie.LABEL_ORDER # sort alphabetically
         )
 
+class WordsDawg(dawg.RecordDAWG):
+    """
+    DAWG for storing words.
+    """
+
+    # We are storing 2 unsigned short ints as values:
+    # the paradigm ID and the form index (inside paradigm).
+    # Byte order is big-endian (this makes word forms properly sorted).
+    DATA_FORMAT = str(">HH")
+
+    def __init__(self, data=None):
+        super(WordsDawg, self).__init__(self.DATA_FORMAT, data)
 
 
 def _full_lemmas(filename):
@@ -137,10 +150,11 @@ def _gram_structures(filename):
                 stem, len(gramtab), len(words), len(paradigms), 0)
 
 
-    logger.debug('building tries..')
+    logger.debug('building data structures..')
     words_trie = WordsTrie(words)
+    words_dawg = WordsDawg(words)
 
-    return tuple(gramtab), paradigms, words_trie
+    return tuple(gramtab), paradigms, words_trie, words_dawg
 
 
 def _get_word_parses(filename):
@@ -203,7 +217,7 @@ def convert_opencorpora_dict(opencorpora_txt_path, out_path):
 
     ``out_path`` should be a name of folder where to put dictionaries.
     """
-    gramtab, paradigms, words_trie = _gram_structures(opencorpora_txt_path)
+    gramtab, paradigms, words_trie, words_dawg = _gram_structures(opencorpora_txt_path)
     meta = {'version': 1}
 
     # create the output folder
@@ -227,14 +241,18 @@ def convert_opencorpora_dict(opencorpora_txt_path, out_path):
         json.dump(paradigms, f, ensure_ascii=False)
 
     words_trie.save(_f('words.marisa'))
+    words_dawg.save(_f('words.dawg'))
 
 
-def load_dict(path, use_mmap=False):
+def load_dict(path, use_mmap=False, use_dawg=False):
     """
     Loads Pymorphy2 dictionary.
     ``path`` is a folder name where dictionary data reside.
     """
     #meta, gramtab, paradigms, words_trie = [None]*4
+
+    if use_mmap and use_dawg:
+        raise NotImplementedError("DAWG currently doesn't support mmap")
 
     _f = lambda p: os.path.join(path, p)
 
@@ -250,10 +268,14 @@ def load_dict(path, use_mmap=False):
     with open(_f('paradigms.json'), 'r') as f:
         paradigms = json.load(f)
 
-    words_trie = WordsTrie()
-    if use_mmap:
-        words_trie.mmap(_f('words.marisa'))
+    if use_dawg:
+        words = WordsDawg()
+        words.load(_f('words.dawg'))
     else:
-        words_trie.load(_f('words.marisa'))
+        words = WordsTrie()
+        if use_mmap:
+            words.mmap(_f('words.marisa'))
+        else:
+            words.load(_f('words.marisa'))
 
-    return DictTuple(meta, gramtab, paradigms, words_trie)
+    return DictTuple(meta, gramtab, paradigms, words)
