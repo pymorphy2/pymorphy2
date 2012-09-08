@@ -22,6 +22,7 @@ setup(
     license = 'MIT license',
     packages = ['pymorphy2', 'pymorphy2.vendor'],
     scripts=['bin/pymorphy'],
+    requires=['DAWG'],
 
 #    cmdclass = {'build_ext': build_ext},
 #    ext_modules = [Extension("pymorphy2.tagger", ["pymorphy2/tagger.py"])],

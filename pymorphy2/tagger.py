@@ -13,7 +13,7 @@ class Morph(object):
         self._dictionary = dct
 
     @classmethod
-    def load(cls, path=None, use_mmap=False, use_dawg=False):
+    def load(cls, path=None):
         """
         Creates a Morph object using dictionaries at ``path``.
 
@@ -25,16 +25,11 @@ class Morph(object):
                 raise ValueError("Please pass a path to dictionaries or set %s environment variable" % cls.env_variable)
             path = os.environ[cls.env_variable]
 
-        dct = data.load_dict(path, use_mmap=use_mmap, use_dawg=use_dawg)
+        dct = data.load_dict(path)
         return cls(dct)
 
     def tag(self, word):
-        try:
-            para_data = self._dictionary.words[word]
-        except KeyError:
-            para_data = []
-
-        #para_data = self._dictionary.words.get(word, [])
+        para_data = self._dictionary.words.get(word, [])
 
         # avoid extra attribute lookups
         paradigms = self._dictionary.paradigms
@@ -50,11 +45,7 @@ class Morph(object):
 
 
     def normal_forms(self, word):
-        try:
-            para_data = self._dictionary.words[word]
-        except KeyError:
-            para_data = []
-#        para_data = self._dictionary.words.get(word, [])
+        para_data = self._dictionary.words.get(word, [])
 
         # avoid extra attribute lookups
         paradigms = self._dictionary.paradigms

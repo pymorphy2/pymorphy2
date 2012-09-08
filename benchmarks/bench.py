@@ -4,13 +4,12 @@
 Pymorphy2 benchmark utility.
 
 Usage:
-    bench.py run [--verbose] [--mmap] [--dawg]
+    bench.py run [--verbose]
     bench.py -h | --help
     bench.py --version
 
 Options:
     -v --verbose        Be more verbose
-    --mmap              Use memory mapped IO
 
 """
 import logging
@@ -19,7 +18,6 @@ import os
 from pymorphy2.vendor.docopt import docopt
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-
 
 import pymorphy2
 
@@ -39,7 +37,7 @@ def main():
         logger.setLevel(logging.INFO)
 
     if args['run']:
-        speed.bench_all(args['--mmap'], args['--dawg'])
+        speed.bench_all()
 
     return 0
 
