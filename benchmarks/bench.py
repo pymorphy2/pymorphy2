@@ -4,12 +4,14 @@
 Pymorphy2 benchmark utility.
 
 Usage:
-    bench.py run [--verbose]
+    bench.py run [--dict=<DICT_PATH>] [--verbose]
     bench.py -h | --help
     bench.py --version
 
 Options:
-    -v --verbose        Be more verbose
+    -d --dict <DICT_PATH>   Use dictionary from <DICT_PATH>
+    -v --verbose            Be more verbose
+
 
 """
 import logging
@@ -37,7 +39,7 @@ def main():
         logger.setLevel(logging.INFO)
 
     if args['run']:
-        speed.bench_all()
+        speed.bench_all(args['--dict'])
 
     return 0
 

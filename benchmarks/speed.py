@@ -4,14 +4,16 @@ import logging
 import codecs
 import os
 
-from pymorphy2 import data, tagger
+from pymorphy2 import tagger
 from benchmarks import utils
 
 logger = logging.getLogger('pymorphy2.bench')
 
-DATA_PATH = os.path.join(os.path.dirname(__file__), 'unigrams.cyr.lc')
-DICT_PATH = os.path.abspath(
-    os.path.join(os.path.dirname(__file__), '..', 'dict')
+DATA_PATH = os.path.join(
+    os.path.dirname(__file__),
+    '..',
+    'dev_data',
+    'unigrams.cyr.lc'
 )
 
 def load_words(path=DATA_PATH):
@@ -41,7 +43,7 @@ def bench_tag(morph):
 
 
 
-def bench_all():
+def bench_all(dict_path=None):
     """ Run all benchmarks """
-    morph = tagger.Morph.load(DICT_PATH)
+    morph = tagger.Morph.load(dict_path)
     bench_tag(morph)

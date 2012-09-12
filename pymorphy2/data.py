@@ -228,7 +228,7 @@ def load_dict(path):
     Loads Pymorphy2 dictionary.
     ``path`` is a folder name where dictionary data reside.
     """
-    meta, gramtab, paradigms, words = [None]*4
+    #meta, gramtab, paradigms, words = [None]*4
 
     _f = lambda p: os.path.join(path, p)
 

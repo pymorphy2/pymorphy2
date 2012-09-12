@@ -1,9 +1,17 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, unicode_literals
 import codecs
+import os
 import pytest
 
 from pymorphy2 import tagger, data, cli
+
+SUITE_PATH = os.path.join(
+    os.path.dirname(__file__),
+    '..',
+    'dev_data',
+    'suite.txt'
+)
 
 def iter_suite(path):
     """
@@ -18,8 +26,7 @@ def iter_suite(path):
 def load_suite(path):
     return list(iter_suite(path))
 
-
-suite70k = load_suite('tests/data/suite.txt')
+suite70k = load_suite(SUITE_PATH)
 morph = tagger.Morph.load()
 
 def test_tagger():

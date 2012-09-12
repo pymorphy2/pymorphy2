@@ -19,4 +19,5 @@ MANIFEST$
 ^pymorphy2/.*\.html$
 ^dict
 ^pymorphy2/.*\.pxd$
+\.ipynb$
 
