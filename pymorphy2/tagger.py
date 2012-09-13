@@ -11,6 +11,7 @@ class Morph(object):
 
     def __init__(self, dct):
         self._dictionary = dct
+        self._ee = dct.words.compile_replaces({'Е': 'Ё'})
 
     @classmethod
     def load(cls, path=None):
@@ -29,7 +30,7 @@ class Morph(object):
         return cls(dct)
 
     def tag(self, word):
-        para_data = self._dictionary.words.get(word, [])
+        para_data = self._dictionary.words.similar_item_values(word, self._ee)
 
         # avoid extra attribute lookups
         paradigms = self._dictionary.paradigms
@@ -37,9 +38,10 @@ class Morph(object):
 
         # tag known word
         result = []
-        for para_id, idx in para_data:
-            tag_id = paradigms[para_id][idx][1]
-            result.append(gramtab[tag_id])
+        for parse in para_data:
+            for para_id, idx in parse:
+                tag_id = paradigms[para_id][idx][1]
+                result.append(gramtab[tag_id])
 
         return result
 

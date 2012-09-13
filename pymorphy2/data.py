@@ -5,6 +5,9 @@ import codecs
 import collections
 import logging
 import json
+import re
+import itertools
+import copy
 
 try:
     import cPickle as pickle
@@ -150,6 +153,37 @@ def _get_word_parses(filename):
 
     return word_parses
 
+
+def _add_ee_parses(word_parses):
+
+    def combinations_of_all_lengths(it):
+        return itertools.chain(
+            *(itertools.combinations(it, num+1) for num in range(len(it)))
+        )
+
+    def replace_chars(word, positions, replacement):
+        word_list = list(word)
+        for pos in positions:
+            word_list[pos] = replacement
+        return "".join(word_list)
+
+    def missing_umlaut_variants(word):
+        umlaut_positions = [m.start() for m in re.finditer('Ё', word, re.U)]
+        for positions in combinations_of_all_lengths(umlaut_positions):
+            yield replace_chars(word, positions, 'Е')
+
+
+    _word_parses = copy.deepcopy(word_parses)
+
+    for word in word_parses:
+        parses = word_parses[word]
+
+        for word_variant in missing_umlaut_variants(word):
+            _word_parses[word_variant].extend(parses)
+
+    return _word_parses
+
+
 def _get_test_suite(word_parses, word_limit=100):
     """
     Limits word_parses to ``word_limit`` words per tag.
@@ -179,6 +213,11 @@ def opencorpora_dict_to_test_suite(opencorpora_txt_path, out_path, word_limit=10
     """
     logger.debug('loading dictionary to memory...')
     parses = _get_word_parses(opencorpora_txt_path)
+    logger.debug('dictionary size: %d', len(parses))
+
+
+    logger.debug('handling umlauts...')
+    parses = _add_ee_parses(parses)
     logger.debug('dictionary size: %d', len(parses))
 
     logger.debug('building test suite...')

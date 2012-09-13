@@ -10,7 +10,7 @@ SUITE_PATH = os.path.join(
     os.path.dirname(__file__),
     '..',
     'dev_data',
-    'suite.txt'
+    'suite-ee.txt'
 )
 
 def iter_suite(path):
