@@ -11,4 +11,5 @@
 
    dict
    analyze
+   umlauts
    2trie
