@@ -4,7 +4,6 @@ from __future__ import print_function, unicode_literals
 import os
 from . import data
 
-
 class Morph(object):
 
     env_variable = 'PYMORPHY2_DICT_PATH'
@@ -45,28 +44,37 @@ class Morph(object):
 
         return result
 
-
     def normal_forms(self, word):
-        para_data = self._dictionary.words.get(word, [])
+        para_data = self._dictionary.words.similar_items(word, self._ee)
 
         # avoid extra attribute lookups
         paradigms = self._dictionary.paradigms
 
         result = []
-        seen = set()
-        for para_id, idx in para_data:
+        seen_paradigms = set()
+        seen_forms = set()
 
-            if para_id in seen:
-                continue
-            seen.add(para_id)
+        for fixed_word, parse in para_data:
+            for para_id, idx in parse:
 
-            if idx == 0:
-                result.append(word)
-                continue
+                if para_id in seen_paradigms:
+                    continue
+                seen_paradigms.add(para_id)
 
-            form = paradigms[para_id][idx]
-            stem = word[len(form[2]):-len(form[0])]
+                # shortcut when normal form is word itself
+                if idx == 0:
+                    if fixed_word not in seen_forms:
+                        seen_forms.add(fixed_word)
+                        result.append(fixed_word)
+                    continue
 
-            normal_form = paradigms[para_id][0]
-            result.append(normal_form[2] + stem + normal_form[0])
+                # get the normal form
+                form = paradigms[para_id][idx]
+                stem = fixed_word[len(form[2]):-len(form[0])]
+                normal_form_data = paradigms[para_id][0]
+                normal_form = normal_form_data[2] + stem + normal_form_data[0]
+
+                if normal_form not in seen_forms:
+                    seen_forms.add(normal_form)
+                    result.append(normal_form)
         return result

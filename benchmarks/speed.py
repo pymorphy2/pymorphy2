@@ -25,15 +25,11 @@ def load_words(path=DATA_PATH):
             words.append((word.upper(), count))
     return words
 
-def bench_tag(morph):
-    logger.debug("loading benchmark data...")
-    words = load_words()
+def get_total_usages(words):
+    return sum(w[1] for w in words)
+
+def bench_tag(morph, words, total_usages):
     word_no_umlauts = [(w[0].replace('Ё', 'Е'), w[1]) for w in words]
-
-    total_usages = sum(w[1] for w in words)
-
-    logger.debug("benchmarking...")
-    logger.debug("Words: %d, usages: %d", len(words), total_usages)
 
     def _run():
         for word, cnt in words:
@@ -50,11 +46,34 @@ def bench_tag(morph):
 
     logger.info("    tagger.tag: %0.0f words/sec (with freq. info)", utils.measure(_run, total_usages, 1))
     logger.info("    tagger.tag: %0.0f words/sec (without freq. info)", utils.measure(_run_nofreq, len(words), 3))
-    logger.info("    tagger.tag: %0.0f words/sec (without freq. info, no umlauts)", utils.measure(_run_no_umlauts, len(words), 3))
+    logger.info("    tagger.tag: %0.0f words/sec (without freq. info, input umlauts removed)", utils.measure(_run_no_umlauts, len(words), 3))
 
+
+def bench_normal_forms(morph, words, total_usages):
+    def _run():
+        for word, cnt in words:
+            for x in range(cnt):
+                morph.normal_forms(word)
+
+    def _run_nofreq():
+        for word, cnt in words:
+            morph.normal_forms(word)
+
+    logger.info("    tagger.normal_forms: %0.0f words/sec (with freq. info)", utils.measure(_run, total_usages, 1))
+    logger.info("    tagger.normal_forms: %0.0f words/sec (without freq. info)", utils.measure(_run_nofreq, len(words), 3))
 
 
 def bench_all(dict_path=None):
     """ Run all benchmarks """
+    logger.debug("loading tagger...")
     morph = tagger.Morph.load(dict_path)
-    bench_tag(morph)
+
+    logger.debug("loading benchmark data...")
+    words = load_words()
+    total_usages = get_total_usages(words)
+
+    logger.debug("Words: %d, usages: %d", len(words), total_usages)
+
+    logger.debug("benchmarking...")
+    bench_tag(morph, words, total_usages)
+    bench_normal_forms(morph, words, total_usages)

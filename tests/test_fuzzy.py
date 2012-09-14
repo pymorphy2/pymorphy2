@@ -29,7 +29,7 @@ def load_suite(path):
 suite70k = load_suite(SUITE_PATH)
 morph = tagger.Morph.load()
 
-def test_tagger():
+def test_tagger_fuzzy():
     for word, tags in suite70k:
         parse_result = set(morph.tag(word))
         assert parse_result == tags
