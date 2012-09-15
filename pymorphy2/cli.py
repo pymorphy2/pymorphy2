@@ -8,6 +8,7 @@ import time
 
 import pymorphy2
 import pymorphy2.data
+from pymorphy2 import opencorpora_dict
 from pymorphy2.vendor.docopt import docopt
 
 logger = logging.getLogger('pymorphy2')
@@ -24,11 +25,11 @@ def get_mem_usage():
 
 def compile_dict(in_filename, out_folder=None):
     """
-    Makes a Pymorphy2 dictionary from OpenCorpora .txt dictionary.
+    Makes a Pymorphy2 dictionary from OpenCorpora .xml dictionary.
     """
     if out_folder is None:
         out_folder = 'dict'
-    pymorphy2.data.convert_opencorpora_dict(in_filename, out_folder)
+    opencorpora_dict.to_pymorphy2_format(in_filename, out_folder)
 
 
 def show_dict_mem_usage(dict_filename, verbose=False):
@@ -61,7 +62,7 @@ def make_test_suite(dict_filename, out_filename, word_limit=100):
     Makes a test suite from OpenCorpora dictionary.
     FIXME: it doesn't work!
     """
-    return pymorphy2.data.opencorpora_dict_to_test_suite(
+    return opencorpora_dict.to_test_suite(
         dict_filename, out_filename, word_limit=int(word_limit))
 
 # =============================================================================

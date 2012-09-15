@@ -1,4 +1,3 @@
-# cython: profile=True
 # -*- coding: utf-8 -*-
 from __future__ import print_function, unicode_literals
 import os
@@ -54,14 +53,14 @@ class Morph(object):
         seen_paradigms = set()
         seen_forms = set()
 
-        for fixed_word, parse in para_data:
+        for fixed_word, parse in para_data: # fixed_word is a word with proper Ё letters
             for para_id, idx in parse:
 
                 if para_id in seen_paradigms:
                     continue
                 seen_paradigms.add(para_id)
 
-                # shortcut when normal form is word itself
+                # a shortcut: normal form is a word itself
                 if idx == 0:
                     if fixed_word not in seen_forms:
                         seen_forms.add(fixed_word)
