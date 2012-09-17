@@ -31,6 +31,12 @@ def compile_dict(in_filename, out_folder=None):
         out_folder = 'dict'
     opencorpora_dict.to_pymorphy2_format(in_filename, out_folder)
 
+def xml_to_json(in_filename, out_filename):
+    """
+    Parses XML and caches result to json.
+    """
+    opencorpora_dict.xml_dict_to_json(in_filename, out_filename)
+
 
 def show_dict_mem_usage(dict_filename, verbose=False):
     """
@@ -72,6 +78,7 @@ Pymorphy2 is a Russian POS tagger and inflection engine.
 
 Usage:
     pymorphy dict compile <IN_FILE> [--out <PATH>] [--verbose]
+    pymorphy dict xml2json <IN_XML_FILE> <OUT_JSON_FILE> [--verbose]
     pymorphy dict download [--verbose]
     pymorphy dict mem_usage <PATH> [--verbose]
     pymorphy dict make_test_suite <IN_FILE> <OUT_FILE> [--limit <NUM>] [--verbose]
@@ -99,6 +106,8 @@ def main():
     if args['dict']:
         if args['compile']:
             return compile_dict(args['<IN_FILE>'], args['--out'])
+        elif args['xml2json']:
+            return xml_to_json(args['<IN_XML_FILE>'], args['<OUT_JSON_FILE>'])
         elif args['mem_usage']:
             return show_dict_mem_usage(args['<PATH>'], args['--verbose'])
         elif args['make_test_suite']:

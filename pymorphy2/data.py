@@ -9,7 +9,7 @@ import dawg
 
 logger = logging.getLogger(__name__)
 
-POSSIBLE_PREFIXES = ['ПО', 'по']
+POSSIBLE_PREFIXES = ['ПО']
 
 DictTuple = collections.namedtuple('DictTuple', 'meta gramtab paradigms words')
 

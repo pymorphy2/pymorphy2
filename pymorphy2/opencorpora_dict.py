@@ -22,64 +22,64 @@ from . import data
 
 logger = logging.getLogger(__name__)
 
-def _full_lemmas_from_xml(filename):
+
+def _parse_opencorpora_xml(filename):
     """
-    Iterator over "full" lemmas in OpenCorpora dictionary file (in .xml format).
+    Parses OpenCorpora dict XML and returns a tuple (lemmas_list, links)
     """
+
     from lxml import etree
 
-    def _tags(elem):
-        return ",".join(g.get('v') for g in elem.findall('g'))
+    links = []
+    lemmas = []
 
-    def _cleanup(elem):
+    def _clear(elem):
         elem.clear()
         while elem.getprevious() is not None:
             del elem.getparent()[0]
 
-    for ev, elem in etree.iterparse(filename, tag='lemma'):
-        lemma = []
 
-        base_info = elem.findall('l')
-        assert len(base_info) == 1
-        base_tags = _tags(base_info[0])
+    for ev, elem in etree.iterparse(filename):
 
-        for form_elem in elem.findall('f'):
-            tags = _tags(form_elem)
-            form = form_elem.get('t').upper()
-            lemma.append(
-                (form, " ".join([base_tags, tags]).strip())
+        if elem.tag == 'lemma':
+            lemmas.append(
+                _lemma_list_from_xml_elem(elem)
             )
+            _clear(elem)
 
-        yield lemma
-        _cleanup(elem)
+        elif elem.tag == 'link':
+            link_tuple = (
+                int(elem.get('from')),
+                int(elem.get('to')),
+                int(elem.get('type')),
+            )
+            links.append(link_tuple)
+            _clear(elem)
 
+    return lemmas, links
 
-def _full_lemmas_from_txt(filename):
+def _lemma_list_from_xml_elem(elem):
     """
-    Iterator over "full" lemmas in OpenCorpora dictionary file (in .txt format).
+    Returns a list of (word, tags) pairs given an XML element with lemma.
     """
-    with codecs.open(filename, 'rb', 'utf8') as f:
-        it = iter(f)
+    def _tags(elem):
+        return ",".join(g.get('v') for g in elem.findall('g'))
 
-        while True:
-            try:
-                lemma = []
-                line = next(it).strip()
-                lemma_id = int(line)
-                while line:
-                    line = next(it).strip()
-                    if line:
-                        parts = line.split(None, 1)
-                        if len(parts) == 2:
-                            form, tag = parts
-                        else:
-                            form, tag = parts, ''
-                        lemma.append((form, tag))
+    lemma = []
 
-                yield lemma
+    base_info = elem.findall('l')
+    assert len(base_info) == 1
+    base_tags = _tags(base_info[0])
 
-            except StopIteration:
-                break
+    for form_elem in elem.findall('f'):
+        tags = _tags(form_elem)
+        form = form_elem.get('t').upper()
+        lemma.append(
+            (form, " ".join([base_tags, tags]).strip())
+        )
+
+    return lemma
+
 
 def _to_paradigm(lemma):
     """
@@ -110,6 +110,20 @@ def _to_paradigm(lemma):
 
     return stem, tuple(zip(suffixes, tags, prefixes))
 
+
+def xml_dict_to_json(xml_filename, json_filename):
+    logger.info('parsing xml...')
+    parsed_dct = _parse_opencorpora_xml(xml_filename)
+
+    logger.info('writing json...')
+    with codecs.open(json_filename, 'w', 'utf8') as f:
+        json.dump(parsed_dct, f, ensure_ascii=False)
+
+def _load_json_dict(filename):
+    with codecs.open(filename, 'r', 'utf8') as f:
+        return json.load(f)
+
+
 def _gram_structures(filename):
     """
     Returns compacted dictionary data.
@@ -121,9 +135,18 @@ def _gram_structures(filename):
     seen_tags = dict()
     seen_paradigms = dict()
 
+    if filename.endswith(".json"):
+        logger.info('loading json...')
+        lemmas, links = _load_json_dict(filename)
+    else:
+        logger.info('parsing xml...')
+        lemmas, links = _parse_opencorpora_xml(filename)
+
+    logger.info('building paradigms...')
+
     logger.debug("%20s %15s %15s %15s %15s", "stem", "len(gramtab)", "len(words)", "len(paradigms)", "len(suffixes)")
 
-    for index, lemma in enumerate(_full_lemmas_from_xml(filename)):
+    for index, lemma in enumerate(lemmas):
         stem, paradigm = _to_paradigm(lemma)
 
         # build gramtab
@@ -152,7 +175,7 @@ def _gram_structures(filename):
                 stem, len(gramtab), len(words), len(paradigms), 0)
 
 
-    logger.debug('building data structures..')
+    logger.debug('building DAWGs..')
     words_dawg = data.WordsDawg(words)
 
     return tuple(gramtab), paradigms, words_dawg
@@ -162,7 +185,8 @@ def _get_word_parses(filename):
     word_parses = collections.defaultdict(list) # word -> possible tags
 
     logger.debug("%10s %20s", "lemma #", "result size")
-    for index, lemma in enumerate(_full_lemmas_from_txt(filename)):
+    lemmas, links = _parse_opencorpora_xml(filename)
+    for index, lemma in enumerate(lemmas):
         for word, tag in lemma:
             word_parses[word].append(tag)
 
@@ -224,13 +248,13 @@ def _save_test_suite(path, suite):
             f.write(txt.encode('utf8'))
 
 
-def to_test_suite(opencorpora_txt_path, out_path, word_limit=100):
+def to_test_suite(opencorpora_dict_path, out_path, word_limit=100):
     """
-    Extracts test data from OpenCorpora .txt dictionary (at least
+    Extracts test data from OpenCorpora .xml dictionary (at least
     ``word_limit`` words for each distinct gram. tag) and saves it to a file.
     """
     logger.debug('loading dictionary to memory...')
-    parses = _get_word_parses(opencorpora_txt_path)
+    parses = _get_word_parses(opencorpora_dict_path)
     logger.debug('dictionary size: %d', len(parses))
 
 
