@@ -22,7 +22,7 @@ setup(
     license = 'MIT license',
     packages = ['pymorphy2', 'pymorphy2.vendor'],
     scripts=['bin/pymorphy'],
-    requires=['dawg'],
+    requires=['dawg_python'],
 
 #    cmdclass = {'build_ext': build_ext},
 #    ext_modules = [Extension("pymorphy2.tagger", ["pymorphy2/tagger.py"])],
@@ -43,6 +43,7 @@ setup(
           'Programming Language :: Python :: 3.2',
           'Programming Language :: Python :: 3.3',
           'Programming Language :: Python :: Implementation :: CPython',
+          'Programming Language :: Python :: Implementation :: PyPy',
           'Topic :: Software Development :: Libraries :: Python Modules',
           'Topic :: Scientific/Engineering :: Information Analysis',
           'Topic :: Text Processing :: Linguistic',

@@ -16,8 +16,6 @@ logger.addHandler(logging.StreamHandler())
 
 def get_mem_usage():
     import psutil
-    gc.collect()
-    gc.collect()
     proc = psutil.Process(os.getpid())
     return proc.get_memory_info()[0]
 

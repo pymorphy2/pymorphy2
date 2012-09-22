@@ -40,7 +40,7 @@ class Morph(object):
             for para_id, idx in parse:
                 paradigm = paradigms[para_id]
                 paradigm_len = len(paradigm) // 3
-                tag_id = paradigm[idx + paradigm_len]
+                tag_id = paradigm[paradigm_len + idx]
                 result.append(gramtab[tag_id])
 
         return result

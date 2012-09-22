@@ -21,6 +21,7 @@ except ImportError:
     import pickle
 
 from . import data
+from pymorphy2.dawg import WordsDawg
 
 logger = logging.getLogger(__name__)
 
@@ -273,7 +274,7 @@ def _gram_structures(filename):
     paradigms = [_linearized_paradigm(paradigm) for paradigm in paradigms]
 
     logger.debug('building DAWGs..')
-    words_dawg = data.WordsDawg(words)
+    words_dawg = WordsDawg(words)
 
     return tuple(gramtab), suffixes, paradigms, words_dawg
 

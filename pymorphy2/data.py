@@ -7,35 +7,13 @@ import json
 import struct
 import array
 
-import dawg
+from pymorphy2.dawg import WordsDawg
 
 logger = logging.getLogger(__name__)
 
 POSSIBLE_PREFIXES = ["", 'ПО', 'НАИ']
 
 DictTuple = collections.namedtuple('DictTuple', 'meta gramtab suffixes paradigms words')
-
-#class Dictionary(object):
-#    def __init__(self, meta, gramtab, paradigms, words):
-#        self.meta = meta
-#        self.gramtab = gramtab
-#        self.paradigms = paradigms
-#        self.words = words
-
-
-class WordsDawg(dawg.RecordDAWG):
-    """
-    DAWG for storing words.
-    """
-
-    # We are storing 2 unsigned short ints as values:
-    # the paradigm ID and the form index (inside paradigm).
-    # Byte order is big-endian (this makes word forms properly sorted).
-    DATA_FORMAT = str(">HH")
-
-    def __init__(self, data=None):
-        super(WordsDawg, self).__init__(self.DATA_FORMAT, data)
-
 
 def load_dict(path):
     """
