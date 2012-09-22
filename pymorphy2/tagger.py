@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from __future__ import print_function, unicode_literals
+from __future__ import print_function, unicode_literals, division
 import os
 from . import data
 
@@ -38,7 +38,9 @@ class Morph(object):
         result = []
         for parse in para_data:
             for para_id, idx in parse:
-                tag_id = paradigms[para_id][idx][1]
+                paradigm = paradigms[para_id]
+                paradigm_len = len(paradigm) // 3
+                tag_id = paradigm[idx + paradigm_len]
                 result.append(gramtab[tag_id])
 
         return result
@@ -48,6 +50,7 @@ class Morph(object):
 
         # avoid extra attribute lookups
         paradigms = self._dictionary.paradigms
+        suffixes = self._dictionary.suffixes
 
         result = []
         seen_paradigms = set()
@@ -68,10 +71,24 @@ class Morph(object):
                     continue
 
                 # get the normal form
-                form = paradigms[para_id][idx]
-                stem = fixed_word[len(form[2]):-len(form[0])]
-                normal_form_data = paradigms[para_id][0]
-                normal_form = normal_form_data[2] + stem + normal_form_data[0]
+                paradigm = paradigms[para_id]
+                paradigm_len = len(paradigm) // 3
+
+                prefix_id = paradigm[paradigm_len*2 + idx]
+                prefix = data.POSSIBLE_PREFIXES[prefix_id]
+
+                suffix_id = paradigm[idx]
+                suffix = suffixes[suffix_id]
+
+                stem = fixed_word[len(prefix):-len(suffix)]
+
+                normal_prefix_id = paradigm[paradigm_len*2 + 0]
+                normal_suffix_id = paradigm[0]
+
+                normal_prefix = data.POSSIBLE_PREFIXES[normal_prefix_id]
+                normal_suffix = suffixes[normal_suffix_id]
+
+                normal_form = normal_prefix + stem + normal_suffix
 
                 if normal_form not in seen_forms:
                     seen_forms.add(normal_form)

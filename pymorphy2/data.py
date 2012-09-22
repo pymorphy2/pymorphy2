@@ -4,14 +4,24 @@ import os
 import collections
 import logging
 import json
+import struct
+import array
 
 import dawg
 
 logger = logging.getLogger(__name__)
 
-POSSIBLE_PREFIXES = ['ПО']
+POSSIBLE_PREFIXES = ["", 'ПО', 'НАИ']
 
-DictTuple = collections.namedtuple('DictTuple', 'meta gramtab paradigms words')
+DictTuple = collections.namedtuple('DictTuple', 'meta gramtab suffixes paradigms words')
+
+#class Dictionary(object):
+#    def __init__(self, meta, gramtab, paradigms, words):
+#        self.meta = meta
+#        self.gramtab = gramtab
+#        self.paradigms = paradigms
+#        self.words = words
+
 
 class WordsDawg(dawg.RecordDAWG):
     """
@@ -45,9 +55,18 @@ def load_dict(path):
     with open(_f('gramtab.json'), 'r') as f:
         gramtab = json.load(f)
 
-    with open(_f('paradigms.json'), 'r') as f:
-        paradigms = json.load(f)
+    with open(_f('suffixes.json'), 'r') as f:
+        suffixes = json.load(f)
 
-    words = WordsDawg()
-    words.load(_f('words.dawg'))
-    return DictTuple(meta, gramtab, paradigms, words)
+    paradigms = []
+    with open(_f('paradigms.array'), 'rb') as f:
+        paradigms_count = struct.unpack(str("<H"), f.read(2))[0]
+
+        for x in range(paradigms_count):
+            paradigm_len = struct.unpack(str("<H"), f.read(2))[0]
+            para = array.array(str("H"))
+            para.fromfile(f, paradigm_len)
+            paradigms.append(para)
+
+    words = WordsDawg().load(_f('words.dawg'))
+    return DictTuple(meta, gramtab, suffixes, paradigms, words)

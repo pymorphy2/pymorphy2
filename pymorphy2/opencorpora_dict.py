@@ -3,7 +3,7 @@
 Module with utilities for converting OpenCorpora dictionaries
 to pymorphy2 compact formats.
 """
-from __future__ import absolute_import
+from __future__ import absolute_import, unicode_literals
 import codecs
 import os
 import logging
@@ -12,6 +12,8 @@ import json
 import re
 import itertools
 import copy
+import array
+import struct
 
 try:
     import cPickle as pickle
@@ -80,6 +82,18 @@ def _lemma_list_from_xml_elem(elem):
 
     return lemma
 
+def _longest_common_substring(data):
+    """
+    Returns a longest common substring of a list of strings.
+    See http://stackoverflow.com/questions/2892931/longest-common-substring-from-more-than-two-strings-python
+    """
+    substr = ''
+    if len(data) > 1 and len(data[0]) > 0:
+        for i in range(len(data[0])):
+            for j in range(len(data[0])-i+1):
+                if j > len(substr) and all(data[0][i:i+j] in x for x in data):
+                    substr = data[0][i:i+j]
+    return substr
 
 def _to_paradigm(lemma):
     """
@@ -92,16 +106,11 @@ def _to_paradigm(lemma):
     stem = os.path.commonprefix(forms)
 
     if stem == "":
-        for prefix in data.POSSIBLE_PREFIXES:
-            without_prefixes = [
-                form[len(prefix):] if form.startswith(prefix) else form
-                for form in forms
-            ]
-            new_stem = os.path.commonprefix(without_prefixes)
-            if new_stem:
-                prefixes = [prefix if form.startswith(prefix) else '' for form in forms]
-                stem = new_stem
-                break
+        stem = _longest_common_substring(forms)
+        prefixes = [form[:form.index(stem)] for form in forms]
+        if any(pref not in data.POSSIBLE_PREFIXES for pref in prefixes):
+            stem = ""
+            prefixes = [''] * len(tags)
 
     suffixes = (
         form[len(pref)+len(stem):]
@@ -124,6 +133,75 @@ def _load_json_dict(filename):
         return json.load(f)
 
 
+def _join_lemmas(lemmas, links):
+    """
+    Combines linked lemmas to single lemma.
+    """
+
+#    <link_types>
+#    <type id="1">ADJF-ADJS</type>
+#    <type id="2">ADJF-COMP</type>
+#    <type id="3">INFN-VERB</type>
+#    <type id="4">INFN-PRTF</type>
+#    <type id="5">INFN-GRND</type>
+#    <type id="6">PRTF-PRTS</type>
+#    <type id="7">NAME-PATR</type>
+#    <type id="8">PATR_MASC-PATR_FEMN</type>
+#    <type id="9">SURN_MASC-SURN_FEMN</type>
+#    <type id="10">SURN_MASC-SURN_PLUR</type>
+#    <type id="11">PERF-IMPF</type>
+#    <type id="12">ADJF-SUPR_ejsh</type>
+#    <type id="13">PATR_MASC_FORM-PATR_MASC_INFR</type>
+#    <type id="14">PATR_FEMN_FORM-PATR_FEMN_INFR</type>
+#    <type id="15">ADJF_eish-SUPR_nai_eish</type>
+#    <type id="16">ADJF-SUPR_ajsh</type>
+#    <type id="17">ADJF_aish-SUPR_nai_aish</type>
+#    <type id="18">ADJF-SUPR_suppl</type>
+#    <type id="19">ADJF-SUPR_nai</type>
+#    <type id="20">ADJF-SUPR_slng</type>
+#    </link_types>
+
+    EXCLUDED_LINK_TYPES = set([7, ])
+#    ALLOWED_LINK_TYPES = set([3, 4, 5])
+
+    moves = dict()
+
+    def move_lemma(from_id, to_id):
+        lm = lemmas[from_id]
+
+        while to_id in moves:
+            to_id = moves[to_id]
+
+        lemmas[to_id].extend(lm)
+        del lm[:]
+        moves[from_id] = to_id
+
+
+    for link_start, link_end, type_id in links:
+        if type_id in EXCLUDED_LINK_TYPES:
+            continue
+
+#        if type_id not in ALLOWED_LINK_TYPES:
+#            continue
+
+        move_lemma(link_end-1, link_start-1)
+
+    return [lm for lm in lemmas if lm]
+
+
+def _linearized_paradigm(paradigm):
+    return array.array(str("H"), list(itertools.chain(*zip(*paradigm))))
+
+def _load_json_or_xml_dict(filename):
+    if filename.endswith(".json"):
+        logger.info('loading json...')
+        return _load_json_dict(filename)
+    else:
+        logger.info('parsing xml...')
+        return _parse_opencorpora_xml(filename)
+
+
+
 def _gram_structures(filename):
     """
     Returns compacted dictionary data.
@@ -135,15 +213,12 @@ def _gram_structures(filename):
     seen_tags = dict()
     seen_paradigms = dict()
 
-    if filename.endswith(".json"):
-        logger.info('loading json...')
-        lemmas, links = _load_json_dict(filename)
-    else:
-        logger.info('parsing xml...')
-        lemmas, links = _parse_opencorpora_xml(filename)
+    lemmas, links = _load_json_or_xml_dict(filename)
+
+    logger.info("inlining lemma links...")
+    lemmas = _join_lemmas(lemmas, links)
 
     logger.info('building paradigms...')
-
     logger.debug("%20s %15s %15s %15s %15s", "stem", "len(gramtab)", "len(words)", "len(paradigms)", "len(suffixes)")
 
     for index, lemma in enumerate(lemmas):
@@ -174,18 +249,42 @@ def _gram_structures(filename):
             logger.debug("%20s %15s %15s %15s %15s",
                 stem, len(gramtab), len(words), len(paradigms), 0)
 
+    logger.debug("linearizing paradigms..")
+
+    def get_form(para):
+        return list(next(itertools.izip(*para)))
+
+    forms = [get_form(para) for para in paradigms]
+    suffixes = sorted(list(set(list(itertools.chain(*forms)))))
+    suffixes_dict = dict(
+        (suff, index)
+        for index, suff in enumerate(suffixes)
+    )
+
+    def fix_strings(paradigm):
+        para = []
+        for suff, tag, pref in paradigm:
+            para.append(
+                (suffixes_dict[suff], tag, data.POSSIBLE_PREFIXES.index(pref))
+            )
+        return para
+
+    paradigms = (fix_strings(para) for para in paradigms)
+    paradigms = [_linearized_paradigm(paradigm) for paradigm in paradigms]
 
     logger.debug('building DAWGs..')
     words_dawg = data.WordsDawg(words)
 
-    return tuple(gramtab), paradigms, words_dawg
+    return tuple(gramtab), suffixes, paradigms, words_dawg
 
 
 def _get_word_parses(filename):
     word_parses = collections.defaultdict(list) # word -> possible tags
 
+    lemmas, links = _load_json_or_xml_dict(filename)
+
     logger.debug("%10s %20s", "lemma #", "result size")
-    lemmas, links = _parse_opencorpora_xml(filename)
+
     for index, lemma in enumerate(lemmas):
         for word, tag in lemma:
             word_parses[word].append(tag)
@@ -278,7 +377,7 @@ def to_pymorphy2_format(opencorpora_dict_path, out_path):
 
     ``out_path`` should be a name of folder where to put dictionaries.
     """
-    gramtab, paradigms, words_dawg = _gram_structures(opencorpora_dict_path)
+    gramtab, suffixes, paradigms, words_dawg = _gram_structures(opencorpora_dict_path)
     meta = {'version': 1}
 
     # create the output folder
@@ -298,7 +397,13 @@ def to_pymorphy2_format(opencorpora_dict_path, out_path):
     with codecs.open(_f('gramtab.json'), 'w', 'utf8') as f:
         json.dump(gramtab, f, ensure_ascii=False)
 
-    with codecs.open(_f('paradigms.json'), 'w', 'utf8') as f:
-        json.dump(paradigms, f, ensure_ascii=False)
+    with codecs.open(_f('suffixes.json'), 'w', 'utf8') as f:
+        json.dump(suffixes, f, ensure_ascii=False)
+
+    with open(_f('paradigms.array'), 'wb') as f:
+        f.write(struct.pack(str("<H"), len(paradigms)))
+        for para in paradigms:
+            f.write(struct.pack(str("<H"), len(para)))
+            para.tofile(f)
 
     words_dawg.save(_f('words.dawg'))
