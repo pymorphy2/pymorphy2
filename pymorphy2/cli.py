@@ -102,7 +102,7 @@ Options:
     -v --verbose        Be more verbose
     -f --force          Overwrite target folder
     -o --out <PATH>     Output folder name [default: dict]
-    --limit <NUM>       Min. number of words per gram. tag
+    --limit <NUM>       Min. number of words per gram. tag [default: 100]
 
 """
 
