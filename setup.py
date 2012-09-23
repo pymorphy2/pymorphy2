@@ -9,9 +9,13 @@ for cmd in ('egg_info', 'develop'):
     if cmd in sys.argv:
         from setuptools import setup
 
+def get_version():
+    with open("pymorphy2/version.py", "rt") as f:
+        return f.readline().split("=")[1].strip(' "')
+
 setup(
     name = 'pymorphy2',
-    version = '0.0',
+    version = get_version(),
     author = 'Mikhail Korobov',
     author_email = 'kmike84@gmail.com',
     url = 'https://github.com/kmike/pymorphy2/',

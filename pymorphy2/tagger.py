@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import print_function, unicode_literals, division
 import os
-from . import data
+from . import opencorpora_dict
 
 class Morph(object):
 
@@ -24,7 +24,7 @@ class Morph(object):
                 raise ValueError("Please pass a path to dictionaries or set %s environment variable" % cls.env_variable)
             path = os.environ[cls.env_variable]
 
-        dct = data.load_dict(path)
+        dct = opencorpora_dict.load(path)
         return cls(dct)
 
     def tag(self, word):
@@ -75,7 +75,7 @@ class Morph(object):
                 paradigm_len = len(paradigm) // 3
 
                 prefix_id = paradigm[paradigm_len*2 + idx]
-                prefix = data.POSSIBLE_PREFIXES[prefix_id]
+                prefix = opencorpora_dict.POSSIBLE_PREFIXES[prefix_id]
 
                 suffix_id = paradigm[idx]
                 suffix = suffixes[suffix_id]
@@ -85,7 +85,7 @@ class Morph(object):
                 normal_prefix_id = paradigm[paradigm_len*2 + 0]
                 normal_suffix_id = paradigm[0]
 
-                normal_prefix = data.POSSIBLE_PREFIXES[normal_prefix_id]
+                normal_prefix = opencorpora_dict.POSSIBLE_PREFIXES[normal_prefix_id]
                 normal_suffix = suffixes[normal_suffix_id]
 
                 normal_form = normal_prefix + stem + normal_suffix

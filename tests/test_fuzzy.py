@@ -4,7 +4,7 @@ import codecs
 import os
 import pytest
 
-from pymorphy2 import tagger, data, cli
+from pymorphy2 import tagger
 
 SUITE_PATH = os.path.join(
     os.path.dirname(__file__),

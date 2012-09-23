@@ -4,6 +4,7 @@ Module with utilities for converting OpenCorpora dictionaries
 to pymorphy2 compact formats.
 """
 from __future__ import absolute_import, unicode_literals
+import datetime
 import codecs
 import os
 import logging
@@ -20,21 +21,26 @@ try:
 except ImportError:
     import pickle
 
-from . import data
 from pymorphy2.dawg import WordsDawg
 
 logger = logging.getLogger(__name__)
 
 
+POSSIBLE_PREFIXES = ["", 'ПО', 'НАИ']
+
 def _parse_opencorpora_xml(filename):
     """
-    Parses OpenCorpora dict XML and returns a tuple (lemmas_list, links)
+    Parses OpenCorpora dict XML and returns a tuple
+
+        (lemmas_list, links, version, revision)
+
     """
 
     from lxml import etree
 
     links = []
     lemmas = []
+    version, revision = None, None
 
     def _clear(elem):
         elem.clear()
@@ -43,6 +49,11 @@ def _parse_opencorpora_xml(filename):
 
 
     for ev, elem in etree.iterparse(filename):
+
+        if elem.tag == 'dictionary':
+            version = elem.get('version')
+            revision = elem.get('revision')
+            _clear(elem)
 
         if elem.tag == 'lemma':
             lemmas.append(
@@ -59,7 +70,7 @@ def _parse_opencorpora_xml(filename):
             links.append(link_tuple)
             _clear(elem)
 
-    return lemmas, links
+    return lemmas, links, version, revision
 
 def _lemma_list_from_xml_elem(elem):
     """
@@ -109,7 +120,7 @@ def _to_paradigm(lemma):
     if stem == "":
         stem = _longest_common_substring(forms)
         prefixes = [form[:form.index(stem)] for form in forms]
-        if any(pref not in data.POSSIBLE_PREFIXES for pref in prefixes):
+        if any(pref not in POSSIBLE_PREFIXES for pref in prefixes):
             stem = ""
             prefixes = [''] * len(tags)
 
@@ -203,7 +214,7 @@ def _load_json_or_xml_dict(filename):
 
 
 
-def _gram_structures(filename):
+def _gram_structures(lemmas, links):
     """
     Returns compacted dictionary data.
     """
@@ -213,8 +224,6 @@ def _gram_structures(filename):
 
     seen_tags = dict()
     seen_paradigms = dict()
-
-    lemmas, links = _load_json_or_xml_dict(filename)
 
     logger.info("inlining lemma links...")
     lemmas = _join_lemmas(lemmas, links)
@@ -266,7 +275,7 @@ def _gram_structures(filename):
         para = []
         for suff, tag, pref in paradigm:
             para.append(
-                (suffixes_dict[suff], tag, data.POSSIBLE_PREFIXES.index(pref))
+                (suffixes_dict[suff], tag, POSSIBLE_PREFIXES.index(pref))
             )
         return para
 
@@ -282,7 +291,7 @@ def _gram_structures(filename):
 def _get_word_parses(filename):
     word_parses = collections.defaultdict(list) # word -> possible tags
 
-    lemmas, links = _load_json_or_xml_dict(filename)
+    lemmas, links, version, revision = _load_json_or_xml_dict(filename)
 
     logger.debug("%10s %20s", "lemma #", "result size")
 
@@ -371,29 +380,51 @@ def to_test_suite(opencorpora_dict_path, out_path, word_limit=100):
     _save_test_suite(out_path, suite)
 
 
-def to_pymorphy2_format(opencorpora_dict_path, out_path):
+def to_pymorphy2_format(opencorpora_dict_path, out_path, overwrite=False):
     """
     Converts a dictionary from OpenCorpora xml format to
     Pymorphy2 compacted internal format.
 
     ``out_path`` should be a name of folder where to put dictionaries.
     """
-    gramtab, suffixes, paradigms, words_dawg = _gram_structures(opencorpora_dict_path)
-    meta = {'version': 1}
 
     # create the output folder
     try:
         logger.debug("Creating output folder %s", out_path)
         os.mkdir(out_path)
     except OSError:
-        logger.warning("Output folder already exists")
+        if overwrite:
+            logger.info("Output folder already exists, overwriting..")
+        else:
+            logger.warning("Output folder already exists!")
+            return
+
+    # load & compile dictionary
+    lemmas, links, version, revision = _load_json_or_xml_dict(opencorpora_dict_path)
+
+    gramtab, suffixes, paradigms, words_dawg = _gram_structures(lemmas, links)
+    meta = {
+        'format_version': 1,
+        'compiled_at': datetime.datetime.utcnow().isoformat(),
+
+        'source': 'opencorpora.org',
+        'source_version': version,
+        'source_revision': revision,
+        'source_lemmas_count': len(lemmas),
+        'source_links_count': len(links),
+
+        'gramtab_length': len(gramtab),
+        'gramtab_format': 'opencorpora-int',
+        'paradigms_length': len(paradigms),
+        'suffixes_length': len(suffixes),
+    }
 
     _f = lambda path: os.path.join(out_path, path)
 
     logger.info("Saving...")
 
     with codecs.open(_f('meta.json'), 'w', 'utf8') as f:
-        json.dump(meta, f, ensure_ascii=False)
+        json.dump(meta, f, ensure_ascii=False, indent=4)
 
     with codecs.open(_f('gramtab.json'), 'w', 'utf8') as f:
         json.dump(gramtab, f, ensure_ascii=False)
@@ -408,3 +439,40 @@ def to_pymorphy2_format(opencorpora_dict_path, out_path):
             para.tofile(f)
 
     words_dawg.save(_f('words.dawg'))
+
+
+DictTuple = collections.namedtuple('DictTuple', 'meta gramtab suffixes paradigms words')
+
+def load(path):
+    """
+    Loads Pymorphy2 dictionary.
+    ``path`` is a folder name where dictionary data reside.
+    """
+    #meta, gramtab, suffixes, paradigms, words = [None]*5
+
+    _f = lambda p: os.path.join(path, p)
+
+    with open(_f('meta.json'), 'r') as f:
+        meta = json.load(f)
+
+    if meta['format_version'] != 1:
+        raise ValueError("This dictionary format is not supported")
+
+    with open(_f('gramtab.json'), 'r') as f:
+        gramtab = json.load(f)
+
+    with open(_f('suffixes.json'), 'r') as f:
+        suffixes = json.load(f)
+
+    paradigms = []
+    with open(_f('paradigms.array'), 'rb') as f:
+        paradigms_count = struct.unpack(str("<H"), f.read(2))[0]
+
+        for x in range(paradigms_count):
+            paradigm_len = struct.unpack(str("<H"), f.read(2))[0]
+            para = array.array(str("H"))
+            para.fromfile(f, paradigm_len)
+            paradigms.append(para)
+
+    words = WordsDawg().load(_f('words.dawg'))
+    return DictTuple(meta, gramtab, suffixes, paradigms, words)
