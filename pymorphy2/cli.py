@@ -7,7 +7,7 @@ import sys
 import pprint
 
 import pymorphy2
-from pymorphy2 import opencorpora_dict
+from pymorphy2 import opencorpora_dict, test_suite_generator
 from pymorphy2.vendor.docopt import docopt
 from pymorphy2.os_utils import download_bz2, get_mem_usage
 
@@ -61,7 +61,7 @@ def make_test_suite(dict_filename, out_filename, word_limit=100):
     Makes a test suite from OpenCorpora dictionary.
     FIXME: it doesn't work!
     """
-    return opencorpora_dict.to_test_suite(
+    return test_suite_generator.make_test_suite(
         dict_filename, out_filename, word_limit=int(word_limit))
 
 
