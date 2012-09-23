@@ -19,12 +19,12 @@ try:
 except ImportError:
     import pickle
 
-from pymorphy2.dawg import WordsDawg
+import pymorphy2
+from pymorphy2.dawg import WordsDawg, dawg
+from pymorphy2.constants import LEMMA_PREFIXES, PREDICTION_PREFIXES
 
 logger = logging.getLogger(__name__)
 
-
-POSSIBLE_PREFIXES = ["", 'ПО', 'НАИ']
 
 def _parse_opencorpora_xml(filename):
     """
@@ -118,7 +118,7 @@ def _to_paradigm(lemma):
     if stem == "":
         stem = _longest_common_substring(forms)
         prefixes = [form[:form.index(stem)] for form in forms]
-        if any(pref not in POSSIBLE_PREFIXES for pref in prefixes):
+        if any(pref not in LEMMA_PREFIXES for pref in prefixes):
             stem = ""
             prefixes = [''] * len(tags)
 
@@ -211,7 +211,6 @@ def _load_json_or_xml_dict(filename):
         return _parse_opencorpora_xml(filename)
 
 
-
 def _gram_structures(lemmas, links):
     """
     Returns compacted dictionary data.
@@ -273,7 +272,7 @@ def _gram_structures(lemmas, links):
         para = []
         for suff, tag, pref in paradigm:
             para.append(
-                (suffixes_dict[suff], tag, POSSIBLE_PREFIXES.index(pref))
+                (suffixes_dict[suff], tag, LEMMA_PREFIXES.index(pref))
             )
         return para
 
@@ -284,6 +283,13 @@ def _gram_structures(lemmas, links):
     words_dawg = WordsDawg(words)
 
     return tuple(gramtab), suffixes, paradigms, words_dawg
+
+
+def _prediction_prefixes_dawg():
+    """
+    Returns DAWG with PREDICTION_PREFIXES.
+    """
+    return dawg.DAWG(PREDICTION_PREFIXES)
 
 
 def to_pymorphy2_format(opencorpora_dict_path, out_path, overwrite=False):
@@ -307,10 +313,11 @@ def to_pymorphy2_format(opencorpora_dict_path, out_path, overwrite=False):
 
     # load & compile dictionary
     lemmas, links, version, revision = _load_json_or_xml_dict(opencorpora_dict_path)
-
     gramtab, suffixes, paradigms, words_dawg = _gram_structures(lemmas, links)
+
     meta = {
         'format_version': 1,
+        'pymorphy2_version': pymorphy2.__version__,
         'compiled_at': datetime.datetime.utcnow().isoformat(),
 
         'source': 'opencorpora.org',
@@ -345,9 +352,10 @@ def to_pymorphy2_format(opencorpora_dict_path, out_path, overwrite=False):
             para.tofile(f)
 
     words_dawg.save(_f('words.dawg'))
+    _prediction_prefixes_dawg().save(_f('prediction-prefixes.dawg'))
 
 
-DictTuple = collections.namedtuple('DictTuple', 'meta gramtab suffixes paradigms words')
+DictTuple = collections.namedtuple('DictTuple', 'meta gramtab suffixes paradigms words prediction_prefixes')
 
 def load(path):
     """
@@ -381,4 +389,5 @@ def load(path):
             paradigms.append(para)
 
     words = WordsDawg().load(_f('words.dawg'))
-    return DictTuple(meta, gramtab, suffixes, paradigms, words)
+    prediction_prefixes = dawg.DAWG().load(_f('prediction-prefixes.dawg'))
+    return DictTuple(meta, gramtab, suffixes, paradigms, words, prediction_prefixes)

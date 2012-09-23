@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 from __future__ import print_function, unicode_literals, division
 import os
-from . import opencorpora_dict
+from pymorphy2 import opencorpora_dict
+from pymorphy2.constants import LEMMA_PREFIXES, PREDICTION_PREFIXES
 
 class Morph(object):
 
@@ -28,6 +29,12 @@ class Morph(object):
         return cls(dct)
 
     def tag(self, word):
+        res = self._tag_as_known(word)
+        if not res:
+            res = self._tag_as_prefixed(word)
+        return res
+
+    def _tag_as_known(self, word):
         para_data = self._dictionary.words.similar_item_values(word, self._ee)
 
         # avoid extra attribute lookups
@@ -45,7 +52,29 @@ class Morph(object):
 
         return result
 
+    def _tag_as_prefixed(self, word):
+        word_prefixes = self._dictionary.prediction_prefixes.prefixes(word)
+        res = []
+        for pref in word_prefixes:
+            unprefixed_word = word[len(pref):]
+            res.extend(self.tag(unprefixed_word))
+        return res
+
     def normal_forms(self, word):
+        res = self._known_normal_forms(word)
+        if not res:
+            res = self._prefixed_normal_forms(word)
+        return res
+
+    def _prefixed_normal_forms(self, word):
+        word_prefixes = self._dictionary.prediction_prefixes.prefixes(word)
+        res = []
+        for pref in word_prefixes:
+            unprefixed_word = word[len(pref):]
+            res.extend([pref+w for w in self.normal_forms(unprefixed_word)])
+        return res
+
+    def _known_normal_forms(self, word):
         para_data = self._dictionary.words.similar_items(word, self._ee)
 
         # avoid extra attribute lookups
@@ -75,7 +104,7 @@ class Morph(object):
                 paradigm_len = len(paradigm) // 3
 
                 prefix_id = paradigm[paradigm_len*2 + idx]
-                prefix = opencorpora_dict.POSSIBLE_PREFIXES[prefix_id]
+                prefix = LEMMA_PREFIXES[prefix_id]
 
                 suffix_id = paradigm[idx]
                 suffix = suffixes[suffix_id]
@@ -85,7 +114,7 @@ class Morph(object):
                 normal_prefix_id = paradigm[paradigm_len*2 + 0]
                 normal_suffix_id = paradigm[0]
 
-                normal_prefix = opencorpora_dict.POSSIBLE_PREFIXES[normal_prefix_id]
+                normal_prefix = LEMMA_PREFIXES[normal_prefix_id]
                 normal_suffix = suffixes[normal_suffix_id]
 
                 normal_form = normal_prefix + stem + normal_suffix
@@ -94,3 +123,6 @@ class Morph(object):
                     seen_forms.add(normal_form)
                     result.append(normal_form)
         return result
+
+    def meta(self):
+        return self._dictionary.meta

@@ -52,7 +52,7 @@ TEST_DATA = [
     ('ДЕЙСТВИЕ', ['ДЕЙСТВИЕ']),
 ]
 
-PREDICTION_TEST_DATA = [
+PREFIX_PREDICTION_DATA = [
     ('ПСЕВДОКОШКА', ['ПСЕВДОКОШКА']),
     ('ПСЕВДОКОШКОЙ', ['ПСЕВДОКОШКА']),
 
@@ -63,7 +63,9 @@ PREDICTION_TEST_DATA = [
 
     ('МЕГАКОТУ', ['МЕГАКОТ']),
     ('МЕГАСВЕРХНАИСТАРЕЙШЕМУ', ['МЕГАСВЕРХСТАРЫЙ']),
+]
 
+PREDICTION_TEST_DATA = [
     ('ТРИЖДЫЧЕРЕЗПИЛЮЛЮОКНАМИ', ['ТРИЖДЫЧЕРЕЗПИЛЮЛЮОКНА']),
     ('РАЗКВАКАЛИСЬ',['РАЗКВАКАТЬСЯ']),
     ('КАШИВАРНЕЕ', ['КАШИВАРНЫЙ']),
@@ -90,3 +92,8 @@ def test_normal_forms(word, parse_result):
 @with_test_data(PREDICTION_TEST_DATA)
 def test_normal_forms_prediction(word, parse_result):
     assert morph.normal_forms(word) == parse_result
+
+@with_test_data(PREFIX_PREDICTION_DATA)
+def test_normal_forms_prefix_prediction(word, parse_result):
+    assert morph.normal_forms(word) == parse_result
+

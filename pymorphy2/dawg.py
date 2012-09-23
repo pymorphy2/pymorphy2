@@ -27,3 +27,4 @@ class WordsDawg(dawg.RecordDAWG):
             if not CAN_CREATE:
                 raise NotImplementedError("Creating of DAWGs with DAWG-Python is not supported; install 'dawg' package. ")
             super(WordsDawg, self).__init__(self.DATA_FORMAT, data)
+
