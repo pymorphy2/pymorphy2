@@ -66,14 +66,14 @@ PREFIX_PREDICTION_DATA = [
 ]
 
 PREDICTION_TEST_DATA = [
-    ('ТРИЖДЫЧЕРЕЗПИЛЮЛЮОКНАМИ', ['ТРИЖДЫЧЕРЕЗПИЛЮЛЮОКНА']),
-    ('РАЗКВАКАЛИСЬ',['РАЗКВАКАТЬСЯ']),
+    ('ТРИЖДЫЧЕРЕЗПИЛЮЛЮОКНАМИ', ['ТРИЖДЫЧЕРЕЗПИЛЮЛЮОКНО']),
+    ('РАЗКВАКАЛИСЬ', ['РАЗКВАКАТЬСЯ']),
     ('КАШИВАРНЕЕ', ['КАШИВАРНЫЙ']),
-    ('ДЕПЫРТАМЕНТОВ',['ДЕПЫРТАМЕНТ']),
-    ('ИЗМОХРАТИЛСЯ',['ИЗМОХРАТИТЬСЯ']),
+    ('ДЕПЫРТАМЕНТОВ', ['ДЕПЫРТАМЕНТ']),
+    ('ИЗМОХРАТИЛСЯ', ['ИЗМОХРАТИТЬСЯ']),
 
-    ('БУТЯВКОЙ',['БУТЯВКА']), # и никаких местоимений!
-    ('САПАЮТ',['САПАТЬ']), # и никаких местоимений!
+    ('БУТЯВКОЙ', ['БУТЯВКА', 'БУТЯВКОЙ']), # и никаких местоимений!
+    ('САПАЮТ', ['САПАТЬ']), # и никаких местоимений!
 ]
 
 morph = tagger.Morph.load()
@@ -84,16 +84,25 @@ def with_test_data(data):
         data
     )
 
-@with_test_data(TEST_DATA)
-def test_normal_forms(word, parse_result):
-    assert morph.normal_forms(word) == parse_result
+class TestNormalForms(object):
 
-@pytest.mark.xfail
-@with_test_data(PREDICTION_TEST_DATA)
-def test_normal_forms_prediction(word, parse_result):
-    assert morph.normal_forms(word) == parse_result
+    @with_test_data(TEST_DATA)
+    def test_normal_forms(self, word, parse_result):
+        assert morph.normal_forms(word) == parse_result
 
-@with_test_data(PREFIX_PREDICTION_DATA)
-def test_normal_forms_prefix_prediction(word, parse_result):
-    assert morph.normal_forms(word) == parse_result
+    @with_test_data(PREDICTION_TEST_DATA)
+    def test_normal_forms_prediction(self, word, parse_result):
+        assert morph.normal_forms(word) == parse_result
 
+    @with_test_data(PREFIX_PREDICTION_DATA)
+    def test_normal_forms_prefix_prediction(self, word, parse_result):
+        assert morph.normal_forms(word) == parse_result
+
+
+class TestTagWithPrefix(object):
+
+    def test_tag_with_unknown_prefix(self):
+        word = 'МЕГАКОТ'
+        parse1 = morph._tag_as_word_with_unknown_prefix(word)
+        parse2 = morph._tag_as_word_with_known_prefix(word)
+        assert parse1 == parse2

@@ -13,14 +13,21 @@ import json
 import itertools
 import array
 import struct
+import re
 
 try:
     import cPickle as pickle
 except ImportError:
     import pickle
 
+try:
+    izip = itertools.izip
+except AttributeError:
+    izip = zip
+
 import pymorphy2
-from pymorphy2.dawg import WordsDawg, dawg
+from pymorphy2 import tagset
+from pymorphy2.dawg import WordsDawg, PredictionSuffixesDAWG, dawg
 from pymorphy2.constants import LEMMA_PREFIXES, PREDICTION_PREFIXES
 
 logger = logging.getLogger(__name__)
@@ -210,11 +217,65 @@ def _load_json_or_xml_dict(filename):
         logger.info('parsing xml...')
         return _parse_opencorpora_xml(filename)
 
+def _suffixes_prediction_data(words, popularity, gramtab, paradigms,
+                              min_ending_freq=2, min_paradigm_popularity=3,
+                              max_forms_per_class=1):
 
-def _gram_structures(lemmas, links):
+    # XXX: this uses approach different from pymorphy 0.5.6;
+    # what are the implications on prediction quality?
+
+    #endings = collections.defaultdict(set)
+
+#    def _degenerate_paradigm(para_id):
+#        para = paradigms[para_id]
+#        para_len = len(para) // 3
+#        return not (any(para[:para_len]) or any(para[para_len*2:]))
+
+    productive_paradigms = set(
+        para_id
+        for (para_id, count) in popularity.items()
+        if count >= min_paradigm_popularity # and not _degenerate_paradigm(para_id)
+    )
+
+    ending_counts = collections.Counter()
+
+    endings = collections.defaultdict(lambda: collections.defaultdict(collections.Counter))
+
+    for word, (para_id, idx) in words:
+
+        if para_id not in productive_paradigms:
+            continue
+
+        paradigm = paradigms[para_id]
+        tag = gramtab[paradigm[len(paradigm) // 3 + idx]]
+        cls = tagset.get_POS(tag)
+
+        for i in 1,2,3,4,5:
+            word_end = word[-i:]
+            ending_counts[word_end] += 1
+            endings[word_end][cls][(para_id, idx)] += 1
+
+    counted_suffixes_dawg_data = []
+    for suff in endings:
+
+        if ending_counts[suff] < min_ending_freq:
+            continue
+
+        for cls in endings[suff]:
+            for form, cnt in endings[suff][cls].most_common(max_forms_per_class):
+                counted_suffixes_dawg_data.append(
+                    (suff, (cnt,)+ form)
+                )
+
+    return counted_suffixes_dawg_data
+
+
+
+def _gram_structures(lemmas, links, prediction_options=None):
     """
     Returns compacted dictionary data.
     """
+    prediction_options = prediction_options or {}
     gramtab = []
     paradigms = []
     words = []
@@ -226,7 +287,9 @@ def _gram_structures(lemmas, links):
     lemmas = _join_lemmas(lemmas, links)
 
     logger.info('building paradigms...')
-    logger.debug("%20s %15s %15s %15s %15s", "stem", "len(gramtab)", "len(words)", "len(paradigms)", "len(suffixes)")
+    logger.debug("%20s %15s %15s %15s", "stem", "len(gramtab)", "len(words)", "len(paradigms)")
+
+    popularity = collections.Counter()
 
     for index, lemma in enumerate(lemmas):
         stem, paradigm = _to_paradigm(lemma)
@@ -245,6 +308,7 @@ def _gram_structures(lemmas, links):
             )
 
         para_id = seen_paradigms[paradigm]
+        popularity[para_id] += 1
 
         for idx, (suff, tag, pref) in enumerate(paradigm):
             form = pref+stem+suff
@@ -253,13 +317,12 @@ def _gram_structures(lemmas, links):
             )
 
         if not (index % 10000):
-            logger.debug("%20s %15s %15s %15s %15s",
-                stem, len(gramtab), len(words), len(paradigms), 0)
+            logger.debug("%20s %15s %15s %15s", stem, len(gramtab), len(words), len(paradigms))
 
     logger.debug("linearizing paradigms..")
 
     def get_form(para):
-        return list(next(itertools.izip(*para)))
+        return list(next(izip(*para)))
 
     forms = [get_form(para) for para in paradigms]
     suffixes = sorted(list(set(list(itertools.chain(*forms)))))
@@ -279,20 +342,21 @@ def _gram_structures(lemmas, links):
     paradigms = (fix_strings(para) for para in paradigms)
     paradigms = [_linearized_paradigm(paradigm) for paradigm in paradigms]
 
-    logger.debug('building DAWGs..')
+    logger.debug('calculating prediction data..')
+    suffixes_dawg_data = _suffixes_prediction_data(words, popularity, gramtab, paradigms, **prediction_options)
+
+    logger.debug('building word DAWG..')
     words_dawg = WordsDawg(words)
 
-    return tuple(gramtab), suffixes, paradigms, words_dawg
+    del words
+
+    logger.debug('building prediction_suffixes DAWG..')
+    prediction_suffixes_dawg = PredictionSuffixesDAWG(suffixes_dawg_data)
+
+    return tuple(gramtab), suffixes, paradigms, words_dawg, prediction_suffixes_dawg
 
 
-def _prediction_prefixes_dawg():
-    """
-    Returns DAWG with PREDICTION_PREFIXES.
-    """
-    return dawg.DAWG(PREDICTION_PREFIXES)
-
-
-def to_pymorphy2_format(opencorpora_dict_path, out_path, overwrite=False):
+def to_pymorphy2_format(opencorpora_dict_path, out_path, overwrite=False, prediction_options=None):
     """
     Converts a dictionary from OpenCorpora xml format to
     Pymorphy2 compacted internal format.
@@ -313,31 +377,13 @@ def to_pymorphy2_format(opencorpora_dict_path, out_path, overwrite=False):
 
     # load & compile dictionary
     lemmas, links, version, revision = _load_json_or_xml_dict(opencorpora_dict_path)
-    gramtab, suffixes, paradigms, words_dawg = _gram_structures(lemmas, links)
-
-    meta = {
-        'format_version': 1,
-        'pymorphy2_version': pymorphy2.__version__,
-        'compiled_at': datetime.datetime.utcnow().isoformat(),
-
-        'source': 'opencorpora.org',
-        'source_version': version,
-        'source_revision': revision,
-        'source_lemmas_count': len(lemmas),
-        'source_links_count': len(links),
-
-        'gramtab_length': len(gramtab),
-        'gramtab_format': 'opencorpora-int',
-        'paradigms_length': len(paradigms),
-        'suffixes_length': len(suffixes),
-    }
-
-    _f = lambda path: os.path.join(out_path, path)
+    gramtab, suffixes, paradigms, words_dawg, prediction_suffixes_dawg = _gram_structures(
+        lemmas, links, prediction_options=prediction_options
+    )
+    prediction_prefixes_dawg = dawg.DAWG(PREDICTION_PREFIXES)
 
     logger.info("Saving...")
-
-    with codecs.open(_f('meta.json'), 'w', 'utf8') as f:
-        json.dump(meta, f, ensure_ascii=False, indent=4)
+    _f = lambda path: os.path.join(out_path, path)
 
     with codecs.open(_f('gramtab.json'), 'w', 'utf8') as f:
         json.dump(gramtab, f, ensure_ascii=False)
@@ -352,10 +398,47 @@ def to_pymorphy2_format(opencorpora_dict_path, out_path, overwrite=False):
             para.tofile(f)
 
     words_dawg.save(_f('words.dawg'))
-    _prediction_prefixes_dawg().save(_f('prediction-prefixes.dawg'))
+    prediction_suffixes_dawg.save(_f('prediction-suffixes.dawg'))
+    prediction_prefixes_dawg.save(_f('prediction-prefixes.dawg'))
+
+    logger.debug("computing metadata..")
+
+    def _dawg_len(dawg):
+        return sum(1 for k in dawg.iterkeys())
+
+    logger.debug('  words_dawg_len')
+    words_dawg_len = _dawg_len(words_dawg)
+    logger.debug('  prediction_suffixes_dawg_len')
+    prediction_suffixes_dawg_len = _dawg_len(prediction_suffixes_dawg)
+
+    meta = [
+        ['format_version', 1],
+        ['pymorphy2_version', pymorphy2.__version__],
+        ['compiled_at', datetime.datetime.utcnow().isoformat()],
+
+        ['source', 'opencorpora.org'],
+        ['source_version', version],
+        ['source_revision', revision],
+        ['source_lemmas_count', len(lemmas)],
+        ['source_links_count', len(links)],
+
+        ['gramtab_length', len(gramtab)],
+        ['gramtab_format', 'opencorpora-int'],
+        ['paradigms_length', len(paradigms)],
+        ['suffixes_length', len(suffixes)],
+
+        ['words_dawg_length', words_dawg_len],
+        ['prediction_suffixes_dawg_length', prediction_suffixes_dawg_len],
+        ['prediction_prefixes_dawg_length', len(PREDICTION_PREFIXES)],
+    ]
+
+    with codecs.open(_f('meta.json'), 'w', 'utf8') as f:
+        json.dump(meta, f, ensure_ascii=False, indent=4)
 
 
-DictTuple = collections.namedtuple('DictTuple', 'meta gramtab suffixes paradigms words prediction_prefixes')
+
+
+DictTuple = collections.namedtuple('DictTuple', 'meta gramtab suffixes paradigms words prediction_prefixes prediction_suffixes')
 
 def load(path):
     """
@@ -368,8 +451,12 @@ def load(path):
 
     with open(_f('meta.json'), 'r') as f:
         meta = json.load(f)
+        if hasattr(collections, 'OrderedDict'):
+            meta = collections.OrderedDict(meta)
+        else:
+            meta = dict(meta)
 
-    if meta['format_version'] != 1:
+    if meta.get('format_version', None) != 1:
         raise ValueError("This dictionary format is not supported")
 
     with open(_f('gramtab.json'), 'r') as f:
@@ -389,5 +476,6 @@ def load(path):
             paradigms.append(para)
 
     words = WordsDawg().load(_f('words.dawg'))
+    prediction_suffixes = PredictionSuffixesDAWG().load(_f('prediction-suffixes.dawg'))
     prediction_prefixes = dawg.DAWG().load(_f('prediction-prefixes.dawg'))
-    return DictTuple(meta, gramtab, suffixes, paradigms, words, prediction_prefixes)
+    return DictTuple(meta, gramtab, suffixes, paradigms, words, prediction_prefixes, prediction_suffixes)

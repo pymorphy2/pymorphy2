@@ -28,3 +28,11 @@ class WordsDawg(dawg.RecordDAWG):
                 raise NotImplementedError("Creating of DAWGs with DAWG-Python is not supported; install 'dawg' package. ")
             super(WordsDawg, self).__init__(self.DATA_FORMAT, data)
 
+class PredictionSuffixesDAWG(WordsDawg):
+    """
+    DAWG for storing prediction data.
+    """
+    # We are storing 3 unsigned short ints as values:
+    # count, the paradigm ID and the form index (inside paradigm).
+    # Byte order is big-endian (this makes word forms properly sorted).
+    DATA_FORMAT = str(">HHH")

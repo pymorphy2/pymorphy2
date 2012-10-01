@@ -66,7 +66,6 @@ class TestToParadigm(object):
             ],
         ]
         stem, forms = opencorpora_dict._to_paradigm(lemma)
-        print(stem, forms)
         assert stem == 'ЯРЧ'
 
     def test_multiple_prefixes_2(self):
@@ -76,7 +75,6 @@ class TestToParadigm(object):
             ["ПОПОДРОБНЕЕ", 3]
         ]
         stem, forms = opencorpora_dict._to_paradigm(lemma)
-        print(stem, forms)
         assert stem == 'ПОДРОБНЕ'
         assert forms == (
             ("ЙШИЙ", 1, ""),
