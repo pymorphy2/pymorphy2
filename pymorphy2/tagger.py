@@ -133,7 +133,7 @@ class Morph(object):
 
             total_cnt = 1 # smoothing; XXX: isn't max_cnt better?
             for fixed_suffix, parse in para_data:
-                for cnt, para_id, idx in reversed(parse):
+                for cnt, para_id, idx in parse:
 
                     tag = self._build_tag_info(para_id, idx)
 
@@ -153,9 +153,11 @@ class Morph(object):
                     result.append(parse)
 
             if total_cnt > 1:
+                # parses are sorted inside paradigms, but they are unsorted overall
+                sorted_parses = sorted(result, reverse=True)
                 result = [
                     (fixed_word, tag, normal_form, cnt/total_cnt * ESTIMATE_DECAY)
-                    for (fixed_word, tag, normal_form, cnt) in sorted(result, reverse=True)
+                    for (fixed_word, tag, normal_form, cnt) in sorted_parses
                 ]
                 break
 
@@ -180,10 +182,12 @@ class Morph(object):
         res = self._tag_as_known(word)
         if not res:
             res = self._tag_as_word_with_known_prefix(word)
+
         if not res:
-            res = self._tag_as_word_with_unknown_prefix(word)
-        if not res:
-            res = self._tag_as_word_with_known_suffix(word)
+            seen = set()
+            res = self._tag_as_word_with_unknown_prefix(word, seen)
+            res.extend(self._tag_as_word_with_known_suffix(word, seen))
+
         return res
 
     def _tag_as_known(self, word):
@@ -211,34 +215,66 @@ class Morph(object):
         word_prefixes = self._dictionary.prediction_prefixes.prefixes(word)
         for pref in word_prefixes:
             unprefixed_word = word[len(pref):]
-            res.extend(self.tag(unprefixed_word))
+
+            for tag in self.tag(unprefixed_word):
+                if get_POS(tag) in self._non_productive_classes:
+                    continue
+                res.append(tag)
+
         return res
 
-    def _tag_as_word_with_unknown_prefix(self, word):
+
+    def _tag_as_word_with_unknown_prefix(self, word, _seen_tags=None):
+        if _seen_tags is None:
+            _seen_tags = set()
+
         res = []
-        for _, truncated_word in _split_word(word):
-            res.extend(self._tag_as_known(truncated_word))
-            # XXX: remove non-productive classes?
+        for _, unprefixed_word in _split_word(word):
+            for tag in self._tag_as_known(unprefixed_word):
+
+                if get_POS(tag) in self._non_productive_classes:
+                    continue
+
+                if tag in _seen_tags:
+                    continue
+                _seen_tags.add(tag)
+
+                res.append(tag)
 
         return res
 
-    def _tag_as_word_with_known_suffix(self, word):
+
+    def _tag_as_word_with_known_suffix(self, word, _seen_tags=None):
+        if _seen_tags is None:
+            _seen_tags = set()
+
         result = []
         for i in 5,4,3,2,1:
             end = word[-i:]
             para_data = self._dictionary.prediction_suffixes.similar_item_values(end, self._ee)
 
+            found = False
             for parse in para_data:
                 for cnt, para_id, idx in parse:
+                    tag = self._build_tag_info(para_id, idx)
+                    if get_POS(tag) in self._non_productive_classes:
+                        continue
+
+                    found = True
+                    if tag in _seen_tags:
+                        continue
+
+                    _seen_tags.add(tag)
                     result.append(
-                        (cnt, self._build_tag_info(para_id, idx))
+                        (cnt, tag)
                     )
 
-            if result:
+            if found:
                 result = [tpl[1] for tpl in sorted(result, reverse=True)] # remove counts
                 break
 
         return result
+
 
     # ==== dictionary access utilities ===
 
