@@ -2,15 +2,19 @@
 from __future__ import absolute_import
 
 try:
-    import dawg
+    from dawg import DAWG, RecordDAWG
     CAN_CREATE = True
 
 except ImportError:
-    import dawg_python as dawg
+    from dawg_python import DAWG, RecordDAWG
     CAN_CREATE = False
 
+def assert_can_create():
+    if not CAN_CREATE:
+        raise NotImplementedError("Creating of DAWGs with DAWG-Python is not supported; install 'dawg' package. ")
 
-class WordsDawg(dawg.RecordDAWG):
+
+class WordsDawg(RecordDAWG):
     """
     DAWG for storing words.
     """
@@ -24,8 +28,7 @@ class WordsDawg(dawg.RecordDAWG):
         if data is None:
             super(WordsDawg, self).__init__(self.DATA_FORMAT)
         else:
-            if not CAN_CREATE:
-                raise NotImplementedError("Creating of DAWGs with DAWG-Python is not supported; install 'dawg' package. ")
+            assert_can_create()
             super(WordsDawg, self).__init__(self.DATA_FORMAT, data)
 
 class PredictionSuffixesDAWG(WordsDawg):

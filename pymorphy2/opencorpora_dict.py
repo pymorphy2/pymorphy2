@@ -27,7 +27,7 @@ except AttributeError:
 
 import pymorphy2
 from pymorphy2 import tagset
-from pymorphy2.dawg import WordsDawg, PredictionSuffixesDAWG, dawg
+from pymorphy2 import dawg
 from pymorphy2.constants import LEMMA_PREFIXES, PREDICTION_PREFIXES
 
 logger = logging.getLogger(__name__)
@@ -338,12 +338,12 @@ def _gram_structures(lemmas, links, prediction_options=None):
     suffixes_dawg_data = _suffixes_prediction_data(words, popularity, gramtab, paradigms, **prediction_options)
 
     logger.debug('building word DAWG..')
-    words_dawg = WordsDawg(words)
+    words_dawg = dawg.WordsDawg(words)
 
     del words
 
     logger.debug('building prediction_suffixes DAWG..')
-    prediction_suffixes_dawg = PredictionSuffixesDAWG(suffixes_dawg_data)
+    prediction_suffixes_dawg = dawg.PredictionSuffixesDAWG(suffixes_dawg_data)
 
     return tuple(gramtab), suffixes, paradigms, words_dawg, prediction_suffixes_dawg
 
@@ -355,6 +355,7 @@ def to_pymorphy2_format(opencorpora_dict_path, out_path, overwrite=False, predic
 
     ``out_path`` should be a name of folder where to put dictionaries.
     """
+    dawg.assert_can_create()
 
     # create the output folder
     try:
@@ -467,7 +468,7 @@ def load(path):
             para.fromfile(f, paradigm_len)
             paradigms.append(para)
 
-    words = WordsDawg().load(_f('words.dawg'))
-    prediction_suffixes = PredictionSuffixesDAWG().load(_f('prediction-suffixes.dawg'))
+    words = dawg.WordsDawg().load(_f('words.dawg'))
+    prediction_suffixes = dawg.PredictionSuffixesDAWG().load(_f('prediction-suffixes.dawg'))
     prediction_prefixes = dawg.DAWG().load(_f('prediction-prefixes.dawg'))
     return DictTuple(meta, gramtab, suffixes, paradigms, words, prediction_prefixes, prediction_suffixes)
