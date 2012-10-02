@@ -40,7 +40,6 @@ def _parse_opencorpora_xml(filename):
         (lemmas_list, links, version, revision)
 
     """
-
     from lxml import etree
 
     links = []
@@ -224,17 +223,10 @@ def _suffixes_prediction_data(words, popularity, gramtab, paradigms,
     # XXX: this uses approach different from pymorphy 0.5.6;
     # what are the implications on prediction quality?
 
-    #endings = collections.defaultdict(set)
-
-#    def _degenerate_paradigm(para_id):
-#        para = paradigms[para_id]
-#        para_len = len(para) // 3
-#        return not (any(para[:para_len]) or any(para[para_len*2:]))
-
     productive_paradigms = set(
         para_id
         for (para_id, count) in popularity.items()
-        if count >= min_paradigm_popularity # and not _degenerate_paradigm(para_id)
+        if count >= min_paradigm_popularity
     )
 
     ending_counts = collections.Counter()

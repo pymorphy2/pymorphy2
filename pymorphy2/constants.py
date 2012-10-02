@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, unicode_literals
 
-LEMMA_PREFIXES = ["", 'ПО', 'НАИ']
+LEMMA_PREFIXES = ["", "ПО", "НАИ"]
 
 PREDICTION_PREFIXES = [
     "АНТИ",
@@ -60,19 +60,6 @@ PREDICTION_PREFIXES = [
     "ЭКСТРА"
 ]
 
-
-#NON_PRODUCTIVE_CLASSES = {
-#    'opencorpora_int': set(['NPRO', 'PRED', 'PREP', 'CONJ', 'PRCL', 'INTJ'])
-#}
-#
-#PRODUCTIVE_CLASSES_AOT = { # productive classes as described at aot.ru
-#    'opencorpora_int': set(['NOUN', 'VERB', 'INFN', 'ADJF', 'ADJS', 'COMP', 'ADVB'])
-#}
-
-#NOUNS = ('NOUN', 'С',)
-#PRONOUNS = ('PN', 'МС',)
-#PRONOUNS_ADJ = ('PN_ADJ', 'МС-П',)
-#VERBS = ('Г', 'VERB',  'ИНФИНИТИВ',)
-#ADJECTIVE = ('ADJECTIVE', 'П',)
-#
-#PRODUCTIVE_CLASSES = NOUNS + VERBS + ADJECTIVE + ('Н',)
+NON_PRODUCTIVE_CLASSES = {
+    'opencorpora-int': set(['NUMR', 'NPRO', 'PRED', 'PREP', 'CONJ', 'PRCL', 'INTJ'])
+}
