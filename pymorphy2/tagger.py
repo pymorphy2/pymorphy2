@@ -35,7 +35,7 @@ class Morph(object):
 
     def parse(self, word):
         """
-        Returns a list of (fixed_word, tag, normal_form) tuples.
+        Returns a list of (fixed_word, tag, normal_form, _estimate) tuples.
         """
         res = self._parse_as_known(word)
         if not res:

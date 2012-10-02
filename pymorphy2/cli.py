@@ -62,7 +62,6 @@ def show_dict_meta(dict_path):
 def make_test_suite(dict_filename, out_filename, word_limit=100):
     """
     Makes a test suite from OpenCorpora dictionary.
-    FIXME: it doesn't work!
     """
     return test_suite_generator.make_test_suite(
         dict_filename, out_filename, word_limit=int(word_limit))
