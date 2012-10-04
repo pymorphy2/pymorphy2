@@ -5,6 +5,7 @@ import logging
 import time
 import sys
 import pprint
+import codecs
 
 import pymorphy2
 from pymorphy2 import opencorpora_dict, test_suite_generator
@@ -84,6 +85,18 @@ def download_xml(out_filename, verbose):
 
     logger.info('\nDone.')
 
+def _parse(dict_path, in_filename, out_filename):
+    from pymorphy2 import tagger
+    morph = pymorphy2.tagger.Morph.load(dict_path)
+
+    with codecs.open(in_filename, 'r', 'utf8') as in_file:
+        with codecs.open(out_filename, 'w', 'utf8') as out_file:
+            for line in in_file:
+                word = line.strip()
+                parses = morph.parse(word)
+                parse_str = "|".join([p[1] for p in parses])
+                out_file.write(word + ": " +parse_str + "\n")
+
 
 # =============================================================================
 
@@ -96,9 +109,10 @@ Usage:
     pymorphy dict xml2json <IN_XML_FILE> <OUT_JSON_FILE> [--verbose]
     pymorphy dict download [--verbose]
     pymorphy dict download_xml <OUT_FILE> [--verbose]
-    pymorphy dict mem_usage [<PATH>] [--verbose]
+    pymorphy dict mem_usage [--dict <PATH>] [--verbose]
     pymorphy dict make_test_suite <IN_FILE> <OUT_FILE> [--limit <NUM>] [--verbose]
-    pymorphy dict meta [<PATH>]
+    pymorphy dict meta [--dict <PATH>]
+    pymorphy _parse <IN_FILE> <OUT_FILE> [--dict <PATH>] [--verbose]
     pymorphy -h | --help
     pymorphy --version
 
@@ -110,7 +124,7 @@ Options:
     --min_ending_freq <NUM>             Prediction: min. number of suffix occurances [default: 2]
     --min_paradigm_popularity <NUM>     Prediction: min. number of lemmas for the paradigm [default: 3]
     --max_forms_per_class <NUM>         Prediction: max. number of word forms per part of speech [default: 1]
-    <PATH>                              Dictionary folder path [default: dict]
+    --dict <PATH>                       Dictionary folder path [default: dict]
 
 """
 
@@ -125,7 +139,10 @@ def main():
     else:
         logger.setLevel(logging.INFO)
 
-    if args['dict']:
+    if args['_parse']:
+        return _parse(args['--dict'], args['<IN_FILE>'], args['<OUT_FILE>'])
+
+    elif args['dict']:
         if args['compile']:
             prediction_options = dict(
                 (key, int(args['--'+key]))
@@ -135,9 +152,9 @@ def main():
         elif args['xml2json']:
             return xml_to_json(args['<IN_XML_FILE>'], args['<OUT_JSON_FILE>'])
         elif args['mem_usage']:
-            return show_dict_mem_usage(args['<PATH>'] or 'dict', args['--verbose'])
+            return show_dict_mem_usage(args['--dict'] or 'dict', args['--verbose'])
         elif args['meta']:
-            return show_dict_meta(args['<PATH>'] or 'dict')
+            return show_dict_meta(args['--dict'] or 'dict')
         elif args['make_test_suite']:
             return make_test_suite(args['<IN_FILE>'], args['<OUT_FILE>'], int(args['--limit']))
         elif args['download_xml']:
