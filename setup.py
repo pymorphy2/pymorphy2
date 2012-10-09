@@ -32,7 +32,7 @@ setup(
 #    ext_modules = [Extension("pymorphy2.tagger", ["pymorphy2/tagger.py"])],
 
     classifiers=[
-          'Development Status :: 1 - Planning',
+          'Development Status :: 2 - Pre-Alpha',
           'Intended Audience :: Developers',
           'Intended Audience :: Science/Research',
           'License :: OSI Approved :: MIT License',

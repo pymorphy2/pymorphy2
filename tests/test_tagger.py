@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, unicode_literals
 import pytest
-from pymorphy2 import tagger, tagset
+from pymorphy2 import tagger
 
 morph = tagger.Morph.load()
 
@@ -109,7 +109,7 @@ class TestNormalForms(object):
 class TestTagMethod(object):
 
     def _tagged_as(self, parse, cls):
-        return any(tagset.get_POS(p)==cls for p in parse)
+        return any(tag.get_class()==cls for tag in parse)
 
     def assertNotTaggedAs(self, word, cls):
         parse = morph.tag(word)
@@ -138,11 +138,11 @@ class TestTagMethod(object):
 class TestParse(object):
 
     def _parsed_as(self, parse, cls):
-        return any(tagset.get_POS(p[1])==cls for p in parse)
+        return any(p[1].get_class()==cls for p in parse)
 
     def _parse_cls_first_index(self, parse, cls):
         for idx, p in enumerate(parse):
-            if tagset.get_POS(p[1]) == cls:
+            if p[1].get_class() == cls:
                 return idx
 
     def assertNotParsedAs(self, word, cls):

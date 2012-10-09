@@ -431,7 +431,7 @@ def to_pymorphy2_format(opencorpora_dict_path, out_path, overwrite=False, predic
 
 
 
-DictTuple = collections.namedtuple('DictTuple', 'meta gramtab suffixes paradigms words prediction_prefixes prediction_suffixes')
+DictTuple = collections.namedtuple('DictTuple', 'meta gramtab suffixes paradigms words prediction_prefixes prediction_suffixes Tag')
 
 def load(path):
     """
@@ -449,11 +449,18 @@ def load(path):
         else:
             meta = dict(meta)
 
-    if meta.get('format_version', None) != 1:
-        raise ValueError("This dictionary format is not supported")
+    format_version = meta.get('format_version', None)
+    if format_version != 1:
+        raise ValueError("This dictionary format ('%s') is not supported." % format_version)
+
+    gramtab_format = meta.get('gramtab_format', None)
+    if gramtab_format not in tagset.registry:
+        raise ValueError("This gramtab format ('%s') is unsupported." % gramtab_format)
+
+    Tag = tagset.registry[gramtab_format]
 
     with open(_f('gramtab.json'), 'r') as f:
-        gramtab = json.load(f)
+        gramtab = [Tag(tag_str) for tag_str in json.load(f)]
 
     with open(_f('suffixes.json'), 'r') as f:
         suffixes = json.load(f)
@@ -471,4 +478,4 @@ def load(path):
     words = dawg.WordsDawg().load(_f('words.dawg'))
     prediction_suffixes = dawg.PredictionSuffixesDAWG().load(_f('prediction-suffixes.dawg'))
     prediction_prefixes = dawg.DAWG().load(_f('prediction-prefixes.dawg'))
-    return DictTuple(meta, gramtab, suffixes, paradigms, words, prediction_prefixes, prediction_suffixes)
+    return DictTuple(meta, gramtab, suffixes, paradigms, words, prediction_prefixes, prediction_suffixes, Tag)

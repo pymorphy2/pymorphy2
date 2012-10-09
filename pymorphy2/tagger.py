@@ -4,9 +4,8 @@ import os
 import collections
 from pymorphy2 import opencorpora_dict
 from pymorphy2.constants import LEMMA_PREFIXES, NON_PRODUCTIVE_CLASSES
-from pymorphy2.tagset import get_POS
 
-#ParseResult = collections.namedtuple('ParseResult', 'fixed_word tag normal_form estimate')
+#ParseResult = collections.namedtuple('ParseResult', 'fixed_word tag normal_form para_id form_idx estimate')
 
 class Morph(object):
 
@@ -52,11 +51,10 @@ class Morph(object):
         """
         res = []
         para_normal_forms = {}
-
         para_data = self._dictionary.words.similar_items(word, self._ee)
 
-        for fixed_word, parse in para_data: # fixed_word is a word with proper Ё letters
-            for para_id, idx in parse:
+        for fixed_word, parses in para_data: # fixed_word is a word with proper Ё letters
+            for para_id, idx in parses:
 
                 if para_id not in para_normal_forms:
                     normal_form = self._build_normal_form(para_id, idx, fixed_word)
@@ -67,7 +65,7 @@ class Morph(object):
                 tag = self._build_tag_info(para_id, idx)
 
                 res.append(
-                    (fixed_word, tag, normal_form, 1.0)
+                    (fixed_word, tag, normal_form, para_id, idx, 1.0)
                 )
 
         return res
@@ -83,11 +81,12 @@ class Morph(object):
         for prefix in word_prefixes:
             unprefixed_word = word[len(prefix):]
 
-            for fixed_word, tag, normal_form, estimate in self.parse(unprefixed_word):
-                if get_POS(tag) in self._non_productive_classes:
+            for fixed_word, tag, normal_form, para_id, idx, estimate in self.parse(unprefixed_word):
+
+                if not tag.is_productive():
                     continue
 
-                parse = (prefix+fixed_word, tag, prefix+normal_form, estimate*ESTIMATE_DECAY)
+                parse = (prefix+fixed_word, tag, prefix+normal_form, para_id, idx, estimate*ESTIMATE_DECAY)
                 res.append(parse)
 
         return res
@@ -102,12 +101,12 @@ class Morph(object):
         res = []
         ESTIMATE_DECAY = 0.5
         for prefix, unprefixed_word in _split_word(word):
-            for fixed_word, tag, normal_form, estimate in self._parse_as_known(unprefixed_word):
+            for fixed_word, tag, normal_form, para_id, idx, estimate in self._parse_as_known(unprefixed_word):
 
-                if get_POS(tag) in self._non_productive_classes:
+                if not tag.is_productive():
                     continue
 
-                parse = (prefix+fixed_word, tag, prefix+normal_form, estimate*ESTIMATE_DECAY)
+                parse = (prefix+fixed_word, tag, prefix+normal_form, para_id, idx, estimate*ESTIMATE_DECAY)
 
                 reduced_parse = parse[:3]
                 if reduced_parse in _seen_parses:
@@ -132,12 +131,12 @@ class Morph(object):
             para_data = self._dictionary.prediction_suffixes.similar_items(end, self._ee)
 
             total_cnt = 1 # smoothing; XXX: isn't max_cnt better?
-            for fixed_suffix, parse in para_data:
-                for cnt, para_id, idx in parse:
+            for fixed_suffix, parses in para_data:
+                for cnt, para_id, idx in parses:
 
                     tag = self._build_tag_info(para_id, idx)
 
-                    if get_POS(tag) in self._non_productive_classes:
+                    if not tag.is_productive():
                         continue
 
                     total_cnt += cnt
@@ -145,8 +144,8 @@ class Morph(object):
                     fixed_word = word[:-i] + fixed_suffix
                     normal_form = self._build_normal_form(para_id, idx, fixed_word)
 
-                    parse = (fixed_word, tag, normal_form, cnt)
-                    reduced_parse = parse[:3]
+                    parse = (cnt, fixed_word, tag, normal_form, para_id, idx)
+                    reduced_parse = parse[1:4]
                     if reduced_parse in _seen_parses:
                         continue
 
@@ -156,8 +155,8 @@ class Morph(object):
                 # parses are sorted inside paradigms, but they are unsorted overall
                 sorted_parses = sorted(result, reverse=True)
                 result = [
-                    (fixed_word, tag, normal_form, cnt/total_cnt * ESTIMATE_DECAY)
-                    for (fixed_word, tag, normal_form, cnt) in sorted_parses
+                    (fixed_word, tag, normal_form, para_id, idx, cnt/total_cnt * ESTIMATE_DECAY)
+                    for (cnt, fixed_word, tag, normal_form, para_id, idx) in sorted_parses
                 ]
                 break
 
@@ -169,7 +168,7 @@ class Morph(object):
         """
         seen = set()
         result = []
-        for fixed_word, tag, normal_form, estimate in self.parse(word):
+        for fixed_word, tag, normal_form, para_id, idx, estimate in self.parse(word):
             if normal_form not in seen:
                 result.append(normal_form)
                 seen.add(normal_form)
@@ -217,7 +216,7 @@ class Morph(object):
             unprefixed_word = word[len(pref):]
 
             for tag in self.tag(unprefixed_word):
-                if get_POS(tag) in self._non_productive_classes:
+                if not tag.is_productive():
                     continue
                 res.append(tag)
 
@@ -232,7 +231,7 @@ class Morph(object):
         for _, unprefixed_word in _split_word(word):
             for tag in self._tag_as_known(unprefixed_word):
 
-                if get_POS(tag) in self._non_productive_classes:
+                if not tag.is_productive():
                     continue
 
                 if tag in _seen_tags:
@@ -257,7 +256,8 @@ class Morph(object):
             for parse in para_data:
                 for cnt, para_id, idx in parse:
                     tag = self._build_tag_info(para_id, idx)
-                    if get_POS(tag) in self._non_productive_classes:
+
+                    if not tag.is_productive():
                         continue
 
                     found = True
@@ -270,7 +270,8 @@ class Morph(object):
                     )
 
             if found:
-                result = [tpl[1] for tpl in sorted(result, reverse=True)] # remove counts
+                sorted_result = sorted(result, reverse=True)
+                result = [tpl[1] for tpl in sorted_result] # remove counts
                 break
 
         return result
@@ -318,36 +319,46 @@ class Morph(object):
         if idx == 0: # a shortcut: normal form is a word itself
             return fixed_word
 
-        paradigms = self._dictionary.paradigms
-        suffixes = self._dictionary.suffixes
+        paradigm = self._dictionary.paradigms[para_id]
+        paradigm_len = len(paradigm) // 3
 
-        paradigm = paradigms[para_id]
+        stem = self._build_stem(paradigm, idx, fixed_word)
+
+        normal_prefix_id = paradigm[paradigm_len*2 + 0]
+        normal_suffix_id = paradigm[0]
+
+        normal_prefix = LEMMA_PREFIXES[normal_prefix_id]
+        normal_suffix = self._dictionary.suffixes[normal_suffix_id]
+
+        return normal_prefix + stem + normal_suffix
+
+
+    def _build_stem(self, paradigm, idx, fixed_word):
+        """
+        Returns word stem (given a word, paradigm and the word index).
+        """
         paradigm_len = len(paradigm) // 3
 
         prefix_id = paradigm[paradigm_len*2 + idx]
         prefix = LEMMA_PREFIXES[prefix_id]
 
         suffix_id = paradigm[idx]
-        suffix = suffixes[suffix_id]
+        suffix = self._dictionary.suffixes[suffix_id]
 
-        if len(suffix):
-            stem = fixed_word[len(prefix):-len(suffix)]
+        if suffix:
+            return fixed_word[len(prefix):-len(suffix)]
         else:
-            stem = fixed_word[len(prefix):]
+            return fixed_word[len(prefix):]
 
-        normal_prefix_id = paradigm[paradigm_len*2 + 0]
-        normal_suffix_id = paradigm[0]
-
-        normal_prefix = LEMMA_PREFIXES[normal_prefix_id]
-        normal_suffix = suffixes[normal_suffix_id]
-
-        return normal_prefix + stem + normal_suffix
 
 
     # ====== misc =========
 
     def meta(self):
         return self._dictionary.meta
+
+    def tag_class(self):
+        return self._dictionary.Tag
 
 
 def _split_word(word, min_reminder=3, max_prefix_length=5):
