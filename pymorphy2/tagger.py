@@ -276,6 +276,41 @@ class Morph(object):
 
         return result
 
+    # ==== inflection ========
+
+    def decline(self, word, required_tags=None):
+        """
+        Returns parses for all possible word forms.
+
+        XXX: performance is not good.
+        """
+
+        required_tags = set(required_tags or [])
+
+        paradigms = self._dictionary.paradigms
+        seen_paradigms = set()
+        result = []
+
+        for fixed_word, tag, normal_form, para_id, idx, estimate in self.parse(word):
+            if para_id in seen_paradigms:
+                continue
+            seen_paradigms.add(para_id)
+
+            stem = self._build_stem(paradigms[para_id], idx, fixed_word)
+
+            for index, (_prefix, _tag, _suffix) in enumerate(self._build_paradigm_info(para_id)):
+                word = _prefix + stem + _suffix
+
+                tag_parts = set(_tag.parts())
+                if tag_parts.issuperset(required_tags):
+                    # XXX: what to do with estimate?
+                    # XXX: do we need all info?
+                    result.append(
+                        (word, _tag, normal_form, para_id, index, estimate)
+                    )
+
+        return result
+
 
     # ==== dictionary access utilities ===
 
