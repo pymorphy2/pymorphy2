@@ -10,7 +10,7 @@ SUITE_PATH = os.path.join(
     os.path.dirname(__file__),
     '..',
     'dev_data',
-    'suite-ee.txt'
+    'suite.txt'
 )
 
 morph = tagger.Morph.load()
