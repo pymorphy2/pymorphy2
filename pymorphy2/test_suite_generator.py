@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
-from __future__ import absolute_import
+from __future__ import absolute_import, unicode_literals
 import logging
 import collections
 import itertools
 import copy
+import re
 
 from pymorphy2.opencorpora_dict import _load_json_or_xml_dict
 

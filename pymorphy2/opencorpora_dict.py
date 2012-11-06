@@ -240,7 +240,7 @@ def _suffixes_prediction_data(words, popularity, gramtab, paradigms,
 
         paradigm = paradigms[para_id]
         tag = gramtab[paradigm[len(paradigm) // 3 + idx]]
-        cls = tagset.get_POS(tag)
+        cls = tuple(tag.replace(' ', ',', 1).split(','))[0]
 
         for i in 1,2,3,4,5:
             word_end = word[-i:]
