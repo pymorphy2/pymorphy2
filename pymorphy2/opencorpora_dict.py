@@ -60,9 +60,13 @@ def _parse_opencorpora_xml(filename):
             _clear(elem)
 
         if elem.tag == 'lemma':
-            lemmas.append(
-                _lemma_list_from_xml_elem(elem)
-            )
+            lemma_id, lemma_forms = _lemma_forms_from_xml_elem(elem)
+            lemmas.append(lemma_forms)
+
+            # lemma_id is needed for sanity check:
+            # ``_join_lemmas`` assumes that the index of lemma == lemma_id
+            assert int(lemma_id) == len(lemmas), (lemma_id, len(lemmas))
+
             _clear(elem)
 
         elif elem.tag == 'link':
@@ -76,7 +80,7 @@ def _parse_opencorpora_xml(filename):
 
     return lemmas, links, version, revision
 
-def _lemma_list_from_xml_elem(elem):
+def _lemma_forms_from_xml_elem(elem):
     """
     Returns a list of (word, tags) pairs given an XML element with lemma.
     """
@@ -84,8 +88,13 @@ def _lemma_list_from_xml_elem(elem):
         return ",".join(g.get('v') for g in elem.findall('g'))
 
     lemma = []
+    lemma_id = elem.get('id')
+
+    if len(elem) == 0: # deleted lemma
+        return lemma_id, lemma
 
     base_info = elem.findall('l')
+
     assert len(base_info) == 1
     base_tags = _tags(base_info[0])
 
@@ -96,7 +105,7 @@ def _lemma_list_from_xml_elem(elem):
             (form, " ".join([base_tags, tags]).strip())
         )
 
-    return lemma
+    return lemma_id, lemma
 
 def _longest_common_substring(data):
     """
@@ -311,6 +320,7 @@ def _gram_structures(lemmas, links, prediction_options=None):
         if not (index % 10000):
             logger.debug("%20s %15s %15s %15s", stem, len(gramtab), len(words), len(paradigms))
 
+    logger.debug("%20s %15s %15s %15s", "total:", len(gramtab), len(words), len(paradigms))
     logger.debug("linearizing paradigms..")
 
     def get_form(para):
