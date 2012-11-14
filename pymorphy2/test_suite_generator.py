@@ -5,25 +5,19 @@ import collections
 import itertools
 import copy
 import re
+import codecs
 
 from pymorphy2.opencorpora_dict import _load_json_or_xml_dict
 
 logger = logging.getLogger(__name__)
 
 
-def _get_word_parses(filename):
+def _get_word_parses(lemmas):
     word_parses = collections.defaultdict(list) # word -> possible tags
-
-    lemmas, links, version, revision = _load_json_or_xml_dict(filename)
-
-    logger.debug("%10s %20s", "lemma #", "result size")
 
     for index, lemma in enumerate(lemmas):
         for word, tag in lemma:
             word_parses[word].append(tag)
-
-        if not index % 10000:
-            logger.debug('%10s %20s', index, len(word_parses))
 
     return word_parses
 
@@ -73,11 +67,12 @@ def _get_test_suite(word_parses, word_limit=100):
     return result
 
 
-def _save_test_suite(path, suite):
-    with open(path, 'wb') as f:
+def _save_test_suite(path, suite, revision):
+    with codecs.open(path, 'w', 'utf8') as f:
+        f.write("%s\n" % revision)
         for word, parses in suite:
             txt = "|".join([word]+parses) +'\n'
-            f.write(txt.encode('utf8'))
+            f.write(txt)
 
 
 def make_test_suite(opencorpora_dict_path, out_path, word_limit=100):
@@ -86,9 +81,12 @@ def make_test_suite(opencorpora_dict_path, out_path, word_limit=100):
     ``word_limit`` words for each distinct gram. tag) and saves it to a file.
     """
     logger.debug('loading dictionary to memory...')
-    parses = _get_word_parses(opencorpora_dict_path)
-    logger.debug('dictionary size: %d', len(parses))
+    lemmas, links, version, revision = _load_json_or_xml_dict(opencorpora_dict_path)
 
+    logger.debug('preparing...')
+    parses = _get_word_parses(lemmas)
+
+    logger.debug('dictionary size: %d', len(parses))
 
     logger.debug('handling umlauts...')
     parses = _add_ee_parses(parses)
@@ -100,4 +98,4 @@ def make_test_suite(opencorpora_dict_path, out_path, word_limit=100):
     logger.debug('test suite size: %d', len(suite))
 
     logger.debug('saving...')
-    _save_test_suite(out_path, suite)
+    _save_test_suite(out_path, suite, revision)
