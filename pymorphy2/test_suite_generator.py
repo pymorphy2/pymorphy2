@@ -15,7 +15,8 @@ logger = logging.getLogger(__name__)
 def _get_word_parses(lemmas):
     word_parses = collections.defaultdict(list) # word -> possible tags
 
-    for index, lemma in enumerate(lemmas):
+    for index, lemma_id in enumerate(lemmas):
+        lemma = lemmas[lemma_id]
         for word, tag in lemma:
             word_parses[word].append(tag)
 

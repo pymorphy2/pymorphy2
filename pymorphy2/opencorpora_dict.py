@@ -43,7 +43,7 @@ def _parse_opencorpora_xml(filename):
     from lxml import etree
 
     links = []
-    lemmas = []
+    lemmas = {}
     version, revision = None, None
 
     def _clear(elem):
@@ -61,11 +61,7 @@ def _parse_opencorpora_xml(filename):
 
         if elem.tag == 'lemma':
             lemma_id, lemma_forms = _lemma_forms_from_xml_elem(elem)
-            lemmas.append(lemma_forms)
-
-            # lemma_id is needed for sanity check:
-            # ``_join_lemmas`` assumes that the index of lemma == lemma_id
-            assert int(lemma_id) == len(lemmas), (lemma_id, len(lemmas))
+            lemmas[lemma_id] = lemma_forms
 
             _clear(elem)
 
@@ -88,7 +84,7 @@ def _lemma_forms_from_xml_elem(elem):
         return ",".join(g.get('v') for g in elem.findall('g'))
 
     lemma = []
-    lemma_id = elem.get('id')
+    lemma_id = int(elem.get('id'))
 
     if len(elem) == 0: # deleted lemma
         return lemma_id, lemma
@@ -192,12 +188,12 @@ def _join_lemmas(lemmas, links):
     moves = dict()
 
     def move_lemma(from_id, to_id):
-        lm = lemmas[from_id]
+        lm = lemmas[str(from_id)]
 
         while to_id in moves:
             to_id = moves[to_id]
 
-        lemmas[to_id].extend(lm)
+        lemmas[str(to_id)].extend(lm)
         del lm[:]
         moves[from_id] = to_id
 
@@ -209,9 +205,10 @@ def _join_lemmas(lemmas, links):
 #        if type_id not in ALLOWED_LINK_TYPES:
 #            continue
 
-        move_lemma(link_end-1, link_start-1)
+        move_lemma(link_end, link_start)
 
-    return [lm for lm in lemmas if lm]
+    lemma_ids = sorted(lemmas.keys(), key=int)
+    return [lemmas[lemma_id] for lemma_id in lemma_ids if lemmas[lemma_id]]
 
 
 def _linearized_paradigm(paradigm):
