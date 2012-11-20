@@ -44,9 +44,15 @@ def bench_tag(morph, words, total_usages):
         for word, cnt in word_no_umlauts:
             morph.tag(word)
 
+    def _run_str():
+        for word, cnt in words:
+            str(morph.tag(word))
+
+
     logger.info("    tagger.tag: %0.0f words/sec (with freq. info)", utils.measure(_run, total_usages))
     logger.info("    tagger.tag: %0.0f words/sec (without freq. info)", utils.measure(_run_nofreq, len(words)))
-    logger.info("    tagger.tag: %0.0f words/sec (without freq. info, input umlauts removed)", utils.measure(_run_no_umlauts, len(words)))
+    logger.info("    tagger.tag: %0.0f words/sec (without freq. info, umlauts removed from input)", utils.measure(_run_no_umlauts, len(words)))
+    logger.info("    tagger.tag: %0.0f words/sec (without freq. info, str(tag) called)", utils.measure(_run_str, len(words)))
 
 
 def bench_parse(morph, words, total_usages):
