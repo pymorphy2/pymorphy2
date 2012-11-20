@@ -82,7 +82,7 @@ def make_test_suite(opencorpora_dict_path, out_path, word_limit=100):
     ``word_limit`` words for each distinct gram. tag) and saves it to a file.
     """
     logger.debug('loading dictionary to memory...')
-    lemmas, links, version, revision = _load_json_or_xml_dict(opencorpora_dict_path)
+    lemmas, links, grammemes, version, revision = _load_json_or_xml_dict(opencorpora_dict_path)
 
     logger.debug('preparing...')
     parses = _get_word_parses(lemmas)

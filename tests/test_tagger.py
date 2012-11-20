@@ -109,7 +109,7 @@ class TestNormalForms(object):
 class TestTagMethod(object):
 
     def _tagged_as(self, parse, cls):
-        return any(tag.get_class()==cls for tag in parse)
+        return any(tag.cls==cls for tag in parse)
 
     def assertNotTaggedAs(self, word, cls):
         parse = morph.tag(word)
@@ -138,11 +138,11 @@ class TestTagMethod(object):
 class TestParse(object):
 
     def _parsed_as(self, parse, cls):
-        return any(p[1].get_class()==cls for p in parse)
+        return any(p[1].cls==cls for p in parse)
 
     def _parse_cls_first_index(self, parse, cls):
         for idx, p in enumerate(parse):
-            if p[1].get_class() == cls:
+            if p[1].cls == cls:
                 return idx
 
     def assertNotParsedAs(self, word, cls):

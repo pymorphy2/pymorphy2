@@ -13,7 +13,6 @@ import json
 import itertools
 import array
 import struct
-import re
 
 try:
     import cPickle as pickle
@@ -37,13 +36,14 @@ def _parse_opencorpora_xml(filename):
     """
     Parses OpenCorpora dict XML and returns a tuple
 
-        (lemmas_list, links, version, revision)
+        (lemmas_list, links, grammemes, version, revision)
 
     """
     from lxml import etree
 
     links = []
     lemmas = {}
+    grammemes = []
     version, revision = None, None
 
     def _clear(elem):
@@ -53,6 +53,11 @@ def _parse_opencorpora_xml(filename):
 
 
     for ev, elem in etree.iterparse(filename):
+
+        if elem.tag == 'grammeme':
+            grammeme = elem.text
+            parent = elem.get('parent')
+            grammemes.append((grammeme, parent))
 
         if elem.tag == 'dictionary':
             version = elem.get('version')
@@ -74,7 +79,7 @@ def _parse_opencorpora_xml(filename):
             links.append(link_tuple)
             _clear(elem)
 
-    return lemmas, links, version, revision
+    return lemmas, links, grammemes, version, revision
 
 def _lemma_forms_from_xml_elem(elem):
     """
@@ -376,7 +381,7 @@ def to_pymorphy2_format(opencorpora_dict_path, out_path, overwrite=False, predic
             return
 
     # load & compile dictionary
-    lemmas, links, version, revision = _load_json_or_xml_dict(opencorpora_dict_path)
+    lemmas, links, grammemes, version, revision = _load_json_or_xml_dict(opencorpora_dict_path)
     gramtab, suffixes, paradigms, words_dawg, prediction_suffixes_dawg = _gram_structures(
         lemmas, links, prediction_options=prediction_options
     )
@@ -390,6 +395,9 @@ def to_pymorphy2_format(opencorpora_dict_path, out_path, overwrite=False, predic
 
     with codecs.open(_f('suffixes.json'), 'w', 'utf8') as f:
         json.dump(suffixes, f, ensure_ascii=False)
+
+    with codecs.open(_f('grammemes.json'), 'w', 'utf8') as f:
+        json.dump(grammemes, f, ensure_ascii=False)
 
     with open(_f('paradigms.array'), 'wb') as f:
         f.write(struct.pack(str("<H"), len(paradigms)))
@@ -437,7 +445,6 @@ def to_pymorphy2_format(opencorpora_dict_path, out_path, overwrite=False, predic
 
 
 
-
 DictTuple = collections.namedtuple('DictTuple', 'meta gramtab suffixes paradigms words prediction_prefixes prediction_suffixes Tag')
 
 def load(path):
@@ -466,8 +473,12 @@ def load(path):
 
     Tag = tagset.registry[gramtab_format]
 
+    with open(_f('grammemes.json'), 'r') as f:
+        grammemes = json.load(f, encoding='utf8')
+        Tag._init_restrictions(grammemes)
+
     with open(_f('gramtab.json'), 'r') as f:
-        gramtab = [Tag(tag_str) for tag_str in json.load(f)]
+        gramtab = [Tag(tag_str) for tag_str in json.load(f, encoding='utf8')]
 
     with open(_f('suffixes.json'), 'r') as f:
         suffixes = json.load(f)
