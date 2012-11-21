@@ -4,7 +4,7 @@ import codecs
 import os
 import pytest
 
-from pymorphy2 import tagger
+from .utils import morph
 
 SUITE_PATH = os.path.join(
     os.path.dirname(__file__),
@@ -13,7 +13,6 @@ SUITE_PATH = os.path.join(
     'suite.txt'
 )
 
-morph = tagger.Morph.load()
 Tag = morph.tag_class()
 
 def iter_suite(path):

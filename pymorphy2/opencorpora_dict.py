@@ -15,11 +15,6 @@ import array
 import struct
 
 try:
-    import cPickle as pickle
-except ImportError:
-    import pickle
-
-try:
     izip = itertools.izip
 except AttributeError:
     izip = zip
@@ -58,6 +53,7 @@ def _parse_opencorpora_xml(filename):
             grammeme = elem.text
             parent = elem.get('parent')
             grammemes.append((grammeme, parent))
+            _clear(elem)
 
         if elem.tag == 'dictionary':
             version = elem.get('version')
@@ -67,7 +63,6 @@ def _parse_opencorpora_xml(filename):
         if elem.tag == 'lemma':
             lemma_id, lemma_forms = _lemma_forms_from_xml_elem(elem)
             lemmas[lemma_id] = lemma_forms
-
             _clear(elem)
 
         elif elem.tag == 'link':
@@ -111,7 +106,7 @@ def _lemma_forms_from_xml_elem(elem):
 def _longest_common_substring(data):
     """
     Returns a longest common substring of a list of strings.
-    See http://stackoverflow.com/questions/2892931/longest-common-substring-from-more-than-two-strings-python
+    See http://stackoverflow.com/questions/2892931/
     """
     substr = ''
     if len(data) > 1 and len(data[0]) > 0:

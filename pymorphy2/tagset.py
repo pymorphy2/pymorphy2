@@ -1,21 +1,21 @@
 # -*- coding: utf-8 -*-
 """
 Utils for working with grammatical tags.
-
 """
 from __future__ import absolute_import, unicode_literals
 import collections
 
 try:
     from sys import intern
-except ImportError: # python 2.x has builtin ``intern`` function
+except ImportError:
+    # python 2.x has builtin ``intern`` function
     pass
-    #intern = lambda x: x
 
-# Design note: Tag objects should be immutable.
+
+# Design notes: Tag objects should be immutable.
 class OpencorporaTag(object):
 
-    __slots__ = ['grammemes', '_lemma_grammemes', '_grammemes_set_cache', '_str']
+    __slots__ = ['_grammemes_tuple', '_lemma_grammemes', '_grammemes_cache', '_str']
 
     FORMAT = 'opencorpora-int'
     NON_PRODUCTIVE_CLASSES = set(['NUMR', 'NPRO', 'PRED', 'PREP', 'CONJ', 'PRCL', 'INTJ'])
@@ -47,67 +47,55 @@ class OpencorporaTag(object):
     GRAMMEME_INDICES = collections.defaultdict(lambda: 0)
     GRAMMEME_INCOMPATIBLE = collections.defaultdict(set)
 
-    def __init__(self, tag=None, grammemes=None, lemma_grammemes=1):
-        if tag is not None:
-            lemma_grammemes = tag.split(' ')[0].count(',') + 1
-            grammemes = tag.replace(' ', ',', 1).split(',')
-            self._str = tag
-        else:
-            grammemes = sorted(grammemes, key=lambda g: self.GRAMMEME_INDICES[g])
-            self._str = None
+    def __init__(self, tag=None):
+        self._str = tag
 
-        self._lemma_grammemes = lemma_grammemes # number of lemma grammemes
-        self._grammemes_set_cache = None # cache
+        # XXX: we loose information about which grammemes
+        # belongs to lemma and which belongs to form
+        # (this information seems useless for pymorphy2).
 
-        # hacks for better memory usage (they save 1M..3M):
+        # Hacks for better memory usage:
+        # - store grammemes in a tuple and build a set only when needed;
         # - use byte strings for grammemes under Python 2.x;
         # - grammemes are interned.
-        self.grammemes = tuple([intern(str(g)) for g in grammemes])
-
+        grammemes = tag.replace(' ', ',', 1).split(',')
+        self._grammemes_tuple = tuple([intern(str(g)) for g in grammemes])
+        self._grammemes_cache = None
 
     @property
-    def _grammemes_set(self):
+    def grammemes(self):
         """
         Tag grammemes as frozenset.
         """
-        if self._grammemes_set_cache is None:
-            self._grammemes_set_cache = frozenset(self.grammemes)
-        return self._grammemes_set_cache
+        if self._grammemes_cache is None:
+            self._grammemes_cache = frozenset(self._grammemes_tuple)
+        return self._grammemes_cache
 
     @property
     def cls(self):
         """
         Word class (as string).
         """
-        return self.grammemes[0]
+        return self._grammemes_tuple[0]
 
     def is_productive(self):
         return not self.cls in self.NON_PRODUCTIVE_CLASSES
 
-    def _updated(self, add):
+    def updated_grammemes(self, required):
         """
-        Returns a new OpencorporaTag with grammemes from ``add`` added
+        Returns a new set of grammemes with ``required`` grammemes added
         and incompatible grammemes removed.
         """
-        new_grammemes = self._grammemes_set | set(add)
-        for grammeme in add:
+        new_grammemes = self.grammemes | required
+        for grammeme in required:
+            if grammeme not in self.GRAMMEME_INDICES:
+                raise ValueError("Unknown grammeme: %s" % grammeme)
             new_grammemes -= self.GRAMMEME_INCOMPATIBLE[grammeme]
-
-        # XXX: lemma_grammemes would be incorrect, but this shouldn't matter
-        # because tags constructed with "_updated" method should be for
-        # internal use only.
-        return OpencorporaTag(grammemes=new_grammemes)
+        return new_grammemes
 
     # FIXME: __repr__ and __str__ always return unicode,
     # but they should return a byte string under Python 2.x.
     def __str__(self):
-        if self._str is None:
-            lemma_tags = ",".join(self.grammemes[:self._lemma_grammemes])
-            form_tags = ",".join(self.grammemes[self._lemma_grammemes:])
-            if not form_tags:
-                self._str = lemma_tags
-            else:
-                self._str = lemma_tags + " " + form_tags
         return self._str
 
     def __repr__(self):
@@ -115,32 +103,32 @@ class OpencorporaTag(object):
 
 
     def __eq__(self, other):
-        return self.grammemes == other.grammemes
+        return self._grammemes_tuple == other._grammemes_tuple
 
     def __ne__(self, other):
-        return self.grammemes != other.grammemes
+        return self._grammemes_tuple != other._grammemes_tuple
 
     def __lt__(self, other):
-        return self.grammemes < other.grammemes
+        return self._grammemes_tuple < other._grammemes_tuple
 
     def __gt__(self, other):
-        return self.grammemes > other.grammemes
+        return self._grammemes_tuple > other._grammemes_tuple
 
     def __hash__(self):
-        return hash(self.grammemes)
+        return hash(self._grammemes_tuple)
 
     @classmethod
-    def _init_restrictions(cls, grammemes):
+    def _init_restrictions(cls, dict_grammemes):
         """
         Fills ``OpencorporaTag.GRAMMEME_INDICES`` and
         ``OpencorporaTag.GRAMMEME_INCOMPATIBLE`` class attributes.
         """
 
         # figure out parents & children
-        gr = dict(grammemes)
+        gr = dict(dict_grammemes)
         children = collections.defaultdict(set)
 
-        for index, (name, parent) in enumerate(grammemes):
+        for index, (name, parent) in enumerate(dict_grammemes):
             if parent:
                 children[parent].add(name)
             if gr.get(parent, None): # parent's parent
@@ -152,7 +140,7 @@ class OpencorporaTag(object):
                 g_set.update(children[g])
 
         # fill GRAMMEME_INDICES and GRAMMEME_INCOMPATIBLE
-        for index, (name, parent) in enumerate(grammemes):
+        for index, (name, parent) in enumerate(dict_grammemes):
             cls.GRAMMEME_INDICES[name] = index
             incompatible = cls.EXTRA_INCOMPATIBLE.get(name, set())
             incompatible = (incompatible | children[parent]) - set([name])

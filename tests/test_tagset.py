@@ -31,8 +31,10 @@ class TestUpdated(object):
 
     def test_number(self):
         tag = OpencorporaTag('NOUN,sing,masc')
-        assert OpencorporaTag('NOUN,plur') == tag._updated(add=['plur'])
+        grammemes = tag.updated_grammemes(required=set(['plur']))
+        assert grammemes == set(['NOUN', 'plur'])
 
     def test_order(self):
         tag = OpencorporaTag('VERB,impf,tran sing,3per,pres,indc')
-        assert str(tag._updated(['1per'])) == 'VERB sing,impf,tran,1per,pres,indc'
+        grammemes = tag.updated_grammemes(required=set(['1per']))
+        assert grammemes == set('VERB,sing,impf,tran,1per,pres,indc'.split(','))

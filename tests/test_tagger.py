@@ -1,9 +1,8 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, unicode_literals
 import pytest
-from pymorphy2 import tagger
 
-morph = tagger.Morph.load()
+from .utils import morph
 
 TEST_DATA = [
     ('КОШКА', ['КОШКА']),

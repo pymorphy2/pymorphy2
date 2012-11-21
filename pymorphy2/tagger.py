@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import print_function, unicode_literals, division
 import os
+import heapq
 import collections
 from pymorphy2 import opencorpora_dict
 from pymorphy2.constants import LEMMA_PREFIXES, NON_PRODUCTIVE_CLASSES
@@ -34,7 +35,8 @@ class Morph(object):
 
     def parse(self, word):
         """
-        Returns a list of (fixed_word, tag, normal_form, _estimate) tuples.
+        Returns a list of (fixed_word, tag, normal_form, _para_id, _idx, _estimate)
+        tuples.
         """
         res = self._parse_as_known(word)
         if not res:
@@ -222,7 +224,6 @@ class Morph(object):
 
         return res
 
-
     def _tag_as_word_with_unknown_prefix(self, word, _seen_tags=None):
         if _seen_tags is None:
             _seen_tags = set()
@@ -241,7 +242,6 @@ class Morph(object):
                 res.append(tag)
 
         return res
-
 
     def _tag_as_word_with_known_suffix(self, word, _seen_tags=None):
         if _seen_tags is None:
@@ -278,20 +278,58 @@ class Morph(object):
 
     # ==== inflection ========
 
-    def decline(self, word, required_tags=None):
+    def inflect(self, word, required_grammemes):
+        """
+        Returns a list of parsed words that are closest to ``word`` and
+        have all ``required_grammemes``.
+        """
+        required_grammemes = set(required_grammemes)
+        parses = self.parse(word)
+
+        def weigth(parse):
+            # order by (probability, index in lemma)
+            return -parse[5], parse[4]
+
+        result = []
+        seen = set()
+        for form in sorted(parses, key=weigth):
+            for inflected in self._inflect(form, required_grammemes):
+                if inflected in seen:
+                    continue
+                seen.add(inflected)
+                result.append(inflected)
+
+        return result
+
+    def _inflect(self, form, required_grammemes):
+        grammemes = form[1].updated_grammemes(required_grammemes)
+
+        possible_results = [form for form in self._decline([form])
+                            if required_grammemes.issubset(form[1].grammemes)]
+
+        def similarity(form):
+            tag = form[1]
+            return len(grammemes & tag.grammemes)
+
+        return heapq.nlargest(1, possible_results, key=similarity)
+
+    def decline(self, word):
         """
         Returns parses for all possible word forms.
-
-        XXX: performance is not good.
         """
+        return self._decline(self.parse(word))
 
-        required_tags = set(required_tags or [])
+    def _decline(self, word_parses):
+        """
+        Returns parses for all possible word forms (given a list of
+        possible word parses).
+        """
 
         paradigms = self._dictionary.paradigms
         seen_paradigms = set()
         result = []
 
-        for fixed_word, tag, normal_form, para_id, idx, estimate in self.parse(word):
+        for fixed_word, tag, normal_form, para_id, idx, estimate in word_parses:
             if para_id in seen_paradigms:
                 continue
             seen_paradigms.add(para_id)
@@ -301,13 +339,11 @@ class Morph(object):
             for index, (_prefix, _tag, _suffix) in enumerate(self._build_paradigm_info(para_id)):
                 word = _prefix + stem + _suffix
 
-                tag_parts = set(_tag.parts())
-                if tag_parts.issuperset(required_tags):
-                    # XXX: what to do with estimate?
-                    # XXX: do we need all info?
-                    result.append(
-                        (word, _tag, normal_form, para_id, index, estimate)
-                    )
+                # XXX: what to do with estimate?
+                # XXX: do we need all info?
+                result.append(
+                    (word, _tag, normal_form, para_id, index, estimate)
+                )
 
         return result
 
@@ -366,7 +402,6 @@ class Morph(object):
         normal_suffix = self._dictionary.suffixes[normal_suffix_id]
 
         return normal_prefix + stem + normal_suffix
-
 
     def _build_stem(self, paradigm, idx, fixed_word):
         """
