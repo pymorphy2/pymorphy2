@@ -72,7 +72,6 @@ def test_first_inflected_value(word, grammemes, result):
 def test_loc2(word, grammemes, result):
     assert_first_inflected_variant(word, grammemes, result)
 
-@pytest.mark.xfail
 def test_orel():
     assert_first_inflected_variant('ОРЕЛ', ['gent'], 'ОРЛА')
 

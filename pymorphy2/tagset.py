@@ -13,7 +13,7 @@ except ImportError:
 
 
 # Design notes: Tag objects should be immutable.
-class OpencorporaTag(object):
+class InternalOpencorporaTag(object):
 
     __slots__ = ['_grammemes_tuple', '_lemma_grammemes', '_grammemes_cache', '_str']
 
@@ -23,31 +23,13 @@ class OpencorporaTag(object):
     # XXX: is it a good idea to have these rules?
     EXTRA_INCOMPATIBLE = {
         'plur': set(['GNdr']),
-
         # XXX: how to use rules from OpenCorpora
         # (they have "lemma/form" separation)?
-
-#        'anim': set(['femn', 'neut']),
-#        'inan': set(['femn', 'neut']),
-#        'ADJF': set(['voct', 'gen2', 'acc2', 'loc2']),
-#        'PRTF': set(['voct', 'gen2', 'acc2', 'loc2']),
-#        'GRND': set(['PErs', 'futr', 'GNdr']),
-#        'Impe': set(['PErs', 'tran', 'Mult', 'impr', 'plur', 'masc', 'femn']),
-#        'impf': set(['futr', 'incl']),
-#        'perf': set(['pres', 'Mult']),
-#        'Sgtm': set(['plur']),
-#        'Pltm': set(['sing']),
-#        'pssv': set(['intr']),
-
-#        'past': set(['PErs']),
-#        'futr': set(['PErs', 'GNdr']),
-#        'pres': set(['GNdr']),
     }
-
     GRAMMEME_INDICES = collections.defaultdict(lambda: 0)
     GRAMMEME_INCOMPATIBLE = collections.defaultdict(set)
 
-    def __init__(self, tag=None):
+    def __init__(self, tag):
         self._str = tag
 
         # XXX: we loose information about which grammemes
@@ -117,6 +99,17 @@ class OpencorporaTag(object):
     def __hash__(self):
         return hash(self._grammemes_tuple)
 
+
+    @classmethod
+    def _from_internal_tag(cls, tag):
+        """ Returns tag string given internal tag string """
+        return tag
+
+    @classmethod
+    def _from_internal_grammeme(cls, grammeme):
+        return grammeme
+
+
     @classmethod
     def _init_restrictions(cls, dict_grammemes):
         """
@@ -125,10 +118,10 @@ class OpencorporaTag(object):
         """
 
         # figure out parents & children
-        gr = dict(dict_grammemes)
+        gr = dict(((name, parent) for (name, parent, alias) in dict_grammemes))
         children = collections.defaultdict(set)
 
-        for index, (name, parent) in enumerate(dict_grammemes):
+        for index, (name, parent, alias) in enumerate(dict_grammemes):
             if parent:
                 children[parent].add(name)
             if gr.get(parent, None): # parent's parent
@@ -140,7 +133,7 @@ class OpencorporaTag(object):
                 g_set.update(children[g])
 
         # fill GRAMMEME_INDICES and GRAMMEME_INCOMPATIBLE
-        for index, (name, parent) in enumerate(dict_grammemes):
+        for index, (name, parent, alias) in enumerate(dict_grammemes):
             cls.GRAMMEME_INDICES[name] = index
             incompatible = cls.EXTRA_INCOMPATIBLE.get(name, set())
             incompatible = (incompatible | children[parent]) - set([name])
@@ -148,7 +141,55 @@ class OpencorporaTag(object):
             cls.GRAMMEME_INCOMPATIBLE[name] = frozenset(incompatible)
 
 
+class OpencorporaTag(InternalOpencorporaTag):
+    FORMAT = 'opencorpora-ext'
+    GRAMMEME_ALIAS_MAP = dict()
+
+    @classmethod
+    def _from_internal_tag(cls, tag):
+        for name, alias in cls.GRAMMEME_ALIAS_MAP.items():
+            if alias:
+                tag = tag.replace(name, alias)
+        return tag
+
+    @classmethod
+    def _from_internal_grammeme(cls, grammeme):
+        return cls.GRAMMEME_ALIAS_MAP.get(grammeme, grammeme)
+
+    @classmethod
+    def _init_restrictions(cls, dict_grammemes):
+        """
+        Fills ``OpencorporaTag.GRAMMEME_INDICES`` and
+        ``OpencorporaTag.GRAMMEME_INCOMPATIBLE`` class attributes.
+        """
+        cls._init_alias_map(dict_grammemes)
+        super(OpencorporaTag, cls)._init_restrictions(dict_grammemes)
+
+        GRAMMEME_INDICES = collections.defaultdict(lambda: 0)
+        for name, idx in cls.GRAMMEME_INDICES.items():
+            GRAMMEME_INDICES[cls._from_internal_grammeme(name)] = idx
+        cls.GRAMMEME_INDICES = GRAMMEME_INDICES
+
+        GRAMMEME_INCOMPATIBLE = collections.defaultdict(set)
+        for name, value in cls.GRAMMEME_INCOMPATIBLE.items():
+            GRAMMEME_INCOMPATIBLE[cls._from_internal_grammeme(name)] = set([
+                cls._from_internal_grammeme(gr) for gr in value
+            ])
+        cls.GRAMMEME_INCOMPATIBLE = GRAMMEME_INCOMPATIBLE
+
+        cls.NON_PRODUCTIVE_CLASSES = set([
+            cls._from_internal_grammeme(gr) for gr in cls.NON_PRODUCTIVE_CLASSES
+        ])
+
+
+    @classmethod
+    def _init_alias_map(cls, dict_grammemes):
+        for name, parent, alias in dict_grammemes:
+            cls.GRAMMEME_ALIAS_MAP[name] = alias
+
+
+
 registry = dict()
 
-for tag_type in [OpencorporaTag, ]:
+for tag_type in [OpencorporaTag, InternalOpencorporaTag]:
     registry[tag_type.FORMAT] = tag_type

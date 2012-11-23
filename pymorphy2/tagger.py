@@ -15,7 +15,6 @@ class Morph(object):
     def __init__(self, dct):
         self._dictionary = dct
         self._ee = dct.words.compile_replaces({'Е': 'Ё'})
-        self._non_productive_classes = NON_PRODUCTIVE_CLASSES[dct.meta['gramtab_format']]
 
     @classmethod
     def load(cls, path=None):

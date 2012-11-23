@@ -52,7 +52,8 @@ def _parse_opencorpora_xml(filename):
         if elem.tag == 'grammeme':
             grammeme = elem.text
             parent = elem.get('parent')
-            grammemes.append((grammeme, parent))
+            alias = elem.get('alias')
+            grammemes.append((grammeme, parent, alias))
             _clear(elem)
 
         if elem.tag == 'dictionary':
@@ -385,14 +386,23 @@ def to_pymorphy2_format(opencorpora_dict_path, out_path, overwrite=False, predic
     logger.info("Saving...")
     _f = lambda path: os.path.join(out_path, path)
 
-    with codecs.open(_f('gramtab.json'), 'w', 'utf8') as f:
-        json.dump(gramtab, f, ensure_ascii=False)
+    with codecs.open(_f('grammemes.json'), 'w', 'utf8') as f:
+        json.dump(grammemes, f, ensure_ascii=False)
+
+    gramtab_formats = {}
+    for format, Tag in tagset.registry.items():
+        Tag._init_restrictions(grammemes)
+        new_gramtab = [Tag._from_internal_tag(tag) for tag in gramtab]
+
+        gramtab_name = "gramtab-%s.json" % format
+        gramtab_formats[format] = gramtab_name
+
+        with codecs.open(_f(gramtab_name), 'w', 'utf8') as f:
+            json.dump(new_gramtab, f, ensure_ascii=False)
+
 
     with codecs.open(_f('suffixes.json'), 'w', 'utf8') as f:
         json.dump(suffixes, f, ensure_ascii=False)
-
-    with codecs.open(_f('grammemes.json'), 'w', 'utf8') as f:
-        json.dump(grammemes, f, ensure_ascii=False)
 
     with open(_f('paradigms.array'), 'wb') as f:
         f.write(struct.pack(str("<H"), len(paradigms)))
@@ -426,7 +436,7 @@ def to_pymorphy2_format(opencorpora_dict_path, out_path, overwrite=False, predic
         ['source_links_count', len(links)],
 
         ['gramtab_length', len(gramtab)],
-        ['gramtab_format', 'opencorpora-int'],
+        ['gramtab_formats', gramtab_formats],
         ['paradigms_length', len(paradigms)],
         ['suffixes_length', len(suffixes)],
 
@@ -442,7 +452,7 @@ def to_pymorphy2_format(opencorpora_dict_path, out_path, overwrite=False, predic
 
 DictTuple = collections.namedtuple('DictTuple', 'meta gramtab suffixes paradigms words prediction_prefixes prediction_suffixes Tag')
 
-def load(path):
+def load(path, gramtab_format='opencorpora-int'):
     """
     Loads Pymorphy2 dictionary.
     ``path`` is a folder name where dictionary data reside.
@@ -462,17 +472,20 @@ def load(path):
     if format_version != 1:
         raise ValueError("This dictionary format ('%s') is not supported." % format_version)
 
-    gramtab_format = meta.get('gramtab_format', None)
     if gramtab_format not in tagset.registry:
         raise ValueError("This gramtab format ('%s') is unsupported." % gramtab_format)
-
     Tag = tagset.registry[gramtab_format]
 
     with open(_f('grammemes.json'), 'r') as f:
         grammemes = json.load(f, encoding='utf8')
         Tag._init_restrictions(grammemes)
 
-    with open(_f('gramtab.json'), 'r') as f:
+
+    gramtab_formats = meta.get('gramtab_formats', {})
+    if gramtab_format not in gramtab_formats:
+        raise ValueError("This gramtab format (%s) is unavailable; available formats: %s" % (gramtab_format, gramtab_formats.keys()))
+
+    with open(_f(gramtab_formats[gramtab_format]), 'r') as f:
         gramtab = [Tag(tag_str) for tag_str in json.load(f, encoding='utf8')]
 
     with open(_f('suffixes.json'), 'r') as f:
