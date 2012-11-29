@@ -50,10 +50,13 @@ def _parse_opencorpora_xml(filename):
     for ev, elem in etree.iterparse(filename):
 
         if elem.tag == 'grammeme':
-            grammeme = elem.text
+            name = elem.find('name').text
             parent = elem.get('parent')
-            alias = elem.get('alias')
-            grammemes.append((grammeme, parent, alias))
+            alias = elem.find('alias').text
+            description = elem.find('description').text
+
+            grameme = (name, parent, alias, description)
+            grammemes.append(grameme)
             _clear(elem)
 
         if elem.tag == 'dictionary':

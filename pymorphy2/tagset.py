@@ -118,10 +118,10 @@ class InternalOpencorporaTag(object):
         """
 
         # figure out parents & children
-        gr = dict(((name, parent) for (name, parent, alias) in dict_grammemes))
+        gr = dict(((name, parent) for (name, parent, alias, description) in dict_grammemes))
         children = collections.defaultdict(set)
 
-        for index, (name, parent, alias) in enumerate(dict_grammemes):
+        for index, (name, parent, alias, description) in enumerate(dict_grammemes):
             if parent:
                 children[parent].add(name)
             if gr.get(parent, None): # parent's parent
@@ -133,7 +133,7 @@ class InternalOpencorporaTag(object):
                 g_set.update(children[g])
 
         # fill GRAMMEME_INDICES and GRAMMEME_INCOMPATIBLE
-        for index, (name, parent, alias) in enumerate(dict_grammemes):
+        for index, (name, parent, alias, description) in enumerate(dict_grammemes):
             cls.GRAMMEME_INDICES[name] = index
             incompatible = cls.EXTRA_INCOMPATIBLE.get(name, set())
             incompatible = (incompatible | children[parent]) - set([name])
@@ -184,7 +184,7 @@ class OpencorporaTag(InternalOpencorporaTag):
 
     @classmethod
     def _init_alias_map(cls, dict_grammemes):
-        for name, parent, alias in dict_grammemes:
+        for name, parent, alias, description in dict_grammemes:
             cls.GRAMMEME_ALIAS_MAP[name] = alias
 
 
