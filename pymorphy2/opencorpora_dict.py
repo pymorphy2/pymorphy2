@@ -71,9 +71,9 @@ def _parse_opencorpora_xml(filename):
 
         elif elem.tag == 'link':
             link_tuple = (
-                int(elem.get('from')),
-                int(elem.get('to')),
-                int(elem.get('type')),
+                elem.get('from'),
+                elem.get('to'),
+                elem.get('type'),
             )
             links.append(link_tuple)
             _clear(elem)
@@ -88,7 +88,7 @@ def _lemma_forms_from_xml_elem(elem):
         return ",".join(g.get('v') for g in elem.findall('g'))
 
     lemma = []
-    lemma_id = int(elem.get('id'))
+    lemma_id = elem.get('id')
 
     if len(elem) == 0: # deleted lemma
         return lemma_id, lemma
@@ -335,6 +335,7 @@ def _gram_structures(lemmas, links, prediction_options=None):
     )
 
     def fix_strings(paradigm):
+        """ Replace suffix and prefix with the respective id numbers. """
         para = []
         for suff, tag, pref in paradigm:
             para.append(
