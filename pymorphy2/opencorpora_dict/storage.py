@@ -4,11 +4,9 @@ Module for saving and loading pymorphy2 dictionaries.
 """
 from __future__ import absolute_import, unicode_literals
 import datetime
-import codecs
 import os
 import logging
 import collections
-import json
 import itertools
 import array
 import struct
@@ -22,6 +20,7 @@ import pymorphy2
 from pymorphy2 import tagset
 from pymorphy2 import dawg
 from pymorphy2.constants import LEMMA_PREFIXES, PREDICTION_PREFIXES
+from pymorphy2.utils import json_write, json_read
 
 logger = logging.getLogger(__name__)
 
@@ -45,7 +44,7 @@ def load_dict(path, gramtab_format='opencorpora-int'):
     Tag = _load_tag_class(gramtab_format, _f('grammemes.json'))
     gramtab = [Tag(tag_str) for tag_str in _load_gramtab(meta, gramtab_format, path)]
 
-    suffixes = _load_suffixes(_f('suffixes.json'))
+    suffixes = json_read(_f('suffixes.json'))
     paradigms = _load_paradigms(_f('paradigms.array'))
     words = dawg.WordsDawg().load(_f('words.dawg'))
 
@@ -64,8 +63,7 @@ def save_compiled_dict(compiled_dict, out_path):
     logger.info("Saving...")
     _f = lambda path: os.path.join(out_path, path)
 
-    with codecs.open(_f('grammemes.json'), 'w', 'utf8') as f:
-        json.dump(compiled_dict.parsed_dict.grammemes, f, ensure_ascii=False)
+    json_write(_f('grammemes.json'), compiled_dict.parsed_dict.grammemes)
 
     gramtab_formats = {}
     for format, Tag in tagset.registry.items():
@@ -75,12 +73,7 @@ def save_compiled_dict(compiled_dict, out_path):
         gramtab_name = "gramtab-%s.json" % format
         gramtab_formats[format] = gramtab_name
 
-        with codecs.open(_f(gramtab_name), 'w', 'utf8') as f:
-            json.dump(new_gramtab, f, ensure_ascii=False)
-
-
-    with codecs.open(_f('suffixes.json'), 'w', 'utf8') as f:
-        json.dump(compiled_dict.suffixes, f, ensure_ascii=False)
+        json_write(_f(gramtab_name), new_gramtab)
 
     with open(_f('paradigms.array'), 'wb') as f:
         f.write(struct.pack(str("<H"), len(compiled_dict.paradigms)))
@@ -88,9 +81,9 @@ def save_compiled_dict(compiled_dict, out_path):
             f.write(struct.pack(str("<H"), len(para)))
             para.tofile(f)
 
+    json_write(_f('suffixes.json'), compiled_dict.suffixes)
     compiled_dict.words_dawg.save(_f('words.dawg'))
     compiled_dict.prediction_suffixes_dawg.save(_f('prediction-suffixes.dawg'))
-
     dawg.DAWG(PREDICTION_PREFIXES).save(_f('prediction-prefixes.dawg'))
 
     logger.debug("computing metadata..")
@@ -124,18 +117,15 @@ def save_compiled_dict(compiled_dict, out_path):
         ['prediction_prefixes_dawg_length', len(PREDICTION_PREFIXES)],
     ]
 
-    with codecs.open(_f('meta.json'), 'w', 'utf8') as f:
-        json.dump(meta, f, ensure_ascii=False, indent=4)
-
+    json_write(_f('meta.json'), meta, indent=4)
 
 
 def _load_meta(filename):
     """ Load metadata. """
-    with open(filename, 'r') as f:
-        meta = json.load(f)
-        if hasattr(collections, 'OrderedDict'):
-            return collections.OrderedDict(meta)
-        return dict(meta)
+    meta = json_read(filename)
+    if hasattr(collections, 'OrderedDict'):
+        return collections.OrderedDict(meta)
+    return dict(meta)
 
 
 def _load_tag_class(gramtab_format, grammemes_filename):
@@ -143,11 +133,10 @@ def _load_tag_class(gramtab_format, grammemes_filename):
     if gramtab_format not in tagset.registry:
         raise ValueError("This gramtab format ('%s') is unsupported." % gramtab_format)
 
-    Tag = tagset.registry[gramtab_format]
+    grammemes = json_read(grammemes_filename)
 
-    with open(grammemes_filename, 'r') as f:
-        grammemes = json.load(f, encoding='utf8')
-        Tag._init_restrictions(grammemes)
+    Tag = tagset.registry[gramtab_format]
+    Tag._init_restrictions(grammemes)
 
     return Tag
 
@@ -160,14 +149,7 @@ def _load_gramtab(meta, gramtab_format, path):
         raise ValueError("This gramtab format (%s) is unavailable; available formats: %s" % (gramtab_format, gramtab_formats.keys()))
 
     gramtab_filename = os.path.join(path, gramtab_formats[gramtab_format])
-    with open(gramtab_filename, 'r') as f:
-        return json.load(f, encoding='utf8')
-
-
-def _load_suffixes(filename):
-    """ Load a list of possible word suffixes """
-    with open(filename, 'r') as f:
-        return json.load(f)
+    return json_read(gramtab_filename)
 
 
 def _load_paradigms(filename):

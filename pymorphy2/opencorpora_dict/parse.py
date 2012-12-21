@@ -5,9 +5,8 @@ Module for OpenCorpora XML dictionaries parsing.
 from __future__ import absolute_import, unicode_literals, division
 
 import logging
-import codecs
-import json
 import collections
+from pymorphy2.utils import json_write, json_read
 
 logger = logging.getLogger(__name__)
 
@@ -21,7 +20,7 @@ def load_json_or_xml_dict(filename):
     """
     if filename.endswith(".json"):
         logger.info('loading json...')
-        data = _load_json_dict(filename)
+        data = json_read(filename)
     else:
         logger.info('parsing xml...')
         data = parse_opencorpora_xml(filename)
@@ -91,8 +90,7 @@ def xml_dict_to_json(xml_filename, json_filename):
     parsed_dct = parse_opencorpora_xml(xml_filename)
 
     logger.info('writing json...')
-    with codecs.open(json_filename, 'w', 'utf8') as f:
-        json.dump(parsed_dct, f, ensure_ascii=False)
+    json_write(json_filename, parsed_dct)
 
 
 def _lemma_forms_from_xml_elem(elem):
@@ -121,9 +119,3 @@ def _lemma_forms_from_xml_elem(elem):
         )
 
     return lemma_id, lemma
-
-
-def _load_json_dict(filename):
-    with codecs.open(filename, 'r', 'utf8') as f:
-        return json.load(f)
-

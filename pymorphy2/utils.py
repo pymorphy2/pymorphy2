@@ -1,8 +1,12 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import
+# unicode_literals here would break tests
+
 import bz2
 import os
 import itertools
+import codecs
+import json
 try:
     from urllib.request import urlopen
 except ImportError:
@@ -72,3 +76,17 @@ def longest_common_substring(data):
                 if j > len(substr) and all(data[0][i:i+j] in x for x in data):
                     substr = data[0][i:i+j]
     return substr
+
+
+def json_write(filename, obj, **json_options):
+    """ Create file ``filename`` with ``obj`` serialized to JSON """
+
+    json_options.setdefault('ensure_ascii', False)
+    with codecs.open(filename, 'w', 'utf8') as f:
+        json.dump(obj, f, **json_options)
+
+
+def json_read(filename):
+    """ Read an object from a json file ``filename`` """
+    with codecs.open(filename, 'r', 'utf8') as f:
+        return json.load(f)
