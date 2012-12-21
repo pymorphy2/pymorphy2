@@ -134,7 +134,7 @@ def compile_parsed_dict(parsed_dict, prediction_options=None):
     prediction_suffixes_dawg = dawg.PredictionSuffixesDAWG(suffixes_dawg_data)
 
     return CompiledDictionary(tuple(gramtab), suffixes, paradigms,
-            words_dawg, prediction_suffixes_dawg, parsed_dict)
+                              words_dawg, prediction_suffixes_dawg, parsed_dict)
 
 
 def _join_lemmas(lemmas, links):

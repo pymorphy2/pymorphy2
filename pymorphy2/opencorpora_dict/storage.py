@@ -27,7 +27,7 @@ logger = logging.getLogger(__name__)
 
 LoadedDictionary = collections.namedtuple(
     'LoadedDictionary',
-    'meta gramtab suffixes paradigms words prediction_prefixes prediction_suffixes Tag'
+    'meta gramtab suffixes paradigms words prediction_prefixes prediction_suffixes Tag lemma_prefixes'
 )
 
 def load_dict(path, gramtab_format='opencorpora-int'):
@@ -45,6 +45,7 @@ def load_dict(path, gramtab_format='opencorpora-int'):
     gramtab = [Tag(tag_str) for tag_str in _load_gramtab(meta, gramtab_format, path)]
 
     suffixes = json_read(_f('suffixes.json'))
+    lemma_prefixes = json_read(_f('lemma-prefixes.json'))
     paradigms = _load_paradigms(_f('paradigms.array'))
     words = dawg.WordsDawg().load(_f('words.dawg'))
 
@@ -52,7 +53,8 @@ def load_dict(path, gramtab_format='opencorpora-int'):
     prediction_prefixes = dawg.DAWG().load(_f('prediction-prefixes.dawg'))
 
     return LoadedDictionary(meta, gramtab, suffixes, paradigms, words,
-                            prediction_prefixes, prediction_suffixes, Tag)
+                            prediction_prefixes, prediction_suffixes, Tag,
+                            lemma_prefixes)
 
 
 def save_compiled_dict(compiled_dict, out_path):
@@ -85,6 +87,7 @@ def save_compiled_dict(compiled_dict, out_path):
     compiled_dict.words_dawg.save(_f('words.dawg'))
     compiled_dict.prediction_suffixes_dawg.save(_f('prediction-suffixes.dawg'))
     dawg.DAWG(PREDICTION_PREFIXES).save(_f('prediction-prefixes.dawg'))
+    json_write(_f('lemma-prefixes.json'), LEMMA_PREFIXES)
 
     logger.debug("computing metadata..")
 

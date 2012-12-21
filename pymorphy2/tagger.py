@@ -3,10 +3,7 @@ from __future__ import print_function, unicode_literals, division
 import os
 import heapq
 from pymorphy2 import opencorpora_dict
-from pymorphy2.constants import LEMMA_PREFIXES
 
-#ParseResult = collections.namedtuple('ParseResult',
-#           'fixed_word tag normal_form para_id form_idx estimate')
 
 class Morph(object):
 
@@ -375,7 +372,7 @@ class Morph(object):
         res = []
         for idx in range(paradigm_len):
             prefix_id = paradigm[paradigm_len*2 + idx]
-            prefix = LEMMA_PREFIXES[prefix_id]
+            prefix = self._dictionary.lemma_prefixes[prefix_id]
 
             suffix_id = paradigm[idx]
             suffix = self._dictionary.suffixes[suffix_id]
@@ -401,7 +398,7 @@ class Morph(object):
         normal_prefix_id = paradigm[paradigm_len*2 + 0]
         normal_suffix_id = paradigm[0]
 
-        normal_prefix = LEMMA_PREFIXES[normal_prefix_id]
+        normal_prefix = self._dictionary.lemma_prefixes[normal_prefix_id]
         normal_suffix = self._dictionary.suffixes[normal_suffix_id]
 
         return normal_prefix + stem + normal_suffix
@@ -413,7 +410,7 @@ class Morph(object):
         paradigm_len = len(paradigm) // 3
 
         prefix_id = paradigm[paradigm_len*2 + idx]
-        prefix = LEMMA_PREFIXES[prefix_id]
+        prefix = self._dictionary.lemma_prefixes[prefix_id]
 
         suffix_id = paradigm[idx]
         suffix = self._dictionary.suffixes[suffix_id]

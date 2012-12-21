@@ -458,6 +458,7 @@ DAWG достаточно эффективная. Хранение слов в D
         gramtab-opencorpora-ext.json
         grammemes.json
         suffixes.json
+        lemma-prefixes.json
         paradigms.array
         words.dawg
         prediction-suffixes.dawg
@@ -473,6 +474,7 @@ DAWG достаточно эффективная. Хранение слов в D
     использовать эти подготовленные словари, а не конвертировать словари
     из OpenCorpora еще раз; ничего специфичного для питона
     в сконвертированных словарях нет.
+
 
 Характеристики
 --------------
