@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, unicode_literals
 
-from pymorphy2 import opencorpora_dict
+from pymorphy2.opencorpora_dict.compile import _to_paradigm
 
 class TestToParadigm(object):
 
@@ -16,7 +16,7 @@ class TestToParadigm(object):
               "COMP,Qual V-ej"
             ],
         ]
-        stem, forms = opencorpora_dict._to_paradigm(lemma)
+        stem, forms = _to_paradigm(lemma)
         assert stem == "ЯРЧЕ"
         assert forms == (
             ("", "COMP,Qual", ""),
@@ -34,7 +34,7 @@ class TestToParadigm(object):
               "COMP,Qual Cmp2"
             ],
         ]
-        stem, forms = opencorpora_dict._to_paradigm(lemma)
+        stem, forms = _to_paradigm(lemma)
         assert stem == "ЯРЧЕ"
         assert forms == (
             ("", "COMP,Qual", ""),
@@ -65,7 +65,7 @@ class TestToParadigm(object):
               "ADJF,Supr,Qual masc,sing,nomn"
             ],
         ]
-        stem, forms = opencorpora_dict._to_paradigm(lemma)
+        stem, forms = _to_paradigm(lemma)
         assert stem == 'ЯРЧ'
 
     def test_multiple_prefixes_2(self):
@@ -74,7 +74,7 @@ class TestToParadigm(object):
             ["НАИПОДРОБНЕЙШИЙ", 2],
             ["ПОПОДРОБНЕЕ", 3]
         ]
-        stem, forms = opencorpora_dict._to_paradigm(lemma)
+        stem, forms = _to_paradigm(lemma)
         assert stem == 'ПОДРОБНЕ'
         assert forms == (
             ("ЙШИЙ", 1, ""),

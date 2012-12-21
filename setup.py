@@ -24,7 +24,7 @@ setup(
     long_description = open('README.rst').read() + open('docs/CHANGES.rst').read(),
 
     license = 'MIT license',
-    packages = ['pymorphy2', 'pymorphy2.vendor'],
+    packages = ['pymorphy2', 'pymorphy2.vendor', 'pymorphy2.opencorpora_dict'],
     scripts=['bin/pymorphy'],
     requires=['dawg_python (>= 0.5)'],
 

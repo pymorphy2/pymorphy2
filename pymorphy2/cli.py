@@ -4,13 +4,12 @@ from __future__ import absolute_import, unicode_literals, print_function, divisi
 import logging
 import time
 import sys
-import pprint
 import codecs
 
 import pymorphy2
 from pymorphy2 import opencorpora_dict, test_suite_generator
 from pymorphy2.vendor.docopt import docopt
-from pymorphy2.os_utils import download_bz2, get_mem_usage
+from pymorphy2.utils import download_bz2, get_mem_usage
 
 logger = logging.getLogger('pymorphy2')
 logger.addHandler(logging.StreamHandler())
@@ -19,13 +18,19 @@ XML_BZ2_URL = "http://opencorpora.org/files/export/dict/dict.opcorpora.xml.bz2"
 
 # ============================ Commands ===========================
 
-def compile_dict(in_filename, out_folder=None, overwrite=False, prediction_options=None):
+def compile_dict(in_filename, out_path=None, overwrite=False, prediction_options=None):
     """
     Make a Pymorphy2 dictionary from OpenCorpora .xml dictionary.
     """
-    if out_folder is None:
-        out_folder = 'dict'
-    opencorpora_dict.to_pymorphy2_format(in_filename, out_folder, overwrite, prediction_options=prediction_options)
+    if out_path is None:
+        out_path = 'dict'
+
+    opencorpora_dict.convert_to_pymorphy2(
+        opencorpora_dict_path = in_filename,
+        out_path = out_path,
+        overwrite = overwrite,
+        prediction_options = prediction_options
+    )
 
 def xml_to_json(in_filename, out_filename):
     """

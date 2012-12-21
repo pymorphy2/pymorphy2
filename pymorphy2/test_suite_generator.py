@@ -2,12 +2,12 @@
 from __future__ import absolute_import, unicode_literals
 import logging
 import collections
-import itertools
 import copy
 import re
 import codecs
 
-from pymorphy2.opencorpora_dict import _load_json_or_xml_dict
+from pymorphy2.opencorpora_dict.parse import load_json_or_xml_dict
+from pymorphy2.utils import combinations_of_all_lengths
 
 logger = logging.getLogger(__name__)
 
@@ -25,18 +25,13 @@ def _get_word_parses(lemmas):
 
 def _add_ee_parses(word_parses):
 
-    def combinations_of_all_lengths(it):
-        return itertools.chain(
-            *(itertools.combinations(it, num+1) for num in range(len(it)))
-        )
-
     def replace_chars(word, positions, replacement):
-        word_list = list(word)
+        chars = list(word)
         for pos in positions:
-            word_list[pos] = replacement
-        return "".join(word_list)
+            chars[pos] = replacement
+        return "".join(chars)
 
-    def missing_umlaut_variants(word):
+    def variants_with_missing_umlauts(word):
         umlaut_positions = [m.start() for m in re.finditer('Ё', word, re.U)]
         for positions in combinations_of_all_lengths(umlaut_positions):
             yield replace_chars(word, positions, 'Е')
@@ -47,7 +42,7 @@ def _add_ee_parses(word_parses):
     for word in word_parses:
         parses = word_parses[word]
 
-        for word_variant in missing_umlaut_variants(word):
+        for word_variant in variants_with_missing_umlauts(word):
             _word_parses[word_variant].extend(parses)
 
     return _word_parses
@@ -82,10 +77,10 @@ def make_test_suite(opencorpora_dict_path, out_path, word_limit=100):
     ``word_limit`` words for each distinct gram. tag) and save it to a file.
     """
     logger.debug('loading dictionary to memory...')
-    lemmas, links, grammemes, version, revision = _load_json_or_xml_dict(opencorpora_dict_path)
+    parsed_dict = load_json_or_xml_dict(opencorpora_dict_path)
 
     logger.debug('preparing...')
-    parses = _get_word_parses(lemmas)
+    parses = _get_word_parses(parsed_dict.lemmas)
 
     logger.debug('dictionary size: %d', len(parses))
 
@@ -99,4 +94,4 @@ def make_test_suite(opencorpora_dict_path, out_path, word_limit=100):
     logger.debug('test suite size: %d', len(suite))
 
     logger.debug('saving...')
-    _save_test_suite(out_path, suite, revision)
+    _save_test_suite(out_path, suite, parsed_dict.revision)
