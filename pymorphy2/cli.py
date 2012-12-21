@@ -15,11 +15,13 @@ from pymorphy2.os_utils import download_bz2, get_mem_usage
 logger = logging.getLogger('pymorphy2')
 logger.addHandler(logging.StreamHandler())
 
+XML_BZ2_URL = "http://opencorpora.org/files/export/dict/dict.opcorpora.xml.bz2"
+
 # ============================ Commands ===========================
 
 def compile_dict(in_filename, out_folder=None, overwrite=False, prediction_options=None):
     """
-    Makes a Pymorphy2 dictionary from OpenCorpora .xml dictionary.
+    Make a Pymorphy2 dictionary from OpenCorpora .xml dictionary.
     """
     if out_folder is None:
         out_folder = 'dict'
@@ -27,14 +29,14 @@ def compile_dict(in_filename, out_folder=None, overwrite=False, prediction_optio
 
 def xml_to_json(in_filename, out_filename):
     """
-    Parses XML and caches result to json.
+    Parse XML and caches result to json.
     """
     opencorpora_dict.xml_dict_to_json(in_filename, out_filename)
 
 
 def show_dict_mem_usage(dict_path, verbose=False):
     """
-    Shows dictionary memory usage.
+    Show dictionary memory usage.
     """
     initial_mem = get_mem_usage()
     initial_time = time.time()
@@ -52,7 +54,8 @@ def show_dict_mem_usage(dict_path, verbose=False):
             from guppy import hpy; hp=hpy()
             logger.debug(hp.heap())
         except ImportError:
-            logger.warning('guppy is not installed, detailed info is not available')
+            logger.warn('guppy is not installed, detailed info is not available')
+
 
 def show_dict_meta(dict_path):
     dct = opencorpora_dict.load(dict_path)
@@ -62,17 +65,15 @@ def show_dict_meta(dict_path):
 
 def make_test_suite(dict_filename, out_filename, word_limit=100):
     """
-    Makes a test suite from (unparsed) OpenCorpora dictionary.
+    Make a test suite from (unparsed) OpenCorpora dictionary.
     """
     return test_suite_generator.make_test_suite(
         dict_filename, out_filename, word_limit=int(word_limit))
 
 
-XML_BZ2_URL = "http://opencorpora.org/files/export/dict/dict.opcorpora.xml.bz2"
-
 def download_xml(out_filename, verbose):
     """
-    Downloads an updated XML from OpenCorpora
+    Download an updated XML from OpenCorpora
     """
     def on_chunk():
         if verbose:
@@ -84,6 +85,7 @@ def download_xml(out_filename, verbose):
         download_bz2(XML_BZ2_URL, f, on_chunk=on_chunk)
 
     logger.info('\nDone.')
+
 
 def _parse(dict_path, in_filename, out_filename):
     from pymorphy2 import tagger

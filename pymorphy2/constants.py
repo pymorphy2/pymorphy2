@@ -59,7 +59,3 @@ PREDICTION_PREFIXES = [
     "УЛЬТРА",
     "ЭКСТРА"
 ]
-
-NON_PRODUCTIVE_CLASSES = {
-    'opencorpora-int': set(['NUMR', 'NPRO', 'PRED', 'PREP', 'CONJ', 'PRCL', 'INTJ'])
-}

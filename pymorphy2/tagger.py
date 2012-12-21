@@ -2,11 +2,11 @@
 from __future__ import print_function, unicode_literals, division
 import os
 import heapq
-import collections
 from pymorphy2 import opencorpora_dict
-from pymorphy2.constants import LEMMA_PREFIXES, NON_PRODUCTIVE_CLASSES
+from pymorphy2.constants import LEMMA_PREFIXES
 
-#ParseResult = collections.namedtuple('ParseResult', 'fixed_word tag normal_form para_id form_idx estimate')
+#ParseResult = collections.namedtuple('ParseResult',
+#           'fixed_word tag normal_form para_id form_idx estimate')
 
 class Morph(object):
 
@@ -19,14 +19,15 @@ class Morph(object):
     @classmethod
     def load(cls, path=None):
         """
-        Creates a Morph object using dictionaries at ``path``.
+        Create a Morph object using dictionaries at ``path``.
 
         If ``path`` is None then the path is obtained from
         ``PYMORPHY2_DICT_PATH`` environment variable.
         """
         if path is None:
             if cls.env_variable not in os.environ:
-                raise ValueError("Please pass a path to dictionaries or set %s environment variable" % cls.env_variable)
+                raise ValueError("Please pass a path to dictionaries or set "
+                                 "%s environment variable" % cls.env_variable)
             path = os.environ[cls.env_variable]
 
         dct = opencorpora_dict.load(path)
@@ -34,7 +35,10 @@ class Morph(object):
 
     def parse(self, word):
         """
-        Returns a list of (fixed_word, tag, normal_form, _para_id, _idx, _estimate)
+        Return a list of
+
+            (fixed_word, tag, normal_form, _para_id, _idx, _estimate)
+
         tuples.
         """
         res = self._parse_as_known(word)
@@ -48,13 +52,14 @@ class Morph(object):
 
     def _parse_as_known(self, word):
         """
-        Parses the word using a dictionary.
+        Parse the word using a dictionary.
         """
         res = []
         para_normal_forms = {}
         para_data = self._dictionary.words.similar_items(word, self._ee)
 
-        for fixed_word, parses in para_data: # fixed_word is a word with proper Ё letters
+        for fixed_word, parses in para_data:
+            # `fixed_word` is a word with proper Ё letters
             for para_id, idx in parses:
 
                 if para_id not in para_normal_forms:
@@ -73,7 +78,7 @@ class Morph(object):
 
     def _parse_as_word_with_known_prefix(self, word):
         """
-        Parses the word by checking if it starts with a known prefix
+        Parse the word by checking if it starts with a known prefix
         and parsing the reminder.
         """
         res = []
@@ -94,7 +99,7 @@ class Morph(object):
 
     def _parse_as_word_with_unknown_prefix(self, word, _seen_parses=None):
         """
-        Parses the word by parsing only the word suffix
+        Parse the word by parsing only the word suffix
         (with restrictions on prefix & suffix lengths).
         """
         if _seen_parses is None:
@@ -120,7 +125,7 @@ class Morph(object):
 
     def _parse_as_word_with_known_suffix(self, word, _seen_parses=None):
         """
-        Parses the word by checking how the words with similar suffixes
+        Parse the word by checking how the words with similar suffixes
         are parsed.
         """
         if _seen_parses is None:
@@ -165,7 +170,7 @@ class Morph(object):
 
     def normal_forms(self, word):
         """
-        Returns a list of word normal forms.
+        Return a list of word normal forms.
         """
         seen = set()
         result = []
@@ -279,7 +284,7 @@ class Morph(object):
 
     def inflect(self, word, required_grammemes):
         """
-        Returns a list of parsed words that are closest to ``word`` and
+        Return a list of parsed words that are closest to ``word`` and
         have all ``required_grammemes``.
         """
         required_grammemes = set(required_grammemes)
@@ -314,16 +319,15 @@ class Morph(object):
 
     def decline(self, word):
         """
-        Returns parses for all possible word forms.
+        Return parses for all possible word forms.
         """
         return self._decline(self.parse(word))
 
     def _decline(self, word_parses):
         """
-        Returns parses for all possible word forms (given a list of
+        Return parses for all possible word forms (given a list of
         possible word parses).
         """
-
         paradigms = self._dictionary.paradigms
         seen_paradigms = set()
         result = []
@@ -351,7 +355,7 @@ class Morph(object):
 
     def _build_tag_info(self, para_id, idx):
         """
-        Returns gram. tag as a string.
+        Return gram. tag as a string.
         """
         paradigm = self._dictionary.paradigms[para_id]
         tag_info_offset = len(paradigm) // 3
@@ -360,7 +364,7 @@ class Morph(object):
 
     def _build_paradigm_info(self, para_id):
         """
-        Returns a list of
+        Return a list of
 
             (prefix, tag, suffix)
 
@@ -383,7 +387,7 @@ class Morph(object):
 
     def _build_normal_form(self, para_id, idx, fixed_word):
         """
-        Builds a normal form.
+        Build a normal form.
         """
 
         if idx == 0: # a shortcut: normal form is a word itself
@@ -404,7 +408,7 @@ class Morph(object):
 
     def _build_stem(self, paradigm, idx, fixed_word):
         """
-        Returns word stem (given a word, paradigm and the word index).
+        Return word stem (given a word, paradigm and the word index).
         """
         paradigm_len = len(paradigm) // 3
 
@@ -420,7 +424,6 @@ class Morph(object):
             return fixed_word[len(prefix):]
 
 
-
     # ====== misc =========
 
     def meta(self):
@@ -432,7 +435,7 @@ class Morph(object):
 
 def _split_word(word, min_reminder=3, max_prefix_length=5):
     """
-    Returns all splits of a word (taking in account min_reminder and
+    Return all splits of a word (taking in account min_reminder and
     max_prefix_length).
     """
     max_split = min(max_prefix_length, len(word)-min_reminder)

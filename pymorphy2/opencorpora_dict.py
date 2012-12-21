@@ -29,7 +29,7 @@ logger = logging.getLogger(__name__)
 
 def _parse_opencorpora_xml(filename):
     """
-    Parses OpenCorpora dict XML and returns a tuple
+    Parse OpenCorpora dict XML and return a tuple
 
         (lemmas_list, links, grammemes, version, revision)
 
@@ -45,7 +45,6 @@ def _parse_opencorpora_xml(filename):
         elem.clear()
         while elem.getprevious() is not None:
             del elem.getparent()[0]
-
 
     for ev, elem in etree.iterparse(filename):
 
@@ -80,9 +79,10 @@ def _parse_opencorpora_xml(filename):
 
     return lemmas, links, grammemes, version, revision
 
+
 def _lemma_forms_from_xml_elem(elem):
     """
-    Returns a list of (word, tags) pairs given an XML element with lemma.
+    Return a list of (word, tags) pairs given an XML element with lemma.
     """
     def _tags(elem):
         return ",".join(g.get('v') for g in elem.findall('g'))
@@ -90,7 +90,7 @@ def _lemma_forms_from_xml_elem(elem):
     lemma = []
     lemma_id = elem.get('id')
 
-    if len(elem) == 0: # deleted lemma
+    if len(elem) == 0:  # deleted lemma
         return lemma_id, lemma
 
     base_info = elem.findall('l')
@@ -107,9 +107,10 @@ def _lemma_forms_from_xml_elem(elem):
 
     return lemma_id, lemma
 
+
 def _longest_common_substring(data):
     """
-    Returns a longest common substring of a list of strings.
+    Return a longest common substring of a list of strings.
     See http://stackoverflow.com/questions/2892931/
     """
     substr = ''
@@ -120,10 +121,11 @@ def _longest_common_substring(data):
                     substr = data[0][i:i+j]
     return substr
 
+
 def _to_paradigm(lemma):
     """
-    Extracts (stem, paradigm) pair from lemma list.
-    Paradigm is a list of suffixes with associated gram. tags and prefixes.
+    Extract (stem, paradigm) pair from lemma list.
+    Paradigm is a list of suffixes with associated tags and prefixes.
     """
     forms, tags = list(zip(*lemma))
     prefixes = [''] * len(tags)
@@ -146,12 +148,17 @@ def _to_paradigm(lemma):
 
 
 def xml_dict_to_json(xml_filename, json_filename):
+    """
+    Convert XML dictionary to JSON for faster loading.
+    It may be useful while developing dictionary preparation routines.
+    """
     logger.info('parsing xml...')
     parsed_dct = _parse_opencorpora_xml(xml_filename)
 
     logger.info('writing json...')
     with codecs.open(json_filename, 'w', 'utf8') as f:
         json.dump(parsed_dct, f, ensure_ascii=False)
+
 
 def _load_json_dict(filename):
     with codecs.open(filename, 'r', 'utf8') as f:
@@ -216,9 +223,18 @@ def _join_lemmas(lemmas, links):
 
 
 def _linearized_paradigm(paradigm):
+    """
+    Convert ``paradigm`` (a list of tuples with numbers)
+    to 1-dimensional array.array (for reduced memory usage).
+    """
     return array.array(str("H"), list(itertools.chain(*zip(*paradigm))))
 
+
 def _load_json_or_xml_dict(filename):
+    """
+    Load (parse) raw OpenCorpora dictionary either from XML or from JSON
+    (depending on file extension).
+    """
     if filename.endswith(".json"):
         logger.info('loading json...')
         return _load_json_dict(filename)
@@ -226,56 +242,10 @@ def _load_json_or_xml_dict(filename):
         logger.info('parsing xml...')
         return _parse_opencorpora_xml(filename)
 
-def _suffixes_prediction_data(words, popularity, gramtab, paradigms,
-                              min_ending_freq=2, min_paradigm_popularity=3,
-                              max_forms_per_class=1):
-
-    # XXX: this uses approach different from pymorphy 0.5.6;
-    # what are the implications on prediction quality?
-
-    productive_paradigms = set(
-        para_id
-        for (para_id, count) in popularity.items()
-        if count >= min_paradigm_popularity
-    )
-
-    ending_counts = collections.Counter()
-
-    endings = collections.defaultdict(lambda: collections.defaultdict(collections.Counter))
-
-    for word, (para_id, idx) in words:
-
-        if para_id not in productive_paradigms:
-            continue
-
-        paradigm = paradigms[para_id]
-        tag = gramtab[paradigm[len(paradigm) // 3 + idx]]
-        cls = tuple(tag.replace(' ', ',', 1).split(','))[0]
-
-        for i in 1,2,3,4,5:
-            word_end = word[-i:]
-            ending_counts[word_end] += 1
-            endings[word_end][cls][(para_id, idx)] += 1
-
-    counted_suffixes_dawg_data = []
-    for suff in endings:
-
-        if ending_counts[suff] < min_ending_freq:
-            continue
-
-        for cls in endings[suff]:
-            for form, cnt in endings[suff][cls].most_common(max_forms_per_class):
-                counted_suffixes_dawg_data.append(
-                    (suff, (cnt,)+ form)
-                )
-
-    return counted_suffixes_dawg_data
-
-
 
 def _gram_structures(lemmas, links, prediction_options=None):
     """
-    Returns compacted dictionary data.
+    Return compacted dictionary data.
     """
     prediction_options = prediction_options or {}
     gramtab = []
@@ -357,7 +327,54 @@ def _gram_structures(lemmas, links, prediction_options=None):
     logger.debug('building prediction_suffixes DAWG..')
     prediction_suffixes_dawg = dawg.PredictionSuffixesDAWG(suffixes_dawg_data)
 
-    return tuple(gramtab), suffixes, paradigms, words_dawg, prediction_suffixes_dawg
+    return (tuple(gramtab), suffixes, paradigms,
+            words_dawg, prediction_suffixes_dawg)
+
+
+def _suffixes_prediction_data(words, popularity, gramtab, paradigms,
+                              min_ending_freq=2, min_paradigm_popularity=3,
+                              max_forms_per_class=1):
+
+    # XXX: this uses approach different from pymorphy 0.5.6;
+    # what are the implications on prediction quality?
+
+    productive_paradigms = set(
+        para_id
+        for (para_id, count) in popularity.items()
+        if count >= min_paradigm_popularity
+    )
+
+    ending_counts = collections.Counter()
+
+    endings = collections.defaultdict(lambda: collections.defaultdict(collections.Counter))
+
+    for word, (para_id, idx) in words:
+
+        if para_id not in productive_paradigms:
+            continue
+
+        paradigm = paradigms[para_id]
+        tag = gramtab[paradigm[len(paradigm) // 3 + idx]]
+        cls = tuple(tag.replace(' ', ',', 1).split(','))[0]
+
+        for i in 1,2,3,4,5:
+            word_end = word[-i:]
+            ending_counts[word_end] += 1
+            endings[word_end][cls][(para_id, idx)] += 1
+
+    counted_suffixes_dawg_data = []
+    for suff in endings:
+
+        if ending_counts[suff] < min_ending_freq:
+            continue
+
+        for cls in endings[suff]:
+            for form, cnt in endings[suff][cls].most_common(max_forms_per_class):
+                counted_suffixes_dawg_data.append(
+                    (suff, (cnt,)+ form)
+                )
+
+    return counted_suffixes_dawg_data
 
 
 def to_pymorphy2_format(opencorpora_dict_path, out_path, overwrite=False, prediction_options=None):
@@ -453,59 +470,100 @@ def to_pymorphy2_format(opencorpora_dict_path, out_path, overwrite=False, predic
         json.dump(meta, f, ensure_ascii=False, indent=4)
 
 
+# ------ Routines for loading compiled dictionaries --------
 
-DictTuple = collections.namedtuple('DictTuple', 'meta gramtab suffixes paradigms words prediction_prefixes prediction_suffixes Tag')
+DictTuple = collections.namedtuple(
+    'DictTuple',
+    'meta gramtab suffixes paradigms words prediction_prefixes prediction_suffixes Tag'
+)
+
 
 def load(path, gramtab_format='opencorpora-int'):
     """
-    Loads Pymorphy2 dictionary.
+    Load Pymorphy2 dictionary.
     ``path`` is a folder name where dictionary data reside.
     """
     #meta, gramtab, suffixes, paradigms, words = [None]*5
 
     _f = lambda p: os.path.join(path, p)
 
-    with open(_f('meta.json'), 'r') as f:
+    meta = _load_meta(_f('meta.json'))
+    _assert_format_is_compatible(meta)
+
+    Tag = _load_tag_class(gramtab_format, _f('grammemes.json'))
+    gramtab = [Tag(tag_str) for tag_str in _load_gramtab(meta, gramtab_format, path)]
+
+    suffixes = _load_suffixes(_f('suffixes.json'))
+    paradigms = _load_paradigms(_f('paradigms.array'))
+    words = dawg.WordsDawg().load(_f('words.dawg'))
+
+    prediction_suffixes = dawg.PredictionSuffixesDAWG().load(_f('prediction-suffixes.dawg'))
+    prediction_prefixes = dawg.DAWG().load(_f('prediction-prefixes.dawg'))
+
+    return DictTuple(meta, gramtab, suffixes, paradigms, words,
+                     prediction_prefixes, prediction_suffixes, Tag)
+
+
+def _load_meta(filename):
+    """ Load metadata. """
+    with open(filename, 'r') as f:
         meta = json.load(f)
         if hasattr(collections, 'OrderedDict'):
-            meta = collections.OrderedDict(meta)
-        else:
-            meta = dict(meta)
+            return collections.OrderedDict(meta)
+        return dict(meta)
 
-    format_version = meta.get('format_version', None)
-    if format_version != 1:
-        raise ValueError("This dictionary format ('%s') is not supported." % format_version)
 
+def _load_tag_class(gramtab_format, grammemes_filename):
+    """ Load and initialize Tag class (according to ``gramtab_format``). """
     if gramtab_format not in tagset.registry:
         raise ValueError("This gramtab format ('%s') is unsupported." % gramtab_format)
+
     Tag = tagset.registry[gramtab_format]
 
-    with open(_f('grammemes.json'), 'r') as f:
+    with open(grammemes_filename, 'r') as f:
         grammemes = json.load(f, encoding='utf8')
         Tag._init_restrictions(grammemes)
 
+    return Tag
+
+
+def _load_gramtab(meta, gramtab_format, path):
+    """ Load gramtab (a list of tags) """
 
     gramtab_formats = meta.get('gramtab_formats', {})
     if gramtab_format not in gramtab_formats:
         raise ValueError("This gramtab format (%s) is unavailable; available formats: %s" % (gramtab_format, gramtab_formats.keys()))
 
-    with open(_f(gramtab_formats[gramtab_format]), 'r') as f:
-        gramtab = [Tag(tag_str) for tag_str in json.load(f, encoding='utf8')]
+    gramtab_filename = os.path.join(path, gramtab_formats[gramtab_format])
+    with open(gramtab_filename, 'r') as f:
+        return json.load(f, encoding='utf8')
 
-    with open(_f('suffixes.json'), 'r') as f:
-        suffixes = json.load(f)
 
+def _load_suffixes(filename):
+    """ Load a list of possible word suffixes """
+    with open(filename, 'r') as f:
+        return json.load(f)
+
+
+def _load_paradigms(filename):
+    """ Load paradigms data """
     paradigms = []
-    with open(_f('paradigms.array'), 'rb') as f:
+    with open(filename, 'rb') as f:
         paradigms_count = struct.unpack(str("<H"), f.read(2))[0]
 
         for x in range(paradigms_count):
             paradigm_len = struct.unpack(str("<H"), f.read(2))[0]
+
             para = array.array(str("H"))
             para.fromfile(f, paradigm_len)
-            paradigms.append(para)
 
-    words = dawg.WordsDawg().load(_f('words.dawg'))
-    prediction_suffixes = dawg.PredictionSuffixesDAWG().load(_f('prediction-suffixes.dawg'))
-    prediction_prefixes = dawg.DAWG().load(_f('prediction-prefixes.dawg'))
-    return DictTuple(meta, gramtab, suffixes, paradigms, words, prediction_prefixes, prediction_suffixes, Tag)
+            paradigms.append(para)
+    return paradigms
+
+
+def _assert_format_is_compatible(meta):
+    """ Raise an exception if dictionary format is not compatible """
+    format_version = meta.get('format_version', None)
+    if format_version != 1:
+        raise ValueError("This dictionary format ('%s') is not supported." % format_version)
+

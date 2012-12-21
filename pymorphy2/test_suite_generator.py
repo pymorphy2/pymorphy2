@@ -55,7 +55,7 @@ def _add_ee_parses(word_parses):
 
 def _get_test_suite(word_parses, word_limit=100):
     """
-    Limits word_parses to ``word_limit`` words per tag.
+    Limit word_parses to ``word_limit`` words per tag.
     """
     gramtab = collections.Counter() # tagset -> number of stored items
     result = list()
@@ -78,8 +78,8 @@ def _save_test_suite(path, suite, revision):
 
 def make_test_suite(opencorpora_dict_path, out_path, word_limit=100):
     """
-    Extracts test data from OpenCorpora .xml dictionary (at least
-    ``word_limit`` words for each distinct gram. tag) and saves it to a file.
+    Extract test data from OpenCorpora .xml dictionary (at least
+    ``word_limit`` words for each distinct gram. tag) and save it to a file.
     """
     logger.debug('loading dictionary to memory...')
     lemmas, links, grammemes, version, revision = _load_json_or_xml_dict(opencorpora_dict_path)

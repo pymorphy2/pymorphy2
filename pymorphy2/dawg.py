@@ -11,7 +11,9 @@ except ImportError:
 
 def assert_can_create():
     if not CAN_CREATE:
-        raise NotImplementedError("Creating of DAWGs with DAWG-Python is not supported; install 'dawg' package. ")
+        msg = ("Creating of DAWGs with DAWG-Python is "
+               "not supported; install 'dawg' package.")
+        raise NotImplementedError(msg)
 
 
 class WordsDawg(RecordDAWG):
@@ -35,6 +37,7 @@ class PredictionSuffixesDAWG(WordsDawg):
     """
     DAWG for storing prediction data.
     """
+
     # We are storing 3 unsigned short ints as values:
     # count, the paradigm ID and the form index (inside paradigm).
     # Byte order is big-endian (this makes word forms properly sorted).

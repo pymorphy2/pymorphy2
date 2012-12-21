@@ -15,10 +15,12 @@ except ImportError:
 # Design notes: Tag objects should be immutable.
 class InternalOpencorporaTag(object):
 
-    __slots__ = ['_grammemes_tuple', '_lemma_grammemes', '_grammemes_cache', '_str']
+    __slots__ = ['_grammemes_tuple', '_lemma_grammemes',
+                 '_grammemes_cache', '_str']
 
     FORMAT = 'opencorpora-int'
-    NON_PRODUCTIVE_CLASSES = set(['NUMR', 'NPRO', 'PRED', 'PREP', 'CONJ', 'PRCL', 'INTJ'])
+    NON_PRODUCTIVE_CLASSES = set(['NUMR', 'NPRO', 'PRED', 'PREP',
+                                  'CONJ', 'PRCL', 'INTJ'])
 
     # XXX: is it a good idea to have these rules?
     EXTRA_INCOMPATIBLE = {
@@ -102,7 +104,7 @@ class InternalOpencorporaTag(object):
 
     @classmethod
     def _from_internal_tag(cls, tag):
-        """ Returns tag string given internal tag string """
+        """ Return tag string given internal tag string """
         return tag
 
     @classmethod
@@ -113,7 +115,7 @@ class InternalOpencorporaTag(object):
     @classmethod
     def _init_restrictions(cls, dict_grammemes):
         """
-        Fills ``OpencorporaTag.GRAMMEME_INDICES`` and
+        Fill ``OpencorporaTag.GRAMMEME_INDICES`` and
         ``OpencorporaTag.GRAMMEME_INCOMPATIBLE`` class attributes.
         """
 
@@ -159,7 +161,7 @@ class OpencorporaTag(InternalOpencorporaTag):
     @classmethod
     def _init_restrictions(cls, dict_grammemes):
         """
-        Fills ``OpencorporaTag.GRAMMEME_INDICES`` and
+        Fill ``OpencorporaTag.GRAMMEME_INDICES`` and
         ``OpencorporaTag.GRAMMEME_INCOMPATIBLE`` class attributes.
         """
         cls._init_alias_map(dict_grammemes)
@@ -186,7 +188,6 @@ class OpencorporaTag(InternalOpencorporaTag):
     def _init_alias_map(cls, dict_grammemes):
         for name, parent, alias, description in dict_grammemes:
             cls.GRAMMEME_ALIAS_MAP[name] = alias
-
 
 
 registry = dict()

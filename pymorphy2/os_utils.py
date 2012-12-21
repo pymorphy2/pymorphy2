@@ -9,7 +9,11 @@ except ImportError:
 
 CHUNK_SIZE = 256*1024
 
-def download_bz2(url, out_fp, chunk_size=CHUNK_SIZE, on_chunk=lambda:None):
+
+def download_bz2(url, out_fp, chunk_size=CHUNK_SIZE, on_chunk=lambda: None):
+    """
+    Download a bz2-encoded file from ``url`` and write it to ``out_fp`` file.
+    """
     decompressor = bz2.BZ2Decompressor()
     fp = urlopen(url, timeout=30)
 
