@@ -30,6 +30,7 @@ LoadedDictionary = collections.namedtuple(
     'meta gramtab suffixes paradigms words prediction_prefixes prediction_suffixes Tag lemma_prefixes'
 )
 
+
 def load_dict(path, gramtab_format='opencorpora-int'):
     """
     Load pymorphy2 dictionary.

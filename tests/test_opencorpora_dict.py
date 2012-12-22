@@ -7,78 +7,50 @@ class TestToParadigm(object):
 
     def test_simple(self):
         lemma = [
-            [
-              "ЯРЧЕ",
-              "COMP,Qual"
-            ],
-            [
-              "ЯРЧЕЙ",
-              "COMP,Qual V-ej"
-            ],
+            ["ярче", "COMP,Qual"],
+            ["ярчей", "COMP,Qual V-ej"],
         ]
         stem, forms = _to_paradigm(lemma)
-        assert stem == "ЯРЧЕ"
+        assert stem == "ярче"
         assert forms == (
             ("", "COMP,Qual", ""),
-            ("Й", "COMP,Qual V-ej", ""),
+            ("й", "COMP,Qual V-ej", ""),
         )
 
     def test_single_prefix(self):
         lemma = [
-            [
-              "ЯРЧЕ",
-              "COMP,Qual"
-            ],
-            [
-              "ПОЯРЧЕ",
-              "COMP,Qual Cmp2"
-            ],
+            ["ярче", "COMP,Qual"],
+            ["поярче", "COMP,Qual Cmp2"],
         ]
         stem, forms = _to_paradigm(lemma)
-        assert stem == "ЯРЧЕ"
+        assert stem == "ярче"
         assert forms == (
             ("", "COMP,Qual", ""),
-            ("", "COMP,Qual Cmp2", "ПО"),
+            ("", "COMP,Qual Cmp2", "по"),
         )
-
 
     def test_multiple_prefixes(self):
         lemma = [
-            [
-              "ЯРЧЕ",
-              "COMP,Qual"
-            ],
-            [
-              "ЯРЧЕЙ",
-              "COMP,Qual V-ej"
-            ],
-            [
-              "ПОЯРЧЕ",
-              "COMP,Qual Cmp2"
-            ],
-            [
-              "ПОЯРЧЕЙ",
-              "COMP,Qual Cmp2,V-ej"
-            ],
-            [
-              "НАИЯРЧАЙШИЙ",
-              "ADJF,Supr,Qual masc,sing,nomn"
-            ],
+            ["ярче", "COMP,Qual"],
+            ["ярчей", "COMP,Qual V-ej"],
+            ["поярче", "COMP,Qual Cmp2"],
+            ["поярчей", "COMP,Qual Cmp2,V-ej"],
+            ["наиярчайший", "ADJF,Supr,Qual masc,sing,nomn"],
         ]
         stem, forms = _to_paradigm(lemma)
-        assert stem == 'ЯРЧ'
+        assert stem == 'ярч'
 
     def test_multiple_prefixes_2(self):
         lemma = [
-            ["ПОДРОБНЕЙШИЙ", 1],
-            ["НАИПОДРОБНЕЙШИЙ", 2],
-            ["ПОПОДРОБНЕЕ", 3]
+            ["подробнейший", 1],
+            ["наиподробнейший", 2],
+            ["поподробнее", 3]
         ]
         stem, forms = _to_paradigm(lemma)
-        assert stem == 'ПОДРОБНЕ'
+        assert stem == 'подробне'
         assert forms == (
-            ("ЙШИЙ", 1, ""),
-            ("ЙШИЙ", 2, "НАИ"),
-            ("Е", 3, "ПО"),
+            ("йший", 1, ""),
+            ("йший", 2, "наи"),
+            ("е", 3, "по"),
         )
 

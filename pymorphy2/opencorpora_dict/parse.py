@@ -113,7 +113,7 @@ def _lemma_forms_from_xml_elem(elem):
 
     for form_elem in elem.findall('f'):
         tags = _tags(form_elem)
-        form = form_elem.get('t').upper()
+        form = form_elem.get('t').lower()
         lemma.append(
             (form, " ".join([base_tags, tags]).strip())
         )

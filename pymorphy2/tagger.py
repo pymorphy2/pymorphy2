@@ -11,7 +11,7 @@ class Morph(object):
 
     def __init__(self, dct):
         self._dictionary = dct
-        self._ee = dct.words.compile_replaces({'Е': 'Ё'})
+        self._ee = dct.words.compile_replaces({'е': 'ё'})
 
     @classmethod
     def load(cls, path=None):
@@ -56,7 +56,7 @@ class Morph(object):
         para_data = self._dictionary.words.similar_items(word, self._ee)
 
         for fixed_word, parses in para_data:
-            # `fixed_word` is a word with proper Ё letters
+            # `fixed_word` is a word with proper ё letters
             for para_id, idx in parses:
 
                 if para_id not in para_normal_forms:

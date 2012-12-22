@@ -32,9 +32,9 @@ def _add_ee_parses(word_parses):
         return "".join(chars)
 
     def variants_with_missing_umlauts(word):
-        umlaut_positions = [m.start() for m in re.finditer('Ё', word, re.U)]
+        umlaut_positions = [m.start() for m in re.finditer('ё', word, re.U)]
         for positions in combinations_of_all_lengths(umlaut_positions):
-            yield replace_chars(word, positions, 'Е')
+            yield replace_chars(word, positions, 'е')
 
 
     _word_parses = copy.deepcopy(word_parses)
