@@ -22,14 +22,14 @@ def load_words(path=DATA_PATH):
         for line in f:
             word, count, ipm = line.split()
             count = int(count)
-            words.append((word.upper(), count))
+            words.append((word.lower(), count))
     return words
 
 def get_total_usages(words):
     return sum(w[1] for w in words)
 
 def bench_tag(morph, words, total_usages):
-    word_no_umlauts = [(w[0].replace('Ё', 'Е'), w[1]) for w in words]
+    word_no_umlauts = [(w[0].replace('ё', 'е'), w[1]) for w in words]
 
     def _run():
         for word, cnt in words:
