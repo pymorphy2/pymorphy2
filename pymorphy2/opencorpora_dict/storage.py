@@ -119,6 +119,7 @@ def save_compiled_dict(compiled_dict, out_path):
         ['words_dawg_length', words_dawg_len],
         ['prediction_suffixes_dawg_length', prediction_suffixes_dawg_len],
         ['prediction_prefixes_dawg_length', len(PREDICTION_PREFIXES)],
+        ['lemma_prefixes_length', len(LEMMA_PREFIXES)],
     ]
 
     json_write(_f('meta.json'), meta, indent=4)
