@@ -201,9 +201,9 @@ def _to_paradigm(lemma):
     forms, tags = list(zip(*lemma))
     prefixes = [''] * len(tags)
 
-    stem = os.path.commonprefix(forms)
-
-    if stem == "":
+    if len(set(forms)) == 1:
+        stem = forms[0]
+    else:
         stem = longest_common_substring(forms)
         prefixes = [form[:form.index(stem)] for form in forms]
         if any(pref not in LEMMA_PREFIXES for pref in prefixes):

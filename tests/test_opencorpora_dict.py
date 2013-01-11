@@ -54,3 +54,34 @@ class TestToParadigm(object):
             ("е", 3, "по"),
         )
 
+    def test_platina(self):
+        lemma = [
+            ["платиновее", 1],
+            ["платиновей", 2],
+            ["поплатиновее", 3],
+            ["поплатиновей", 4],
+        ]
+        stem, forms = _to_paradigm(lemma)
+        assert forms == (
+            ("е", 1, ""),
+            ("й", 2, ""),
+            ("е", 3, "по"),
+            ("й", 4, "по"),
+        )
+        assert stem == 'платинове'
+
+    def test_no_prefix(self):
+        lemma = [["английский", 1], ["английского", 2]]
+        stem, forms = _to_paradigm(lemma)
+        assert stem == 'английск'
+        assert forms == (
+            ("ий", 1, ""),
+            ("ого", 2, ""),
+        )
+
+    def test_single(self):
+        lemma = [["английски", 1]]
+        stem, forms = _to_paradigm(lemma)
+        assert stem == 'английски'
+        assert forms == (("", 1, ""),)
+
