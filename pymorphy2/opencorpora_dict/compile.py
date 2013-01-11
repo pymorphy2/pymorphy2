@@ -201,7 +201,7 @@ def _to_paradigm(lemma):
     forms, tags = list(zip(*lemma))
     prefixes = [''] * len(tags)
 
-    if len(set(forms)) == 1:
+    if len(forms) == 1:
         stem = forms[0]
     else:
         stem = longest_common_substring(forms)
