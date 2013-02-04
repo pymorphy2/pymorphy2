@@ -15,8 +15,7 @@ except ImportError:
 # Design notes: Tag objects should be immutable.
 class InternalOpencorporaTag(object):
 
-    __slots__ = ['_grammemes_tuple', '_lemma_grammemes',
-                 '_grammemes_cache', '_str']
+    __slots__ = ['_grammemes_tuple', '_grammemes_cache', '_str']
 
     FORMAT = 'opencorpora-int'
     NON_PRODUCTIVE_CLASSES = set(['NUMR', 'NPRO', 'PRED', 'PREP',

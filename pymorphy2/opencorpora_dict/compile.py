@@ -195,8 +195,9 @@ def _join_lemmas(lemmas, links):
 
 def _to_paradigm(lemma):
     """
-    Extract (stem, paradigm) pair from lemma list.
-    Paradigm is a list of suffixes with associated tags and prefixes.
+    Extract (stem, paradigm) pair from lemma (which is a list of
+    (word_form, tag) tuples). Paradigm is a list of suffixes with
+    associated tags and prefixes.
     """
     forms, tags = list(zip(*lemma))
     prefixes = [''] * len(tags)
@@ -206,6 +207,8 @@ def _to_paradigm(lemma):
     else:
         stem = longest_common_substring(forms)
         prefixes = [form[:form.index(stem)] for form in forms]
+
+        # only allow prefixes from LEMMA_PREFIXES
         if any(pref not in LEMMA_PREFIXES for pref in prefixes):
             stem = ""
             prefixes = [''] * len(tags)

@@ -24,6 +24,7 @@ from pymorphy2.utils import json_write, json_read
 
 logger = logging.getLogger(__name__)
 
+CURRENT_FORMAT_VERSION = 1
 
 LoadedDictionary = collections.namedtuple(
     'LoadedDictionary',
@@ -101,7 +102,7 @@ def save_compiled_dict(compiled_dict, out_path):
     prediction_suffixes_dawg_len = _dawg_len(compiled_dict.prediction_suffixes_dawg)
 
     meta = [
-        ['format_version', 1],
+        ['format_version', CURRENT_FORMAT_VERSION],
         ['pymorphy2_version', pymorphy2.__version__],
         ['compiled_at', datetime.datetime.utcnow().isoformat()],
 
@@ -176,6 +177,6 @@ def _load_paradigms(filename):
 def _assert_format_is_compatible(meta):
     """ Raise an exception if dictionary format is not compatible """
     format_version = meta.get('format_version', None)
-    if format_version != 1:
+    if format_version != CURRENT_FORMAT_VERSION:
         raise ValueError("This dictionary format ('%s') is not supported." % format_version)
 
