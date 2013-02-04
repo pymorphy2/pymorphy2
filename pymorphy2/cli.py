@@ -93,8 +93,8 @@ def download_xml(out_filename, verbose):
 
 
 def _parse(dict_path, in_filename, out_filename):
-    from pymorphy2 import analyzer
-    morph = pymorphy2.analyzer.Morph.load(dict_path)
+
+    morph = pymorphy2.MorphAnalyzer(dict_path)
 
     with codecs.open(in_filename, 'r', 'utf8') as in_file:
         with codecs.open(out_filename, 'w', 'utf8') as out_file:

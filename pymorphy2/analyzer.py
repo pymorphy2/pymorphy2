@@ -5,7 +5,7 @@ import heapq
 from pymorphy2 import opencorpora_dict
 
 
-class Morph(object):
+class MorphAnalyzer(object):
     """
     Morphological analyzer for Russian language.
 
@@ -19,26 +19,27 @@ class Morph(object):
 
     env_variable = 'PYMORPHY2_DICT_PATH'
 
-    def __init__(self, dct):
-        self._dictionary = dct
-        self._ee = dct.words.compile_replaces({'е': 'ё'})
 
-    @classmethod
-    def load(cls, path=None):
+    def __init__(self, path=None, _dictionary=None):
         """
         Create a Morph object using dictionaries at ``path``.
 
         If ``path`` is None then the path is obtained from
         ``PYMORPHY2_DICT_PATH`` environment variable.
         """
-        if path is None:
-            if cls.env_variable not in os.environ:
-                raise ValueError("Please pass a path to dictionaries or set "
-                                 "%s environment variable" % cls.env_variable)
-            path = os.environ[cls.env_variable]
+        if _dictionary is not None:
+            self._dictionary = _dictionary
+        else:
+            if path is None:
+                if self.env_variable not in os.environ:
+                    raise ValueError("Please pass a path to dictionaries or set "
+                                     "%s environment variable" % self.env_variable)
+                path = os.environ[self.env_variable]
 
-        dct = opencorpora_dict.load(path)
-        return cls(dct)
+            self._dictionary = opencorpora_dict.load(path)
+
+        self._ee = self._dictionary.words.compile_replaces({'е': 'ё'})
+
 
     def parse(self, word):
         """
