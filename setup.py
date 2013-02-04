@@ -29,7 +29,7 @@ setup(
     requires=['dawg_python (>= 0.5)'],
 
 #    cmdclass = {'build_ext': build_ext},
-#    ext_modules = [Extension("pymorphy2.tagger", ["pymorphy2/tagger.py"])],
+#    ext_modules = [Extension("pymorphy2.tagger", ["pymorphy2/analyzer.py"])],
 
     classifiers=[
           'Development Status :: 2 - Pre-Alpha',

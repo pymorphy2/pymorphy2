@@ -4,7 +4,7 @@ import logging
 import codecs
 import os
 
-from pymorphy2 import tagger
+from pymorphy2 import analyzer
 from benchmarks import utils
 
 logger = logging.getLogger('pymorphy2.bench')
@@ -71,7 +71,7 @@ def bench_parse(morph, words, total_usages):
 def bench_all(dict_path=None):
     """ Run all benchmarks """
     logger.debug("loading tagger...")
-    morph = tagger.Morph.load(dict_path)
+    morph = analyzer.Morph.load(dict_path)
 
     logger.debug("loading benchmark data...")
     words = load_words()

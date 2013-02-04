@@ -6,6 +6,16 @@ from pymorphy2 import opencorpora_dict
 
 
 class Morph(object):
+    """
+    Morphological analyzer for Russian language.
+
+    For a given word it can find all possible inflectional paradigms
+    and thus compute all possible tags and normal forms.
+
+    Analyzer uses morphological word features and a lexicon
+    (dictionary compiled from XML available at OpenCorpora.org);
+    for unknown words heuristic algorithm is used.
+    """
 
     env_variable = 'PYMORPHY2_DICT_PATH'
 
