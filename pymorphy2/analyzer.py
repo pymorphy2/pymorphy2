@@ -167,10 +167,10 @@ class MorphAnalyzer(object):
 
             if total_cnt > 1:
                 # parses are sorted inside paradigms, but they are unsorted overall
-                sorted_parses = sorted(result, reverse=True)
+                result.sort(reverse=True)
                 result = [
                     (fixed_word, tag, normal_form, para_id, idx, cnt/total_cnt * ESTIMATE_DECAY)
-                    for (cnt, fixed_word, tag, normal_form, para_id, idx) in sorted_parses
+                    for (cnt, fixed_word, tag, normal_form, para_id, idx) in result
                 ]
                 break
 
@@ -282,8 +282,8 @@ class MorphAnalyzer(object):
                     )
 
             if found:
-                sorted_result = sorted(result, reverse=True)
-                result = [tpl[1] for tpl in sorted_result] # remove counts
+                result.sort(reverse=True)
+                result = [tag for cnt, tag in result] # remove counts
                 break
 
         return result
