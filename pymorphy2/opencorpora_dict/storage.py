@@ -19,16 +19,16 @@ except AttributeError:
 import pymorphy2
 from pymorphy2 import tagset
 from pymorphy2 import dawg
-from pymorphy2.constants import LEMMA_PREFIXES, PREDICTION_PREFIXES
+from pymorphy2.constants import PARADIGM_PREFIXES, PREDICTION_PREFIXES
 from pymorphy2.utils import json_write, json_read
 
 logger = logging.getLogger(__name__)
 
-CURRENT_FORMAT_VERSION = 1
+CURRENT_FORMAT_VERSION = 2
 
 LoadedDictionary = collections.namedtuple(
     'LoadedDictionary',
-    'meta gramtab suffixes paradigms words prediction_prefixes prediction_suffixes Tag lemma_prefixes'
+    'meta gramtab suffixes paradigms words prediction_prefixes prediction_suffixes Tag paradigm_prefixes'
 )
 
 
@@ -47,7 +47,7 @@ def load_dict(path, gramtab_format='opencorpora-int'):
     gramtab = [Tag(tag_str) for tag_str in _load_gramtab(meta, gramtab_format, path)]
 
     suffixes = json_read(_f('suffixes.json'))
-    lemma_prefixes = json_read(_f('lemma-prefixes.json'))
+    paradigm_prefixes = json_read(_f('paradigm-prefixes.json'))
     paradigms = _load_paradigms(_f('paradigms.array'))
     words = dawg.WordsDawg().load(_f('words.dawg'))
 
@@ -56,7 +56,7 @@ def load_dict(path, gramtab_format='opencorpora-int'):
 
     return LoadedDictionary(meta, gramtab, suffixes, paradigms, words,
                             prediction_prefixes, prediction_suffixes, Tag,
-                            lemma_prefixes)
+                            paradigm_prefixes)
 
 
 def save_compiled_dict(compiled_dict, out_path):
@@ -89,7 +89,7 @@ def save_compiled_dict(compiled_dict, out_path):
     compiled_dict.words_dawg.save(_f('words.dawg'))
     compiled_dict.prediction_suffixes_dawg.save(_f('prediction-suffixes.dawg'))
     dawg.DAWG(PREDICTION_PREFIXES).save(_f('prediction-prefixes.dawg'))
-    json_write(_f('lemma-prefixes.json'), LEMMA_PREFIXES)
+    json_write(_f('paradigm-prefixes.json'), PARADIGM_PREFIXES)
 
     logger.debug("computing metadata..")
 
@@ -109,7 +109,7 @@ def save_compiled_dict(compiled_dict, out_path):
         ['source', 'opencorpora.org'],
         ['source_version', compiled_dict.parsed_dict.version],
         ['source_revision', compiled_dict.parsed_dict.revision],
-        ['source_lemmas_count', len(compiled_dict.parsed_dict.lemmas)],
+        ['source_lexemes_count', len(compiled_dict.parsed_dict.lexemes)],
         ['source_links_count', len(compiled_dict.parsed_dict.links)],
 
         ['gramtab_length', len(compiled_dict.gramtab)],
@@ -120,7 +120,7 @@ def save_compiled_dict(compiled_dict, out_path):
         ['words_dawg_length', words_dawg_len],
         ['prediction_suffixes_dawg_length', prediction_suffixes_dawg_len],
         ['prediction_prefixes_dawg_length', len(PREDICTION_PREFIXES)],
-        ['lemma_prefixes_length', len(LEMMA_PREFIXES)],
+        ['paradigm_prefixes_length', len(PARADIGM_PREFIXES)],
     ]
 
     json_write(_f('meta.json'), meta, indent=4)

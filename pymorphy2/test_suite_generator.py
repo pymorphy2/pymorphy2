@@ -12,12 +12,12 @@ from pymorphy2.utils import combinations_of_all_lengths
 logger = logging.getLogger(__name__)
 
 
-def _get_word_parses(lemmas):
+def _get_word_parses(lexemes):
     word_parses = collections.defaultdict(list) # word -> possible tags
 
-    for index, lemma_id in enumerate(lemmas):
-        lemma = lemmas[lemma_id]
-        for word, tag in lemma:
+    for index, lex_id in enumerate(lexemes):
+        lexeme = lexemes[lex_id]
+        for word, tag in lexeme:
             word_parses[word].append(tag)
 
     return word_parses
@@ -80,7 +80,7 @@ def make_test_suite(opencorpora_dict_path, out_path, word_limit=100):
     parsed_dict = load_json_or_xml_dict(opencorpora_dict_path)
 
     logger.debug('preparing...')
-    parses = _get_word_parses(parsed_dict.lemmas)
+    parses = _get_word_parses(parsed_dict.lexemes)
 
     logger.debug('dictionary size: %d', len(parses))
 

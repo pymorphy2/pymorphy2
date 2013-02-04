@@ -10,7 +10,7 @@ from pymorphy2.utils import json_write, json_read
 
 logger = logging.getLogger(__name__)
 
-ParsedDictionary = collections.namedtuple('ParsedDictionary', 'lemmas links grammemes version revision')
+ParsedDictionary = collections.namedtuple('ParsedDictionary', 'lexemes links grammemes version revision')
 
 
 def load_json_or_xml_dict(filename):
@@ -32,13 +32,13 @@ def parse_opencorpora_xml(filename):
     """
     Parse OpenCorpora dict XML and return a tuple
 
-        (lemmas_list, links, grammemes, version, revision)
+        (lexeme_list, links, grammemes, version, revision)
 
     """
     from lxml import etree
 
     links = []
-    lemmas = {}
+    lexemes = {}
     grammemes = []
     version, revision = None, None
 
@@ -65,8 +65,8 @@ def parse_opencorpora_xml(filename):
             _clear(elem)
 
         if elem.tag == 'lemma':
-            lemma_id, lemma_forms = _lemma_forms_from_xml_elem(elem)
-            lemmas[lemma_id] = lemma_forms
+            lex_id, word_forms = _word_forms_from_xml_elem(elem)
+            lexemes[lex_id] = word_forms
             _clear(elem)
 
         elif elem.tag == 'link':
@@ -78,7 +78,7 @@ def parse_opencorpora_xml(filename):
             links.append(link_tuple)
             _clear(elem)
 
-    return lemmas, links, grammemes, version, revision
+    return lexemes, links, grammemes, version, revision
 
 
 def xml_dict_to_json(xml_filename, json_filename):
@@ -93,18 +93,18 @@ def xml_dict_to_json(xml_filename, json_filename):
     json_write(json_filename, parsed_dct)
 
 
-def _lemma_forms_from_xml_elem(elem):
+def _word_forms_from_xml_elem(elem):
     """
-    Return a list of (word, tags) pairs given an XML element with lemma.
+    Return a list of (word, tags) pairs given "lemma" XML element.
     """
     def _tags(elem):
         return ",".join(g.get('v') for g in elem.findall('g'))
 
-    lemma = []
-    lemma_id = elem.get('id')
+    lexeme = []
+    lex_id = elem.get('id')
 
-    if len(elem) == 0:  # deleted lemma
-        return lemma_id, lemma
+    if len(elem) == 0:  # deleted lexeme?
+        return lex_id, lexeme
 
     base_info = elem.findall('l')
 
@@ -114,8 +114,8 @@ def _lemma_forms_from_xml_elem(elem):
     for form_elem in elem.findall('f'):
         tags = _tags(form_elem)
         form = form_elem.get('t').lower()
-        lemma.append(
+        lexeme.append(
             (form, " ".join([base_tags, tags]).strip())
         )
 
-    return lemma_id, lemma
+    return lex_id, lexeme

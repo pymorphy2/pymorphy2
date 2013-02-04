@@ -16,7 +16,7 @@ except AttributeError:
     izip = zip
 
 from pymorphy2 import dawg
-from pymorphy2.constants import LEMMA_PREFIXES, PREDICTION_PREFIXES
+from pymorphy2.constants import PARADIGM_PREFIXES, PREDICTION_PREFIXES
 from pymorphy2.utils import longest_common_substring
 
 logger = logging.getLogger(__name__)
@@ -61,16 +61,16 @@ def compile_parsed_dict(parsed_dict, prediction_options=None):
     seen_tags = dict()
     seen_paradigms = dict()
 
-    logger.info("inlining lemma links...")
-    lemmas = _join_lemmas(parsed_dict.lemmas, parsed_dict.links)
+    logger.info("inlining lexeme derivational rules...")
+    lexemes = _join_lexemes(parsed_dict.lexemes, parsed_dict.links)
 
     logger.info('building paradigms...')
     logger.debug("%20s %15s %15s %15s", "stem", "len(gramtab)", "len(words)", "len(paradigms)")
 
     popularity = collections.Counter()
 
-    for index, lemma in enumerate(lemmas):
-        stem, paradigm = _to_paradigm(lemma)
+    for index, lexeme in enumerate(lexemes):
+        stem, paradigm = _to_paradigm(lexeme)
 
         # build gramtab
         for suff, tag, pref in paradigm:
@@ -115,7 +115,7 @@ def compile_parsed_dict(parsed_dict, prediction_options=None):
         para = []
         for suff, tag, pref in paradigm:
             para.append(
-                (suffixes_dict[suff], tag, LEMMA_PREFIXES.index(pref))
+                (suffixes_dict[suff], tag, PARADIGM_PREFIXES.index(pref))
             )
         return para
 
@@ -137,9 +137,9 @@ def compile_parsed_dict(parsed_dict, prediction_options=None):
                               words_dawg, prediction_suffixes_dawg, parsed_dict)
 
 
-def _join_lemmas(lemmas, links):
+def _join_lexemes(lexemes, links):
     """
-    Combine linked lemmas to single lemma.
+    Combine linked lexemes to a single lexeme.
     """
 
 #    <link_types>
@@ -170,13 +170,13 @@ def _join_lemmas(lemmas, links):
 
     moves = dict()
 
-    def move_lemma(from_id, to_id):
-        lm = lemmas[str(from_id)]
+    def move_lexeme(from_id, to_id):
+        lm = lexemes[str(from_id)]
 
         while to_id in moves:
             to_id = moves[to_id]
 
-        lemmas[str(to_id)].extend(lm)
+        lexemes[str(to_id)].extend(lm)
         del lm[:]
         moves[from_id] = to_id
 
@@ -187,19 +187,19 @@ def _join_lemmas(lemmas, links):
 #        if type_id not in ALLOWED_LINK_TYPES:
 #            continue
 
-        move_lemma(link_end, link_start)
+        move_lexeme(link_end, link_start)
 
-    lemma_ids = sorted(lemmas.keys(), key=int)
-    return [lemmas[lemma_id] for lemma_id in lemma_ids if lemmas[lemma_id]]
+    lex_ids = sorted(lexemes.keys(), key=int)
+    return [lexemes[lex_id] for lex_id in lex_ids if lexemes[lex_id]]
 
 
-def _to_paradigm(lemma):
+def _to_paradigm(lexeme):
     """
-    Extract (stem, paradigm) pair from lemma (which is a list of
+    Extract (stem, paradigm) pair from lexeme (which is a list of
     (word_form, tag) tuples). Paradigm is a list of suffixes with
     associated tags and prefixes.
     """
-    forms, tags = list(zip(*lemma))
+    forms, tags = list(zip(*lexeme))
     prefixes = [''] * len(tags)
 
     if len(forms) == 1:
@@ -208,8 +208,8 @@ def _to_paradigm(lemma):
         stem = longest_common_substring(forms)
         prefixes = [form[:form.index(stem)] for form in forms]
 
-        # only allow prefixes from LEMMA_PREFIXES
-        if any(pref not in LEMMA_PREFIXES for pref in prefixes):
+        # only allow prefixes from PARADIGM_PREFIXES
+        if any(pref not in PARADIGM_PREFIXES for pref in prefixes):
             stem = ""
             prefixes = [''] * len(tags)
 

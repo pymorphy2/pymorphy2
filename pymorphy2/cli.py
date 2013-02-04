@@ -129,7 +129,7 @@ Options:
     -o --out <PATH>                     Output folder name [default: dict]
     --limit <NUM>                       Min. number of words per gram. tag [default: 100]
     --min_ending_freq <NUM>             Prediction: min. number of suffix occurances [default: 2]
-    --min_paradigm_popularity <NUM>     Prediction: min. number of lemmas for the paradigm [default: 3]
+    --min_paradigm_popularity <NUM>     Prediction: min. number of lexemes for the paradigm [default: 3]
     --max_forms_per_class <NUM>         Prediction: max. number of word forms per part of speech [default: 1]
     --dict <PATH>                       Dictionary folder path [default: dict]
 

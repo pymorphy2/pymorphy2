@@ -288,7 +288,7 @@ class Morph(object):
         parses = self.parse(word)
 
         def weigth(parse):
-            # order by (probability, index in lemma)
+            # order by (probability, index in lexeme)
             return -parse[5], parse[4]
 
         result = []
@@ -372,7 +372,7 @@ class Morph(object):
         res = []
         for idx in range(paradigm_len):
             prefix_id = paradigm[paradigm_len*2 + idx]
-            prefix = self._dictionary.lemma_prefixes[prefix_id]
+            prefix = self._dictionary.paradigm_prefixes[prefix_id]
 
             suffix_id = paradigm[idx]
             suffix = self._dictionary.suffixes[suffix_id]
@@ -398,7 +398,7 @@ class Morph(object):
         normal_prefix_id = paradigm[paradigm_len*2 + 0]
         normal_suffix_id = paradigm[0]
 
-        normal_prefix = self._dictionary.lemma_prefixes[normal_prefix_id]
+        normal_prefix = self._dictionary.paradigm_prefixes[normal_prefix_id]
         normal_suffix = self._dictionary.suffixes[normal_suffix_id]
 
         return normal_prefix + stem + normal_suffix
@@ -410,7 +410,7 @@ class Morph(object):
         paradigm_len = len(paradigm) // 3
 
         prefix_id = paradigm[paradigm_len*2 + idx]
-        prefix = self._dictionary.lemma_prefixes[prefix_id]
+        prefix = self._dictionary.paradigm_prefixes[prefix_id]
 
         suffix_id = paradigm[idx]
         suffix = self._dictionary.suffixes[suffix_id]

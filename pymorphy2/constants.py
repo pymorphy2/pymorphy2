@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, unicode_literals
 
-LEMMA_PREFIXES = ["", "по", "наи"]
+PARADIGM_PREFIXES = ["", "по", "наи"]
 
 PREDICTION_PREFIXES = [
     "анти",

@@ -23,6 +23,8 @@ pymorphy2_ - наследник pymorphy_. Цели и задачи:
 
    CHANGES
 
+   glossary
+
 .. _pymorphy2: https://github.com/kmike/pymorphy2
 .. _pymorphy: https://bitbucket.org/kmike/pymorphy/
 .. _OpenCorpora: http://opencorpora.org

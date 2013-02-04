@@ -24,8 +24,8 @@ class InternalOpencorporaTag(object):
     # XXX: is it a good idea to have these rules?
     EXTRA_INCOMPATIBLE = {
         'plur': set(['GNdr']),
-        # XXX: how to use rules from OpenCorpora
-        # (they have "lemma/form" separation)?
+        # XXX: how to use rules from OpenCorpora?
+        # (they have "lexeme/form" separation)
     }
     GRAMMEME_INDICES = collections.defaultdict(lambda: 0)
     GRAMMEME_INCOMPATIBLE = collections.defaultdict(set)
@@ -34,7 +34,7 @@ class InternalOpencorporaTag(object):
         self._str = tag
 
         # XXX: we loose information about which grammemes
-        # belongs to lemma and which belongs to form
+        # belongs to lexeme and which belongs to form
         # (this information seems useless for pymorphy2).
 
         # Hacks for better memory usage:
