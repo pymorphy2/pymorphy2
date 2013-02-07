@@ -4,7 +4,6 @@ import os
 import heapq
 from pymorphy2 import opencorpora_dict
 
-
 class MorphAnalyzer(object):
     """
     Morphological analyzer for Russian language.
@@ -18,7 +17,6 @@ class MorphAnalyzer(object):
     """
 
     env_variable = 'PYMORPHY2_DICT_PATH'
-
 
     def __init__(self, path=None, _dictionary=None):
         """

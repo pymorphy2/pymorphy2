@@ -71,7 +71,7 @@ def save_compiled_dict(compiled_dict, out_path):
 
     gramtab_formats = {}
     for format, Tag in tagset.registry.items():
-        Tag._init_restrictions(compiled_dict.parsed_dict.grammemes)
+        Tag._init_grammemes(compiled_dict.parsed_dict.grammemes)
         new_gramtab = [Tag._from_internal_tag(tag) for tag in compiled_dict.gramtab]
 
         gramtab_name = "gramtab-%s.json" % format
@@ -142,7 +142,7 @@ def _load_tag_class(gramtab_format, grammemes_filename):
     grammemes = json_read(grammemes_filename)
 
     Tag = tagset.registry[gramtab_format]
-    Tag._init_restrictions(grammemes)
+    Tag._init_grammemes(grammemes)
 
     return Tag
 
