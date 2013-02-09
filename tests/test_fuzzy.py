@@ -36,9 +36,19 @@ def load_suite(path):
     suite = list(iter_suite(path))
     return suite[0], suite[1:]
 
-suite_revision, suite70k = load_suite(SUITE_PATH)
 
 def test_tagger_fuzzy():
+    if not os.path.exists(SUITE_PATH):
+        msg = """
+        Fuzzy test suite was not created. In order to run
+        "fuzzy" tests create a test suite with the following command:
+
+            pymorphy dict make_test_suite dict.xml dev_data/suite.txt -v
+
+        """
+        pytest.skip(msg)
+
+    suite_revision, suite70k = load_suite(SUITE_PATH)
     dict_revision = morph.meta()['source_revision']
     if suite_revision != dict_revision:
         msg = """
