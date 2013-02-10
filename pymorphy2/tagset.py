@@ -89,7 +89,8 @@ class OpencorporaTag(object):
     Available attributes are: POS, animacy, aspect, case, gender, involvement,
     mood, number, person, tense, transitivity and voice.
 
-    You may check if a grammeme is in tag or if a set of grammemes are in tag::
+    You may check if a grammeme is in tag or if all grammemes
+    from a given set are in tag::
 
         >>> 'perf' in tag
         True
