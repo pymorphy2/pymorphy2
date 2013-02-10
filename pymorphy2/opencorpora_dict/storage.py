@@ -28,7 +28,7 @@ CURRENT_FORMAT_VERSION = 2
 
 LoadedDictionary = collections.namedtuple(
     'LoadedDictionary',
-    'meta gramtab suffixes paradigms words prediction_prefixes prediction_suffixes Tag paradigm_prefixes'
+    'meta, gramtab, suffixes, paradigms, words, prediction_prefixes, prediction_suffixes, Tag, paradigm_prefixes'
 )
 
 

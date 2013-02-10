@@ -18,24 +18,20 @@ class MorphAnalyzer(object):
 
     env_variable = 'PYMORPHY2_DICT_PATH'
 
-    def __init__(self, path=None, _dictionary=None):
+    def __init__(self, path=None):
         """
         Create a Morph object using dictionaries at ``path``.
 
         If ``path`` is None then the path is obtained from
         ``PYMORPHY2_DICT_PATH`` environment variable.
         """
-        if _dictionary is not None:
-            self._dictionary = _dictionary
-        else:
-            if path is None:
-                if self.env_variable not in os.environ:
-                    raise ValueError("Please pass a path to dictionaries or set "
-                                     "%s environment variable" % self.env_variable)
-                path = os.environ[self.env_variable]
+        if path is None:
+            if self.env_variable not in os.environ:
+                raise ValueError("Please pass a path to dictionaries or set "
+                                 "%s environment variable" % self.env_variable)
+            path = os.environ[self.env_variable]
 
-            self._dictionary = opencorpora_dict.load(path)
-
+        self._dictionary = opencorpora_dict.load(path)
         self._ee = self._dictionary.words.compile_replaces({'е': 'ё'})
 
 
