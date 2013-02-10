@@ -432,6 +432,25 @@ class MorphAnalyzer(object):
 
     # ====== misc =========
 
+    def word_is_known(self, word, strict_ee=False):
+        """
+        Check if a ``word`` is in the dictionary.
+        Pass ``strict_ee=True`` if ``word`` is guaranteed to
+        have correct е/ё letters.
+
+        .. note::
+
+            Dictionary words are not always correct words;
+            the dictionary also contains incorrect forms which
+            are commonly used. So for spellchecking tasks this
+            method should be used with extra care.
+
+        """
+        if strict_ee:
+            return word in self._dictionary.words
+        else:
+            return bool(self._dictionary.words.similar_keys(word, self._ee))
+
     def meta(self):
         return self._dictionary.meta
 

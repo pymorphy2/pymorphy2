@@ -90,7 +90,7 @@ def with_test_data(data, second_param_name='parse_result'):
         data
     )
 
-class TestNormalForms(object):
+class TestNormalForms:
 
     @with_test_data(TEST_DATA)
     def test_normal_forms(self, word, parse_result):
@@ -105,7 +105,7 @@ class TestNormalForms(object):
         assert morph.normal_forms(word) == parse_result
 
 
-class TestTagMethod(object):
+class TestTagMethod:
 
     def _tagged_as(self, parse, cls):
         return any(tag.POS==cls for tag in parse)
@@ -134,7 +134,7 @@ class TestTagMethod(object):
         self.assertNotTaggedAs(word, cls)
 
 
-class TestParse(object):
+class TestParse:
 
     def _parsed_as(self, parse, cls):
         return any(p[1].POS==cls for p in parse)
@@ -164,10 +164,22 @@ class TestParse(object):
         assert self._parse_cls_first_index(parse, 'NOUN') < self._parse_cls_first_index(parse, 'ADVB')
 
 
-class TestTagWithPrefix(object):
+class TestTagWithPrefix:
 
     def test_tag_with_unknown_prefix(self):
         word = 'мегакот'
         parse1 = morph._tag_as_word_with_unknown_prefix(word)
         parse2 = morph._tag_as_word_with_known_prefix(word)
         assert parse1 == parse2
+
+
+class TestUtils:
+    def test_word_is_known(self):
+        assert morph.word_is_known('еж')
+        assert morph.word_is_known('ёж')
+        assert not morph.word_is_known('еш')
+
+    def test_word_is_known_strict(self):
+        assert not morph.word_is_known('еж', strict_ee=True)
+        assert morph.word_is_known('ёж', strict_ee=True)
+        assert not morph.word_is_known('еш', strict_ee=True)
