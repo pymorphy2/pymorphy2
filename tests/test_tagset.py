@@ -83,6 +83,21 @@ class TestAttributes:
         tag = OpencorporaTag('VERB,perf,tran plur,impr,excl')
         assert tag.involvement == 'excl'
 
+    def test_attribute_exceptions(self):
+        tag = Tag('NOUN,inan,masc plur,accs')
+
+        with pytest.raises(ValueError):
+            tag.POS == 'hello'
+
+        with pytest.raises(ValueError):
+            tag.POS == 'noun'
+
+    def test_attributes_as_set_items(self):
+        tag = Tag('NOUN,inan,masc plur,accs')
+
+        # this doesn't raise an exception
+        assert tag.gender in set(['masc', 'sing'])
+
 
 class TestContains:
 
@@ -120,4 +135,3 @@ class TestContains:
 
         with pytest.raises(ValueError):
             assert set(['VERB', 'pref']) in tag
-
