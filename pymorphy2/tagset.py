@@ -89,13 +89,17 @@ class OpencorporaTag(object):
     Available attributes are: POS, animacy, aspect, case, gender, involvement,
     mood, number, person, tense, transitivity and voice.
 
-    You may check if a grammeme is in tag::
+    You may check if a grammeme is in tag or if a set of grammemes are in tag::
 
         >>> 'perf' in tag
         True
         >>> 'nomn' in tag
         False
         >>> 'Geox' in tag
+        False
+        >>> set(['VERB', 'perf']) in tag
+        True
+        >>> set(['VERB', 'perf', 'sing']) in tag
         False
 
     In order to fight typos, for unknown grammemes an exception is raised::
@@ -104,6 +108,10 @@ class OpencorporaTag(object):
         Traceback (most recent call last):
         ...
         ValueError: Grammeme is unknown: foobar
+        >>> set(['NOUN', 'foo', 'bar']) in tag
+        Traceback (most recent call last):
+        ...
+        ValueError: Grammemes are unknown: {'bar', 'foo'}
 
     This also works for attributes::
 
@@ -230,7 +238,7 @@ class OpencorporaTag(object):
     }
     _GRAMMEME_INDICES = collections.defaultdict(lambda: 0)
     _GRAMMEME_INCOMPATIBLE = collections.defaultdict(set)
-
+    _KNOWN_GRAMMEMES = None
 
     def __init__(self, tag):
         self._str = tag
@@ -269,6 +277,19 @@ class OpencorporaTag(object):
     voice = _select_grammeme_from(VOICES)
 
     def __contains__(self, grammeme):
+
+        # {'NOUN', 'sing'} in tag
+        if isinstance(grammeme, set):
+            if grammeme <= self.grammemes:
+                return True
+
+            if not grammeme <= self._KNOWN_GRAMMEMES:
+                unknown = grammeme - self._KNOWN_GRAMMEMES
+                unknown_repr = ", ".join(["'%s'" % g for g in sorted(unknown)])
+                raise ValueError("Grammemes are unknown: {%s}" % unknown_repr)
+            return False
+
+        # 'NOUN' in tag
         if grammeme in self.grammemes:
             return True
         else:
@@ -306,10 +327,10 @@ class OpencorporaTag(object):
 
     @classmethod
     def grammeme_is_known(cls, grammeme):
-        if not cls._GRAMMEME_INDICES:
+        if not cls._KNOWN_GRAMMEMES:
             msg = "The class was not properly initialized."
             raise RuntimeError(msg)
-        return grammeme in cls._GRAMMEME_INDICES
+        return grammeme in cls._KNOWN_GRAMMEMES
 
     def updated_grammemes(self, required):
         """
@@ -337,10 +358,11 @@ class OpencorporaTag(object):
             ]
 
         """
-        # figure out parents & children
         gr = dict((name, parent) for (name, parent, alias, description) in dict_grammemes)
-        children = collections.defaultdict(set)
+        cls._KNOWN_GRAMMEMES = frozenset(gr.keys())
 
+        # figure out parents & children
+        children = collections.defaultdict(set)
         for index, (name, parent, alias, description) in enumerate(dict_grammemes):
             if parent:
                 children[parent].add(name)

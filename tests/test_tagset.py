@@ -5,6 +5,8 @@ import pytest
 from pymorphy2.tagset import OpencorporaTag
 from .utils import morph
 
+Tag = morph.tag_class()
+
 def test_hashing():
     tag1 = OpencorporaTag('NOUN')
     tag2 = OpencorporaTag('NOUN')
@@ -92,7 +94,6 @@ class TestContains:
 
     def test_not_contains(self):
         # we need to use a prepared Tag class for this to work
-        Tag = morph.tag_class()
         tag = Tag('VERB,perf,tran plur,impr,excl')
 
         assert 'VERB' in tag
@@ -102,7 +103,6 @@ class TestContains:
 
     def test_contains_error(self):
         # we need to use a prepared Tag class for this to work
-        Tag = morph.tag_class()
         tag = Tag('VERB,perf,tran plur,impr,excl')
 
         with pytest.raises(ValueError):
@@ -110,3 +110,14 @@ class TestContains:
 
         with pytest.raises(ValueError):
             assert 'VERP' in tag
+
+    def test_contains_set(self):
+        tag = Tag('VERB,perf,tran plur,impr,excl')
+        assert set(['VERB', 'perf']) in tag
+        assert set(['VERB', 'sing']) not in tag
+
+        assert set() in tag # ??
+
+        with pytest.raises(ValueError):
+            assert set(['VERB', 'pref']) in tag
+
