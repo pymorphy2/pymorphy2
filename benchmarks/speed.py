@@ -3,6 +3,8 @@ from __future__ import absolute_import, unicode_literals, division
 import logging
 import codecs
 import os
+import functools
+import datetime
 
 from pymorphy2 import MorphAnalyzer
 from benchmarks import utils
@@ -13,7 +15,7 @@ DATA_PATH = os.path.join(
     os.path.dirname(__file__),
     '..',
     'dev_data',
-    'unigrams.cyr.lc'
+    'unigrams.txt'
 )
 
 def load_words(path=DATA_PATH):
@@ -28,7 +30,7 @@ def load_words(path=DATA_PATH):
 def get_total_usages(words):
     return sum(w[1] for w in words)
 
-def bench_tag(morph, words, total_usages):
+def bench_tag(morph, words, total_usages, repeats):
     word_no_umlauts = [(w[0].replace('ё', 'е'), w[1]) for w in words]
 
     def _run():
@@ -48,14 +50,15 @@ def bench_tag(morph, words, total_usages):
         for word, cnt in words:
             str(morph.tag(word))
 
+    measure = functools.partial(utils.measure, repeats=repeats)
 
-    logger.info("    morph.tag: %0.0f words/sec (with freq. info)", utils.measure(_run, total_usages))
-    logger.info("    morph.tag: %0.0f words/sec (without freq. info)", utils.measure(_run_nofreq, len(words)))
-    logger.info("    morph.tag: %0.0f words/sec (without freq. info, umlauts removed from input)", utils.measure(_run_no_umlauts, len(words)))
-    logger.info("    morph.tag: %0.0f words/sec (without freq. info, str(tag) called)", utils.measure(_run_str, len(words)))
+    logger.info("    morph.tag: %0.0f words/sec (with freq. info)", measure(_run, total_usages))
+    logger.info("    morph.tag: %0.0f words/sec (without freq. info)", measure(_run_nofreq, len(words)))
+    logger.info("    morph.tag: %0.0f words/sec (without freq. info, umlauts removed from input)", measure(_run_no_umlauts, len(words)))
+    logger.info("    morph.tag: %0.0f words/sec (without freq. info, str(tag) called)", measure(_run_str, len(words)))
 
 
-def bench_parse(morph, words, total_usages):
+def bench_parse(morph, words, total_usages, repeats):
     def _run():
         for word, cnt in words:
             for x in range(cnt):
@@ -65,10 +68,12 @@ def bench_parse(morph, words, total_usages):
         for word, cnt in words:
             morph.parse(word)
 
-    logger.info("    morph.parse: %0.0f words/sec (with freq. info)", utils.measure(_run, total_usages))
-    logger.info("    morph.parse: %0.0f words/sec (without freq. info)", utils.measure(_run_nofreq, len(words)))
+    measure = functools.partial(utils.measure, repeats=repeats)
 
-def bench_all(dict_path=None):
+    logger.info("    morph.parse: %0.0f words/sec (with freq. info)", measure(_run, total_usages))
+    logger.info("    morph.parse: %0.0f words/sec (without freq. info)", measure(_run_nofreq, len(words)))
+
+def bench_all(dict_path=None, repeats=5):
     """ Run all benchmarks """
     logger.debug("loading MorphAnalyzer...")
     morph = MorphAnalyzer(dict_path)
@@ -80,9 +85,14 @@ def bench_all(dict_path=None):
 
     logger.debug("Words: %d, usages: %d", len(words), total_usages)
 
+    start_time = datetime.datetime.now()
+
     logger.info("\nbenchmarking MorphAnalyzer():")
-    bench_parse(morph, words, total_usages)
-    bench_tag(morph, words, total_usages)
+    bench_parse(morph, words, total_usages, repeats)
+    bench_tag(morph, words, total_usages, repeats)
 
     logger.info("\nbenchmarking MorphAnalyzer(result_type=None):")
-    bench_parse(morph_plain, words, total_usages)
+    bench_parse(morph_plain, words, total_usages, repeats)
+
+    end_time = datetime.datetime.now()
+    logger.info("\n----\nDone in %s.\n" % (end_time-start_time))

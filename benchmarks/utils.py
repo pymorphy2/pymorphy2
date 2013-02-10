@@ -4,7 +4,7 @@ import time
 import timeit
 import gc
 
-def measure(func, inner_iterations=1, repeats=3):
+def measure(func, inner_iterations=1, repeats=5):
     """
     Runs func ``repeats`` times and returns the fastest speed
     (inner loop iterations per second). Use ``inner_iterations`` to specify
