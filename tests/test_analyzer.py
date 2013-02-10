@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, unicode_literals
 import pytest
+import pymorphy2
 
 from .utils import morph
 
@@ -107,27 +108,25 @@ class TestNormalForms:
 
 class TestTagMethod:
 
-    def _tagged_as(self, parse, cls):
-        return any(tag.POS==cls for tag in parse)
+    def _tagged_as(self, tags, cls):
+        return any(tag.POS == cls for tag in tags)
 
     def assertNotTaggedAs(self, word, cls):
-        parse = morph.tag(word)
-        assert not self._tagged_as(parse, cls), (parse, cls)
-
-    def _tags_from_parses(self, parses):
-        return [p[1] for p in parses]
+        tags = morph.tag(word)
+        assert not self._tagged_as(tags, cls), (tags, cls)
 
     @with_test_data(TEST_DATA)
     def test_tag_is_on_par_with_parse(self, word, parse_result): #parse_result is unused here
-        assert set(morph.tag(word)) == set(self._tags_from_parses(morph.parse(word)))
+        assert set(morph.tag(word)) == set(p.tag for p in morph.parse(word))
+
 
     @with_test_data(PREDICTION_TEST_DATA)
     def test_tag_is_on_par_with_parse__prediction(self, word, parse_result): #parse_result is unused here
-        assert set(morph.tag(word)) == set(self._tags_from_parses(morph.parse(word)))
+        assert set(morph.tag(word)) == set(p.tag for p in morph.parse(word))
 
     @with_test_data(PREFIX_PREDICTION_DATA)
     def test_tag_is_on_par_with_parse__prefix_prediction(self, word, parse_result): #parse_result is unused here
-        assert set(morph.tag(word)) == set(self._tags_from_parses(morph.parse(word)))
+        assert set(morph.tag(word)) == set(p.tag for p in morph.parse(word))
 
     @with_test_data(NON_PRODUCTIVE_BUGS_DATA, 'cls')
     def test_no_nonproductive_forms(self, word, cls):
@@ -141,7 +140,7 @@ class TestParse:
 
     def _parse_cls_first_index(self, parse, cls):
         for idx, p in enumerate(parse):
-            if p[1].POS == cls:
+            if p.tag.POS == cls:
                 return idx
 
     def assertNotParsedAs(self, word, cls):
@@ -183,3 +182,23 @@ class TestUtils:
         assert not morph.word_is_known('еж', strict_ee=True)
         assert morph.word_is_known('ёж', strict_ee=True)
         assert not morph.word_is_known('еш', strict_ee=True)
+
+
+class TestParseResultClass:
+
+    def assertNotTuples(self, parses):
+        assert all(type(p) != tuple for p in parses)
+
+    def assertAllTuples(self, parses):
+        assert all(type(p) == tuple for p in parses)
+
+    def test_namedtuples(self):
+        self.assertNotTuples(morph.parse('кот'))
+        self.assertNotTuples(morph.inflect('кот', set(['plur'])))
+        self.assertNotTuples(morph.decline('кот'))
+
+    def test_plain_tuples(self):
+        morph_plain = pymorphy2.MorphAnalyzer(result_type=None)
+        self.assertAllTuples(morph_plain.parse('кот'))
+        self.assertAllTuples(morph_plain.inflect('кот', set(['plur'])))
+        self.assertAllTuples(morph_plain.decline('кот'))

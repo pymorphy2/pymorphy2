@@ -2,7 +2,10 @@
 from __future__ import print_function, unicode_literals, division
 import os
 import heapq
+import collections
 from pymorphy2 import opencorpora_dict
+
+Parse = collections.namedtuple('Parse', 'word, tag, normal_form, para_id, idx, estimate')
 
 class MorphAnalyzer(object):
     """
@@ -18,13 +21,19 @@ class MorphAnalyzer(object):
 
     env_variable = 'PYMORPHY2_DICT_PATH'
 
-    def __init__(self, path=None):
+    def __init__(self, path=None, result_type=Parse):
         """
-        Create a Morph object using dictionaries at ``path``.
+        Create a MorphAnalyzer object using dictionaries at ``path``.
 
         If ``path`` is None then the path is obtained from
         ``PYMORPHY2_DICT_PATH`` environment variable.
+
+        By default, methods of this class return parsing results
+        as namedtuples ``Parse``. This has performance implications
+        under CPython, so if you need maximum speed then pass
+        ``result_type=None`` to make analyzer return plain unwrapped tuples.
         """
+
         if path is None:
             if self.env_variable not in os.environ:
                 raise ValueError("Please pass a path to dictionaries or set "
@@ -33,15 +42,17 @@ class MorphAnalyzer(object):
 
         self._dictionary = opencorpora_dict.load(path)
         self._ee = self._dictionary.words.compile_replaces({'е': 'ё'})
+        self._result_type = result_type
 
 
     def parse(self, word):
         """
-        Return a list of
+        Analyze the word and return a list of
 
-            (fixed_word, tag, normal_form, _para_id, _idx, _estimate)
+            Parse(word, tag, normal_form, _para_id, _idx, _estimate)
 
-        tuples.
+        namedtuples (or plain tuples if ``result_type=None`` was used
+        in constructor).
         """
         res = self._parse_as_known(word)
         if not res:
@@ -50,7 +61,11 @@ class MorphAnalyzer(object):
             seen = set()
             res = self._parse_as_word_with_unknown_prefix(word, seen)
             res.extend(self._parse_as_word_with_known_suffix(word, seen))
-        return res
+
+        if self._result_type is None:
+            return res
+
+        return [self._result_type(*p) for p in res]
 
     def _parse_as_known(self, word):
         """
@@ -350,7 +365,10 @@ class MorphAnalyzer(object):
                     (word, _tag, normal_form, para_id, index, estimate)
                 )
 
-        return result
+        if self._result_type is None:
+            return result
+
+        return [self._result_type(*p) for p in result]
 
 
     # ==== dictionary access utilities ===

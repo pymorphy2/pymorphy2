@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, unicode_literals
 import pytest
-import copy
 
 from .utils import morph
 
@@ -16,7 +15,7 @@ def assert_first_inflected_variant(word, grammemes, result):
     assert len(inflected_variants)
 
     inflected = inflected_variants[0]
-    assert inflected[0] == result
+    assert inflected.word == result
 
 
 @with_test_data([
