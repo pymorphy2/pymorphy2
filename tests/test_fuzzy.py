@@ -13,7 +13,7 @@ SUITE_PATH = os.path.join(
     'suite.txt'
 )
 
-Tag = morph.tag_class()
+Tag = morph.TagClass
 
 def iter_suite(path):
     """

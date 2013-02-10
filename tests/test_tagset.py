@@ -5,7 +5,7 @@ import pytest
 from pymorphy2.tagset import OpencorporaTag
 from .utils import morph
 
-Tag = morph.tag_class()
+Tag = morph.TagClass
 
 def test_hashing():
     tag1 = OpencorporaTag('NOUN')

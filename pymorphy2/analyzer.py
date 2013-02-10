@@ -454,7 +454,8 @@ class MorphAnalyzer(object):
     def meta(self):
         return self._dictionary.meta
 
-    def tag_class(self):
+    @property
+    def TagClass(self):
         return self._dictionary.Tag
 
 
