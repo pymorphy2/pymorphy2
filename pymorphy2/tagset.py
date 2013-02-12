@@ -66,7 +66,7 @@ class OpencorporaTag(object):
 
         Pymorphy2 initializes it when loading a dictionary;
         it may be not a good idea to use this class directly.
-        If possible, obtain it from :meth:`MorphAnalyzer.tag_class()`.
+        If possible, use ``morph_analyzer.TagClass`` instead.
 
     Example::
 
@@ -280,7 +280,7 @@ class OpencorporaTag(object):
     def __contains__(self, grammeme):
 
         # {'NOUN', 'sing'} in tag
-        if isinstance(grammeme, set):
+        if isinstance(grammeme, (set, frozenset)):
             if grammeme <= self.grammemes:
                 return True
 
