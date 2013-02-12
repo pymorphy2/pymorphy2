@@ -23,26 +23,52 @@ class MorphAnalyzer(object):
 
     def __init__(self, path=None, result_type=Parse):
         """
-        Create a MorphAnalyzer object using dictionaries at ``path``.
+        Create a MorphAnalyzer object::
 
-        If ``path`` is None then the path is obtained from
-        ``PYMORPHY2_DICT_PATH`` environment variable.
+            >>> import pymorphy2
+            >>> morph = pymorphy2.MorphAnalyzer()
+
+        MorphAnalyzer uses dictionaries from ``pymorphy2-dicts`` package
+        (which can be installed via ``pip install pymorphy2-dicts``).
+
+        Alternatively (e.g. if you have your own precompiled dictionaries),
+        either create ``PYMORPHY2_DICT_PATH`` environment variable
+        with a path to dictionaries, or pass ``path`` argument
+        to ``pymorphy2.MorphAnalyzer`` constructor::
+
+            >>> morph = pymorphy2.MorphAnalyzer('/path/to/dictionaries') # doctest: +SKIP
 
         By default, methods of this class return parsing results
         as namedtuples ``Parse``. This has performance implications
         under CPython, so if you need maximum speed then pass
-        ``result_type=None`` to make analyzer return plain unwrapped tuples.
+        ``result_type=None`` to make analyzer return plain unwrapped tuples::
+
+            >>> morph = pymorphy2.MorphAnalyzer(result_type=None)
+
         """
-
-        if path is None:
-            if self.env_variable not in os.environ:
-                raise ValueError("Please pass a path to dictionaries or set "
-                                 "%s environment variable" % self.env_variable)
-            path = os.environ[self.env_variable]
-
+        path = self.choose_dictionary_path(path)
         self._dictionary = opencorpora_dict.load(path)
         self._ee = self._dictionary.words.compile_replaces({'е': 'ё'})
         self._result_type = result_type
+
+
+    @classmethod
+    def choose_dictionary_path(cls, path=None):
+        if path is not None:
+            return path
+
+        if cls.env_variable in os.environ:
+            return os.environ[cls.env_variable]
+
+        try:
+            import pymorphy2_dicts
+            return pymorphy2_dicts.get_path()
+        except ImportError:
+            msg = ("Can't find dictionaries. "
+                   "Please either pass a path to dictionaries, "
+                   "or install 'pymorphy2-dicts' package, "
+                   "or set %s environment variable.") % cls.env_variable
+            raise ValueError(msg)
 
 
     def parse(self, word):
@@ -370,7 +396,6 @@ class MorphAnalyzer(object):
 
         return [self._result_type(*p) for p in result]
 
-
     # ==== dictionary access utilities ===
 
     def _build_tag_info(self, para_id, idx):
@@ -442,7 +467,6 @@ class MorphAnalyzer(object):
             return fixed_word[len(prefix):-len(suffix)]
         else:
             return fixed_word[len(prefix):]
-
 
     # ====== misc =========
 

@@ -32,14 +32,7 @@ def compile_dict(in_filename, out_path=None, overwrite=False, prediction_options
         prediction_options = prediction_options
     )
 
-def xml_to_json(in_filename, out_filename):
-    """
-    Parse XML and caches result to json.
-    """
-    opencorpora_dict.xml_dict_to_json(in_filename, out_filename)
-
-
-def show_dict_mem_usage(dict_path, verbose=False):
+def show_dict_mem_usage(dict_path=None, verbose=False):
     """
     Show dictionary memory usage.
     """
@@ -112,12 +105,10 @@ DOC ="""
 Pymorphy2 is a Russian POS tagger and inflection engine.
 
 Usage:
-    pymorphy dict compile <IN_FILE> [--out <PATH>] [--force] [--verbose] [--max_forms_per_class <NUM>] [--min_ending_freq <NUM>] [--min_paradigm_popularity <NUM>]
-    pymorphy dict xml2json <IN_XML_FILE> <OUT_JSON_FILE> [--verbose]
-    pymorphy dict download [--verbose]
+    pymorphy dict compile <XML_FILE> [--out <PATH>] [--force] [--verbose] [--max_forms_per_class <NUM>] [--min_ending_freq <NUM>] [--min_paradigm_popularity <NUM>]
     pymorphy dict download_xml <OUT_FILE> [--verbose]
     pymorphy dict mem_usage [--dict <PATH>] [--verbose]
-    pymorphy dict make_test_suite <IN_FILE> <OUT_FILE> [--limit <NUM>] [--verbose]
+    pymorphy dict make_test_suite <XML_FILE> <OUT_FILE> [--limit <NUM>] [--verbose]
     pymorphy dict meta [--dict <PATH>]
     pymorphy _parse <IN_FILE> <OUT_FILE> [--dict <PATH>] [--verbose]
     pymorphy -h | --help
@@ -131,7 +122,7 @@ Options:
     --min_ending_freq <NUM>             Prediction: min. number of suffix occurances [default: 2]
     --min_paradigm_popularity <NUM>     Prediction: min. number of lexemes for the paradigm [default: 3]
     --max_forms_per_class <NUM>         Prediction: max. number of word forms per part of speech [default: 1]
-    --dict <PATH>                       Dictionary folder path [default: dict]
+    --dict <PATH>                       Dictionary folder path
 
 """
 
@@ -146,6 +137,8 @@ def main():
     else:
         logger.setLevel(logging.INFO)
 
+    logger.debug(args)
+
     if args['_parse']:
         return _parse(args['--dict'], args['<IN_FILE>'], args['<OUT_FILE>'])
 
@@ -155,18 +148,13 @@ def main():
                 (key, int(args['--'+key]))
                 for key in ('max_forms_per_class', 'min_ending_freq', 'min_paradigm_popularity')
             )
-            return compile_dict(args['<IN_FILE>'], args['--out'], args['--force'], prediction_options)
-        elif args['xml2json']:
-            return xml_to_json(args['<IN_XML_FILE>'], args['<OUT_JSON_FILE>'])
+            return compile_dict(args['<XML_FILE>'], args['--out'], args['--force'], prediction_options)
         elif args['mem_usage']:
-            return show_dict_mem_usage(args['--dict'] or 'dict', args['--verbose'])
+            return show_dict_mem_usage(args['--dict'], args['--verbose'])
         elif args['meta']:
-            return show_dict_meta(args['--dict'] or 'dict')
+            return show_dict_meta(args['--dict'])
         elif args['make_test_suite']:
-            return make_test_suite(args['<IN_FILE>'], args['<OUT_FILE>'], int(args['--limit']))
+            return make_test_suite(args['<XML_FILE>'], args['<OUT_FILE>'], int(args['--limit']))
         elif args['download_xml']:
             return download_xml(args['<OUT_FILE>'], args['--verbose'])
-        elif args['download']:
-            raise NotImplementedError()
 
-    logger.debug(args)

@@ -24,7 +24,7 @@ from pymorphy2.utils import json_write, json_read
 
 logger = logging.getLogger(__name__)
 
-CURRENT_FORMAT_VERSION = 2
+CURRENT_FORMAT_VERSION = '1.0'
 
 LoadedDictionary = collections.namedtuple(
     'LoadedDictionary',
@@ -41,7 +41,7 @@ def load_dict(path, gramtab_format='opencorpora-int'):
     _f = lambda p: os.path.join(path, p)
 
     meta = _load_meta(_f('meta.json'))
-    _assert_format_is_compatible(meta)
+    _assert_format_is_compatible(meta, path)
 
     Tag = _load_tag_class(gramtab_format, _f('grammemes.json'))
     gramtab = [Tag(tag_str) for tag_str in _load_gramtab(meta, gramtab_format, path)]
@@ -128,7 +128,7 @@ def save_compiled_dict(compiled_dict, out_path):
 
 def _load_meta(filename):
     """ Load metadata. """
-    meta = json_read(filename)
+    meta = json_read(filename, parse_float=str)
     if hasattr(collections, 'OrderedDict'):
         return collections.OrderedDict(meta)
     return dict(meta)
@@ -174,9 +174,12 @@ def _load_paradigms(filename):
     return paradigms
 
 
-def _assert_format_is_compatible(meta):
+def _assert_format_is_compatible(meta, path):
     """ Raise an exception if dictionary format is not compatible """
     format_version = meta.get('format_version', None)
     if format_version != CURRENT_FORMAT_VERSION:
-        raise ValueError("This dictionary format ('%s') is not supported." % format_version)
+        msg = ("Error loading dictionaries from %s: "
+               "the format ('%s') is not supported; "
+               "required format is '%s'.") % (path, format_version, CURRENT_FORMAT_VERSION)
+        raise ValueError(msg)
 

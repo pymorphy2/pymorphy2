@@ -399,7 +399,7 @@ class CyrillicOpencorporaTag(OpencorporaTag):
     """
     Tag class that uses Cyrillic tag names.
 
-    Experimantal and incomplete, do not use it because
+    This class is experimental and incomplete, do not use it because
     it may be removed in future!
     """
 

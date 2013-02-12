@@ -86,7 +86,7 @@ def json_write(filename, obj, **json_options):
         json.dump(obj, f, **json_options)
 
 
-def json_read(filename):
+def json_read(filename, **json_options):
     """ Read an object from a json file ``filename`` """
     with codecs.open(filename, 'r', 'utf8') as f:
-        return json.load(f)
+        return json.load(f, **json_options)
