@@ -39,7 +39,7 @@ def show_dict_mem_usage(dict_path=None, verbose=False):
     initial_mem = get_mem_usage()
     initial_time = time.time()
 
-    dct = opencorpora_dict.load(dict_path)
+    morph = pymorphy2.MorphAnalyzer(dict_path)
 
     end_time = time.time()
     mem_usage = get_mem_usage()
@@ -55,9 +55,10 @@ def show_dict_mem_usage(dict_path=None, verbose=False):
             logger.warn('guppy is not installed, detailed info is not available')
 
 
-def show_dict_meta(dict_path):
-    dct = opencorpora_dict.load(dict_path)
-    for key, value in dct.meta.items():
+def show_dict_meta(dict_path=None):
+    morph = pymorphy2.MorphAnalyzer(dict_path)
+
+    for key, value in morph.meta().items():
         logger.info("%s: %s", key, value)
 
 
