@@ -15,11 +15,12 @@ pymorphy2_ - наследник pymorphy_. Цели и задачи:
 Содержание:
 
 .. toctree::
-   :maxdepth: 3
+   :maxdepth: 2
 
    user/index
-   internals/index
    dev/index
+   internals/index
+   misc/index
 
    CHANGES
 

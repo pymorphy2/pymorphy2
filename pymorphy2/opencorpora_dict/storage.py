@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 """
-Module for saving and loading pymorphy2 dictionaries.
+:mod:`pymorphy2.opencorpora_dict.storage` is a
+module for saving and loading pymorphy2 dictionaries.
 """
 from __future__ import absolute_import, unicode_literals
 import datetime

@@ -8,6 +8,5 @@
    :maxdepth: 2
 
    dict
-   umlauts
    prediction
-   2trie
+   umlauts

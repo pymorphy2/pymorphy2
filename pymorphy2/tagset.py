@@ -399,8 +399,10 @@ class CyrillicOpencorporaTag(OpencorporaTag):
     """
     Tag class that uses Cyrillic tag names.
 
-    This class is experimental and incomplete, do not use it because
-    it may be removed in future!
+    .. warning::
+
+        This class is experimental and incomplete, do not use
+        it because it may be removed in future!
     """
 
     FORMAT = 'opencorpora-ext'

@@ -101,11 +101,16 @@ def _parse(dict_path, in_filename, out_filename):
 
 # =============================================================================
 
-DOC ="""
+# Hacks are here to make docstring compatible with both
+# docopt and sphinx.ext.autodoc.
 
-Pymorphy2 is a Russian POS tagger and inflection engine.
+head = """
 
-Usage:
+Pymorphy2 is a morphological analyzer / inflection engine for Russian language.
+"""
+__doc__ ="""
+Usage::
+
     pymorphy dict compile <XML_FILE> [--out <PATH>] [--force] [--verbose] [--max_forms_per_class <NUM>] [--min_ending_freq <NUM>] [--min_paradigm_popularity <NUM>]
     pymorphy dict download_xml <OUT_FILE> [--verbose]
     pymorphy dict mem_usage [--dict <PATH>] [--verbose]
@@ -115,7 +120,8 @@ Usage:
     pymorphy -h | --help
     pymorphy --version
 
-Options:
+Options::
+
     -v --verbose                        Be more verbose
     -f --force                          Overwrite target folder
     -o --out <PATH>                     Output folder name [default: dict]
@@ -126,6 +132,8 @@ Options:
     --dict <PATH>                       Dictionary folder path
 
 """
+DOC = head + __doc__.replace('::\n', ':')
+
 
 def main():
     """

@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 """
-Module for OpenCorpora XML dictionaries parsing.
+:mod:`pymorphy2.opencorpora_dict.parse` is a
+module for OpenCorpora XML dictionaries parsing.
 """
 from __future__ import absolute_import, unicode_literals, division
 

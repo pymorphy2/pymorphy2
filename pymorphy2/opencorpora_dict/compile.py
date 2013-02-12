@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 """
-Module for converting OpenCorpora dictionaries
+:mod:`pymorphy2.opencorpora_dict.compile` is a
+module for converting OpenCorpora dictionaries
 to pymorphy2 representation.
 """
 from __future__ import absolute_import, unicode_literals

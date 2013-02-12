@@ -17,35 +17,34 @@ class MorphAnalyzer(object):
     Analyzer uses morphological word features and a lexicon
     (dictionary compiled from XML available at OpenCorpora.org);
     for unknown words heuristic algorithm is used.
+
+    Create a :class:`MorphAnalyzer` object::
+
+        >>> import pymorphy2
+        >>> morph = pymorphy2.MorphAnalyzer()
+
+    MorphAnalyzer uses dictionaries from ``pymorphy2-dicts`` package
+    (which can be installed via ``pip install pymorphy2-dicts``).
+
+    Alternatively (e.g. if you have your own precompiled dictionaries),
+    either create ``PYMORPHY2_DICT_PATH`` environment variable
+    with a path to dictionaries, or pass ``path`` argument
+    to :class:`pymorphy2.MorphAnalyzer` constructor::
+
+        >>> morph = pymorphy2.MorphAnalyzer('/path/to/dictionaries') # doctest: +SKIP
+
+    By default, methods of this class return parsing results
+    as namedtuples :class:`Parse`. This has performance implications
+    under CPython, so if you need maximum speed then pass
+    ``result_type=None`` to make analyzer return plain unwrapped tuples::
+
+        >>> morph = pymorphy2.MorphAnalyzer(result_type=None)
+
     """
 
     env_variable = 'PYMORPHY2_DICT_PATH'
 
     def __init__(self, path=None, result_type=Parse):
-        """
-        Create a MorphAnalyzer object::
-
-            >>> import pymorphy2
-            >>> morph = pymorphy2.MorphAnalyzer()
-
-        MorphAnalyzer uses dictionaries from ``pymorphy2-dicts`` package
-        (which can be installed via ``pip install pymorphy2-dicts``).
-
-        Alternatively (e.g. if you have your own precompiled dictionaries),
-        either create ``PYMORPHY2_DICT_PATH`` environment variable
-        with a path to dictionaries, or pass ``path`` argument
-        to ``pymorphy2.MorphAnalyzer`` constructor::
-
-            >>> morph = pymorphy2.MorphAnalyzer('/path/to/dictionaries') # doctest: +SKIP
-
-        By default, methods of this class return parsing results
-        as namedtuples ``Parse``. This has performance implications
-        under CPython, so if you need maximum speed then pass
-        ``result_type=None`` to make analyzer return plain unwrapped tuples::
-
-            >>> morph = pymorphy2.MorphAnalyzer(result_type=None)
-
-        """
         path = self.choose_dictionary_path(path)
         self._dictionary = opencorpora_dict.load(path)
         self._ee = self._dictionary.words.compile_replaces({'е': 'ё'})
@@ -73,12 +72,11 @@ class MorphAnalyzer(object):
 
     def parse(self, word):
         """
-        Analyze the word and return a list of
+        Analyze the word and return a list of :class:`Parse` namedtuples:
 
-            Parse(word, tag, normal_form, _para_id, _idx, _estimate)
+            Parse(word, tag, normal_form, para_id, idx, _estimate)
 
-        namedtuples (or plain tuples if ``result_type=None`` was used
-        in constructor).
+        (or plain tuples if ``result_type=None`` was used in constructor).
         """
         res = self._parse_as_known(word)
         if not res:
