@@ -502,7 +502,8 @@ class MorphAnalyzer(object):
                 parse = self._result_type(*parse)
             yield parse
 
-    def meta(self):
+    @property
+    def dict_meta(self):
         return self._dictionary.meta
 
     @property
