@@ -6,7 +6,7 @@ import copy
 import re
 import codecs
 
-from pymorphy2.opencorpora_dict.parse import load_json_or_xml_dict
+from pymorphy2.opencorpora_dict.parse import parse_opencorpora_xml
 from pymorphy2.utils import combinations_of_all_lengths
 
 logger = logging.getLogger(__name__)
@@ -77,7 +77,7 @@ def make_test_suite(opencorpora_dict_path, out_path, word_limit=100):
     ``word_limit`` words for each distinct gram. tag) and save it to a file.
     """
     logger.debug('loading dictionary to memory...')
-    parsed_dict = load_json_or_xml_dict(opencorpora_dict_path)
+    parsed_dict = parse_opencorpora_xml(opencorpora_dict_path)
 
     logger.debug('preparing...')
     parses = _get_word_parses(parsed_dict.lexemes)

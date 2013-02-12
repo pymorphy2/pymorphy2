@@ -36,14 +36,14 @@ def convert_to_pymorphy2(opencorpora_dict_path, out_path, overwrite=False,
 
     ``out_path`` should be a name of folder where to put dictionaries.
     """
-    from .parse import load_json_or_xml_dict
+    from .parse import parse_opencorpora_xml
     from .storage import save_compiled_dict
 
     dawg.assert_can_create()
     if not _create_out_path(out_path, overwrite):
         return
 
-    parsed_dict = load_json_or_xml_dict(opencorpora_dict_path)
+    parsed_dict = parse_opencorpora_xml(opencorpora_dict_path)
     compiled_dict = compile_parsed_dict(parsed_dict, prediction_options)
 
     save_compiled_dict(compiled_dict, out_path)
@@ -104,7 +104,7 @@ def compile_parsed_dict(parsed_dict, prediction_options=None):
         return list(next(izip(*para)))
 
     forms = [get_form(para) for para in paradigms]
-    suffixes = sorted(list(set(list(itertools.chain(*forms)))))
+    suffixes = sorted(set(list(itertools.chain(*forms))))
     suffixes_dict = dict(
         (suff, index)
         for index, suff in enumerate(suffixes)

@@ -6,34 +6,14 @@ from __future__ import absolute_import, unicode_literals, division
 
 import logging
 import collections
-from pymorphy2.utils import json_write, json_read
 
 logger = logging.getLogger(__name__)
 
 ParsedDictionary = collections.namedtuple('ParsedDictionary', 'lexemes links grammemes version revision')
 
-
-def load_json_or_xml_dict(filename):
-    """
-    Load (parse) raw OpenCorpora dictionary either from XML or from JSON
-    (depending on file extension) and return a ParsedDictionary.
-    """
-    if filename.endswith(".json"):
-        logger.info('loading json...')
-        data = json_read(filename)
-    else:
-        logger.info('parsing xml...')
-        data = parse_opencorpora_xml(filename)
-
-    return ParsedDictionary(*data)
-
-
 def parse_opencorpora_xml(filename):
     """
-    Parse OpenCorpora dict XML and return a tuple
-
-        (lexeme_list, links, grammemes, version, revision)
-
+    Parse OpenCorpora dict XML and return a ``ParsedDictionary`` namedtuple.
     """
     from lxml import etree
 
@@ -65,11 +45,17 @@ def parse_opencorpora_xml(filename):
             _clear(elem)
 
         if elem.tag == 'lemma':
+            if not lexemes:
+                logger.info('parsing xml:lemmas...')
+
             lex_id, word_forms = _word_forms_from_xml_elem(elem)
             lexemes[lex_id] = word_forms
             _clear(elem)
 
         elif elem.tag == 'link':
+            if not links:
+                logger.info('parsing xml:links...')
+
             link_tuple = (
                 elem.get('from'),
                 elem.get('to'),
@@ -78,19 +64,7 @@ def parse_opencorpora_xml(filename):
             links.append(link_tuple)
             _clear(elem)
 
-    return lexemes, links, grammemes, version, revision
-
-
-def xml_dict_to_json(xml_filename, json_filename):
-    """
-    Convert XML dictionary to JSON for faster loading.
-    It may be useful while developing dictionary preparation routines.
-    """
-    logger.info('parsing xml...')
-    parsed_dct = parse_opencorpora_xml(xml_filename)
-
-    logger.info('writing json...')
-    json_write(json_filename, parsed_dct)
+    return ParsedDictionary(lexemes, links, grammemes, version, revision)
 
 
 def _word_forms_from_xml_elem(elem):
