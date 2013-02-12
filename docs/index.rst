@@ -12,6 +12,8 @@ pymorphy2_ - наследник pymorphy_. Цели и задачи:
 * полная :ref:`поддержка <umlauts>` буквы ё;
 * возможность обновления словарей.
 
+.. image:: https://travis-ci.org/kmike/pymorphy2.png?branch=master
+
 Содержание:
 
 .. toctree::
