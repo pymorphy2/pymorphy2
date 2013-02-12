@@ -489,6 +489,19 @@ class MorphAnalyzer(object):
         else:
             return bool(self._dictionary.words.similar_keys(word, self._ee))
 
+    def iter_known_word_parses(self, prefix=""):
+        """
+        Return an iterator over parses of dictionary words that starts
+        with a given prefix (default empty prefix means "all words").
+        """
+        for word, (para_id, idx) in self._dictionary.words.iteritems(prefix):
+            tag = self._build_tag_info(para_id, idx)
+            normal_form = self._build_normal_form(para_id, idx, word)
+            parse = (word, tag, normal_form, para_id, idx, 1.0)
+            if self._result_type is not None:
+                parse = self._result_type(*parse)
+            yield parse
+
     def meta(self):
         return self._dictionary.meta
 
