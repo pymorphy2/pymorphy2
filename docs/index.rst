@@ -38,8 +38,6 @@ pymorphy2_ - наследник pymorphy_. Цели и задачи:
 * :ref:`modindex`
 * :ref:`search`
 
-----
-
 Текущий статус сборки:
 
 .. image:: https://travis-ci.org/kmike/pymorphy2.png?branch=master
