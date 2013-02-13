@@ -5,7 +5,39 @@ import heapq
 import collections
 from pymorphy2 import opencorpora_dict
 
-Parse = collections.namedtuple('Parse', 'word, tag, normal_form, para_id, idx, estimate')
+_Parse = collections.namedtuple('Parse', 'word, tag, normal_form, para_id, idx, estimate')
+
+class Parse(_Parse):
+    """
+    Parse result wrapper.
+    """
+    _morph = None
+
+    def inflect(self, required_grammemes):
+        res = self._morph._inflect(self, required_grammemes)
+        return None if not res else res[0]
+
+    @property
+    def lexeme(self):
+        """ A lexeme this form belongs to. """
+        return self._morph._decline([self])
+
+    @property
+    def is_known(self):
+        """ True if this form is a known dictionary form. """
+        # return self.estimate == 1?
+        return self._morph.word_is_known(self.word, strict_ee=True)
+
+    @property
+    def normalized(self):
+        """ A :class:`Parse` instance for :attr:`self.normal_form`. """
+        if self.idx == 0:
+            return self
+
+        tag = self._morph._build_tag_info(self.para_id, 0)
+        return self.__class__(self.normal_form, tag, self.normal_form,
+                              self.para_id, 0, self.estimate)
+
 
 class MorphAnalyzer(object):
     """
@@ -48,8 +80,18 @@ class MorphAnalyzer(object):
         path = self.choose_dictionary_path(path)
         self._dictionary = opencorpora_dict.load(path)
         self._ee = self._dictionary.words.compile_replaces({'е': 'ё'})
-        self._result_type = result_type
 
+        if result_type is not None:
+            # create a subclass with the same name,
+            # but with _morph attribute bound to self
+            res_type = type(
+                result_type.__name__,
+                (result_type,),
+                {'_morph': self}
+            )
+            self._result_type = res_type
+        else:
+            self._result_type = None
 
     @classmethod
     def choose_dictionary_path(cls, path=None):
