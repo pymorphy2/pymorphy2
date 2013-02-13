@@ -9,8 +9,6 @@
    internals/index
    misc/index
 
-   CHANGES
-
    glossary
 
 pymorphy2_ - наследник pymorphy_. Цели и задачи:
@@ -37,8 +35,3 @@ pymorphy2_ - наследник pymorphy_. Цели и задачи:
 * :ref:`genindex`
 * :ref:`modindex`
 * :ref:`search`
-
-Текущий статус сборки:
-
-.. image:: https://travis-ci.org/kmike/pymorphy2.png?branch=master
-
