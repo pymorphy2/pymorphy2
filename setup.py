@@ -21,7 +21,7 @@ setup(
     url = 'https://github.com/kmike/pymorphy2/',
 
     description = 'Morphological analyzer (POS tagger + inflection engine) for Russian language.',
-    long_description = open('README.rst').read() + open('docs/CHANGES.rst').read(),
+    long_description = open('README.rst').read(),
 
     license = 'MIT license',
     packages = ['pymorphy2', 'pymorphy2.vendor', 'pymorphy2.opencorpora_dict'],
