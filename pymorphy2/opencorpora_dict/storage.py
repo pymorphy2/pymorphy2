@@ -177,10 +177,17 @@ def _load_paradigms(filename):
 
 def _assert_format_is_compatible(meta, path):
     """ Raise an exception if dictionary format is not compatible """
-    format_version = meta.get('format_version', None)
-    if format_version != CURRENT_FORMAT_VERSION:
+    format_version = str(meta.get('format_version', '0.0'))
+
+    if '.' not in format_version:
+        raise ValueError('Invalid format_version: %s' % format_version)
+
+    major, minor = format_version.split('.')
+    curr_major, curr_minor = CURRENT_FORMAT_VERSION.split('.')
+
+    if major != curr_major:
         msg = ("Error loading dictionaries from %s: "
                "the format ('%s') is not supported; "
-               "required format is '%s'.") % (path, format_version, CURRENT_FORMAT_VERSION)
+               "required format is '%s.x'.") % (path, format_version, curr_major)
         raise ValueError(msg)
 
