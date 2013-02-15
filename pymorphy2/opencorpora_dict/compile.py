@@ -10,6 +10,7 @@ import logging
 import collections
 import itertools
 import array
+import operator
 
 try:
     izip = itertools.izip
@@ -18,7 +19,7 @@ except AttributeError:
 
 from pymorphy2 import dawg
 from pymorphy2.constants import PARADIGM_PREFIXES, PREDICTION_PREFIXES
-from pymorphy2.utils import longest_common_substring
+from pymorphy2.utils import longest_common_substring, largest_group
 
 logger = logging.getLogger(__name__)
 
@@ -124,7 +125,9 @@ def compile_parsed_dict(parsed_dict, prediction_options=None):
     paradigms = [_linearized_paradigm(paradigm) for paradigm in paradigms]
 
     logger.debug('calculating prediction data..')
-    suffixes_dawg_data = _suffixes_prediction_data(words, popularity, gramtab, paradigms, **prediction_options)
+    suffixes_dawg_data = _suffixes_prediction_data(
+        words, popularity, gramtab, paradigms, **prediction_options
+    )
 
     logger.debug('building word DAWG..')
     words_dawg = dawg.WordsDawg(words)
@@ -223,12 +226,12 @@ def _to_paradigm(lexeme):
 
 
 def _suffixes_prediction_data(words, popularity, gramtab, paradigms,
-                              min_ending_freq=2, min_paradigm_popularity=3,
-                              max_forms_per_class=1):
+                              min_ending_freq=2, min_paradigm_popularity=3):
 
     # XXX: this uses approach different from pymorphy 0.5.6;
     # what are the implications on prediction quality?
 
+    logger.debug('calculating prediction data: productive paradigms..')
     productive_paradigms = set(
         para_id
         for (para_id, count) in popularity.items()
@@ -237,8 +240,11 @@ def _suffixes_prediction_data(words, popularity, gramtab, paradigms,
 
     ending_counts = collections.Counter()
 
-    endings = collections.defaultdict(lambda: collections.defaultdict(collections.Counter))
+    endings = collections.defaultdict(
+        lambda: collections.defaultdict(collections.Counter)
+    )
 
+    logger.debug('calculating prediction data: checking word endings..')
     for word, (para_id, idx) in words:
 
         if para_id not in productive_paradigms:
@@ -253,6 +259,7 @@ def _suffixes_prediction_data(words, popularity, gramtab, paradigms,
             ending_counts[word_end] += 1
             endings[word_end][cls][(para_id, idx)] += 1
 
+    logger.debug('calculating prediction data: preparing DAWG data..')
     counted_suffixes_dawg_data = []
     for suff in endings:
 
@@ -260,7 +267,13 @@ def _suffixes_prediction_data(words, popularity, gramtab, paradigms,
             continue
 
         for cls in endings[suff]:
-            for form, cnt in endings[suff][cls].most_common(max_forms_per_class):
+
+            common_endings = largest_group(
+                endings[suff][cls].items(),
+                operator.itemgetter(1)
+            )
+
+            for form, cnt in common_endings:
                 counted_suffixes_dawg_data.append(
                     (suff, (cnt,)+ form)
                 )

@@ -7,6 +7,7 @@ import os
 import itertools
 import codecs
 import json
+
 try:
     from urllib.request import urlopen
 except ImportError:
@@ -90,3 +91,17 @@ def json_read(filename, **json_options):
     """ Read an object from a json file ``filename`` """
     with codecs.open(filename, 'r', 'utf8') as f:
         return json.load(f, **json_options)
+
+
+def largest_group(iterable, key):
+    """
+    Find a group of largest elements (according to ``key``).
+
+    >>> s = [-4, 3, 5, 7, 4, -7]
+    >>> largest_group(s, abs)
+    [7, -7]
+
+    """
+    it1, it2 = itertools.tee(iterable)
+    max_key = max(map(key, it1))
+    return [el for el in it2 if key(el) == max_key]

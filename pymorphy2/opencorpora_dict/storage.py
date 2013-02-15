@@ -25,7 +25,7 @@ from pymorphy2.utils import json_write, json_read
 
 logger = logging.getLogger(__name__)
 
-CURRENT_FORMAT_VERSION = '1.0'
+CURRENT_FORMAT_VERSION = '1.1'
 
 LoadedDictionary = collections.namedtuple(
     'LoadedDictionary',
