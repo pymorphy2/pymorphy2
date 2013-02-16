@@ -73,12 +73,13 @@ def parse_opencorpora_xml(filename):
     return ParsedDictionary(lexemes, links, grammemes, version, revision)
 
 
+def _tags_from_elem(elem):
+    return ",".join(g.get('v') for g in elem.findall('g'))
+
 def _word_forms_from_xml_elem(elem):
     """
     Return a list of (word, tags) pairs given "lemma" XML element.
     """
-    def _tags(elem):
-        return ",".join(g.get('v') for g in elem.findall('g'))
 
     lexeme = []
     lex_id = elem.get('id')
@@ -89,10 +90,10 @@ def _word_forms_from_xml_elem(elem):
     base_info = elem.findall('l')
 
     assert len(base_info) == 1
-    base_tags = _tags(base_info[0])
+    base_tags = _tags_from_elem(base_info[0])
 
     for form_elem in elem.findall('f'):
-        tags = _tags(form_elem)
+        tags = _tags_from_elem(form_elem)
         form = form_elem.get('t').lower()
         lexeme.append(
             (form, " ".join([base_tags, tags]).strip())
