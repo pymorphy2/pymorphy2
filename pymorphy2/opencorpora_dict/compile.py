@@ -228,10 +228,7 @@ def _to_paradigm(lexeme):
 def _suffixes_prediction_data(words, popularity, gramtab, paradigms,
                               min_ending_freq=2, min_paradigm_popularity=3):
 
-    # XXX: this uses approach different from pymorphy 0.5.6;
-    # what are the implications on prediction quality?
-
-    logger.debug('calculating prediction data: productive paradigms..')
+    logger.debug('calculating prediction data: removing non-productive paradigms..')
     productive_paradigms = set(
         para_id
         for (para_id, count) in popularity.items()

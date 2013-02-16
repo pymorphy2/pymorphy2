@@ -3,7 +3,10 @@ from __future__ import print_function, unicode_literals, division
 import os
 import heapq
 import collections
+import logging
 from pymorphy2 import opencorpora_dict
+
+logger = logging.getLogger(__name__)
 
 _Parse = collections.namedtuple('Parse', 'word, tag, normal_form, para_id, idx, estimate')
 
@@ -77,8 +80,12 @@ class MorphAnalyzer(object):
     env_variable = 'PYMORPHY2_DICT_PATH'
 
     def __init__(self, path=None, result_type=Parse):
+
         path = self.choose_dictionary_path(path)
+        logger.info("Loading dictionaries from %s", path)
         self._dictionary = opencorpora_dict.load(path)
+        logger.info("format: %(format_version)s, revision: %(source_revision)s, updated: %(compiled_at)s", self.dict_meta)
+
         self._ee = self._dictionary.words.compile_replaces({'е': 'ё'})
 
         if result_type is not None:

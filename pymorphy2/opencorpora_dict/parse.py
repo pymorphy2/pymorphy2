@@ -22,6 +22,7 @@ def parse_opencorpora_xml(filename):
     lexemes = {}
     grammemes = []
     version, revision = None, None
+    _lexemes_len = 0
 
     def _clear(elem):
         elem.clear()
@@ -64,6 +65,10 @@ def parse_opencorpora_xml(filename):
             )
             links.append(link_tuple)
             _clear(elem)
+
+        if len(lexemes) != _lexemes_len and not (len(lexemes) % 50000):
+            logger.debug("%d lexemes parsed" % len(lexemes))
+            _lexemes_len = len(lexemes)
 
     return ParsedDictionary(lexemes, links, grammemes, version, revision)
 
