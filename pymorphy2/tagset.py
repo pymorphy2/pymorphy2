@@ -324,7 +324,9 @@ class OpencorporaTag(object):
 
 
     def is_productive(self):
-        return not self.POS in self._NON_PRODUCTIVE_CLASSES
+        # We use `self._grammemes_tuple[0]` instead of `self.POS` here because
+        # it is faster and this method is heavily used by MorphAnalyzer.
+        return not self._grammemes_tuple[0] in self._NON_PRODUCTIVE_CLASSES
 
     @classmethod
     def grammeme_is_known(cls, grammeme):
