@@ -26,7 +26,7 @@ setup(
     license = 'MIT license',
     packages = ['pymorphy2', 'pymorphy2.vendor', 'pymorphy2.opencorpora_dict'],
     scripts=['bin/pymorphy'],
-    requires=['dawg_python (>= 0.5)', 'pymorphy2_dicts (<2.0)'],
+    requires=['dawg_python (>= 0.5)', 'pymorphy2_dicts (>2.0, <3.0)'],
 
 #    cmdclass = {'build_ext': build_ext},
 #    ext_modules = [Extension("pymorphy2.analyzer", ["pymorphy2/analyzer.py"])],
