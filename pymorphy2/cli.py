@@ -111,7 +111,7 @@ Pymorphy2 is a morphological analyzer / inflection engine for Russian language.
 __doc__ ="""
 Usage::
 
-    pymorphy dict compile <XML_FILE> [--out <PATH>] [--force] [--verbose] [--min_ending_freq <NUM>] [--min_paradigm_popularity <NUM>]
+    pymorphy dict compile <XML_FILE> [--out <PATH>] [--force] [--verbose] [--min_ending_freq <NUM>] [--min_paradigm_popularity <NUM>] [--max_suffix_length <NUM>]
     pymorphy dict download_xml <OUT_FILE> [--verbose]
     pymorphy dict mem_usage [--dict <PATH>] [--verbose]
     pymorphy dict make_test_suite <XML_FILE> <OUT_FILE> [--limit <NUM>] [--verbose]
@@ -128,6 +128,7 @@ Options::
     --limit <NUM>                       Min. number of words per gram. tag [default: 100]
     --min_ending_freq <NUM>             Prediction: min. number of suffix occurances [default: 2]
     --min_paradigm_popularity <NUM>     Prediction: min. number of lexemes for the paradigm [default: 3]
+    --max_suffix_length <NUM>           Prediction: max. length of prediction suffixes [default: 5]
     --dict <PATH>                       Dictionary folder path
 
 """
@@ -154,7 +155,7 @@ def main():
         if args['compile']:
             prediction_options = dict(
                 (key, int(args['--'+key]))
-                for key in ('min_ending_freq', 'min_paradigm_popularity')
+                for key in ('min_ending_freq', 'min_paradigm_popularity', 'max_suffix_length')
             )
             return compile_dict(args['<XML_FILE>'], args['--out'], args['--force'], prediction_options)
         elif args['mem_usage']:

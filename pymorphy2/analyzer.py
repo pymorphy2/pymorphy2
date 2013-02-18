@@ -3,6 +3,7 @@ from __future__ import print_function, unicode_literals, division
 import os
 import heapq
 import collections
+import operator
 import logging
 from pymorphy2 import opencorpora_dict
 
@@ -87,9 +88,14 @@ class MorphAnalyzer(object):
         path = self.choose_dictionary_path(path)
         logger.info("Loading dictionaries from %s", path)
         self._dictionary = opencorpora_dict.load(path)
+        self._dictionary_path = path
         logger.info("format: %(format_version)s, revision: %(source_revision)s, updated: %(compiled_at)s", self.dict_meta)
 
+        # precompute some variables
         self._ee = self._dictionary.words.compile_replaces({'е': 'ё'})
+        self._paradigm_prefixes = list(reversed(list(enumerate(self._dictionary.paradigm_prefixes))))
+        max_suffix_length = self.dict_meta['prediction_options']['max_suffix_length']
+        self._prediction_splits = list(reversed(range(1, max_suffix_length+1)))
 
         if result_type is not None:
             # create a subclass with the same name,
@@ -223,43 +229,54 @@ class MorphAnalyzer(object):
         """
         if _seen_parses is None:
             _seen_parses = set()
-        result = []
+
         ESTIMATE_DECAY = 0.5
-        for i in 5,4,3,2,1:
-            end = word[-i:]
-            para_data = self._dictionary.prediction_suffixes.similar_items(end, self._ee)
+        result = []
 
-            total_cnt = 1 # smoothing; XXX: isn't max_cnt better?
-            for fixed_suffix, parses in para_data:
-                for cnt, para_id, idx in parses:
+        total_counts = [1] * len(self._paradigm_prefixes) # smoothing; XXX: isn't max_cnt better?
 
-                    tag = self._build_tag_info(para_id, idx)
+        for prefix_id, prefix in self._paradigm_prefixes:
 
-                    if not tag.is_productive():
-                        continue
+            if not word.startswith(prefix):
+                continue
 
-                    total_cnt += cnt
+            suffixes_dawg = self._dictionary.prediction_suffixes_dawgs[prefix_id]
 
-                    fixed_word = word[:-i] + fixed_suffix
-                    normal_form = self._build_normal_form(para_id, idx, fixed_word)
+            for i in self._prediction_splits:
+                end = word[-i:]  # XXX: this should be counted once, not for each prefix
 
-                    parse = (cnt, fixed_word, tag, normal_form, para_id, idx)
-                    reduced_parse = parse[1:4]
-                    if reduced_parse in _seen_parses:
-                        continue
+                para_data = suffixes_dawg.similar_items(end, self._ee)
 
-                    result.append(parse)
+                for fixed_suffix, parses in para_data:
+                    for cnt, para_id, idx in parses:
 
-            if total_cnt > 1:
-                # parses are sorted inside paradigms, but they are unsorted overall
-                result.sort(reverse=True)
-                result = [
-                    (fixed_word, tag, normal_form, para_id, idx, cnt/total_cnt * ESTIMATE_DECAY)
-                    for (cnt, fixed_word, tag, normal_form, para_id, idx) in result
-                ]
-                break
+                        tag = self._build_tag_info(para_id, idx)
 
+                        if not tag.is_productive():
+                            continue
+
+                        total_counts[prefix_id] += cnt
+
+                        fixed_word = word[:-i] + fixed_suffix
+                        normal_form = self._build_normal_form(para_id, idx, fixed_word)
+
+                        parse = (cnt, fixed_word, tag, normal_form, para_id, idx, prefix_id)
+                        reduced_parse = parse[1:4]
+                        if reduced_parse in _seen_parses:
+                            continue
+
+                        result.append(parse)
+
+                if total_counts[prefix_id] > 1:
+                    break
+
+        result = [
+            (fixed_word, tag, normal_form, para_id, idx, cnt/total_counts[prefix_id] * ESTIMATE_DECAY)
+            for (cnt, fixed_word, tag, normal_form, para_id, idx, prefix_id) in result
+        ]
+        result.sort(key=operator.itemgetter(5), reverse=True)
         return result
+
 
     def normal_forms(self, word):
         """
@@ -341,37 +358,47 @@ class MorphAnalyzer(object):
         return res
 
     def _tag_as_word_with_known_suffix(self, word, _seen_tags=None):
+        # XXX: the result order may be different from
+        # _parse_as_word_with_known_suffix.
+
         if _seen_tags is None:
             _seen_tags = set()
 
         result = []
-        for i in 5,4,3,2,1:
-            end = word[-i:]
-            para_data = self._dictionary.prediction_suffixes.similar_item_values(end, self._ee)
 
-            found = False
-            for parse in para_data:
-                for cnt, para_id, idx in parse:
-                    tag = self._build_tag_info(para_id, idx)
+        for prefix_id, prefix in self._paradigm_prefixes:
 
-                    if not tag.is_productive():
-                        continue
+            if not word.startswith(prefix):
+                continue
 
-                    found = True
-                    if tag in _seen_tags:
-                        continue
+            suffixes_dawg = self._dictionary.prediction_suffixes_dawgs[prefix_id]
 
-                    _seen_tags.add(tag)
-                    result.append(
-                        (cnt, tag)
-                    )
+            for i in self._prediction_splits:
+                end = word[-i:]  # XXX: this should be counted once, not for each prefix
 
-            if found:
-                result.sort(reverse=True)
-                result = [tag for cnt, tag in result] # remove counts
-                break
+                para_data = suffixes_dawg.similar_items(end, self._ee)
 
-        return result
+                found = False
+                for fixed_suffix, parses in para_data:
+                    for cnt, para_id, idx in parses:
+
+                        tag = self._build_tag_info(para_id, idx)
+
+                        if not tag.is_productive():
+                            continue
+
+                        found = True
+                        if tag in _seen_tags:
+                            continue
+                        _seen_tags.add(tag)
+                        result.append((cnt, tag))
+
+                if found:
+                    break
+
+        result.sort(reverse=True)
+        return [tag for cnt, tag in result]
+
 
     # ==== inflection ========
 

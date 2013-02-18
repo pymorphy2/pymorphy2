@@ -26,7 +26,7 @@ logger = logging.getLogger(__name__)
 
 CompiledDictionary = collections.namedtuple(
     'CompiledDictionary',
-    'gramtab suffixes paradigms words_dawg prediction_suffixes_dawg parsed_dict'
+    'gramtab suffixes paradigms words_dawg prediction_suffixes_dawgs parsed_dict prediction_options'
 )
 
 
@@ -55,7 +55,14 @@ def compile_parsed_dict(parsed_dict, prediction_options=None):
     """
     Return compacted dictionary data.
     """
-    prediction_options = prediction_options or {}
+    _prediction_options = dict(
+        # defaults
+        min_ending_freq=2,
+        min_paradigm_popularity=3,
+        max_suffix_length=5
+    )
+    _prediction_options.update(prediction_options or {})
+
     gramtab = []
     paradigms = []
     words = []
@@ -69,7 +76,7 @@ def compile_parsed_dict(parsed_dict, prediction_options=None):
     logger.info('building paradigms...')
     logger.debug("%20s %15s %15s %15s", "stem", "len(gramtab)", "len(words)", "len(paradigms)")
 
-    popularity = collections.Counter()
+    paradigm_popularity = collections.defaultdict(int)
 
     for index, lexeme in enumerate(lexemes):
         stem, paradigm = _to_paradigm(lexeme)
@@ -88,7 +95,7 @@ def compile_parsed_dict(parsed_dict, prediction_options=None):
             )
 
         para_id = seen_paradigms[paradigm]
-        popularity[para_id] += 1
+        paradigm_popularity[para_id] += 1
 
         for idx, (suff, tag, pref) in enumerate(paradigm):
             form = pref+stem+suff
@@ -97,7 +104,9 @@ def compile_parsed_dict(parsed_dict, prediction_options=None):
             )
 
         if not (index % 10000):
-            logger.debug("%20s %15s %15s %15s", stem, len(gramtab), len(words), len(paradigms))
+            word = paradigm[0][2]+stem+paradigm[0][0]
+            logger.debug("%20s %15s %15s %15s", word, len(gramtab), len(words), len(paradigms))
+
 
     logger.debug("%20s %15s %15s %15s", "total:", len(gramtab), len(words), len(paradigms))
     logger.debug("linearizing paradigms..")
@@ -125,8 +134,8 @@ def compile_parsed_dict(parsed_dict, prediction_options=None):
     paradigms = [_linearized_paradigm(paradigm) for paradigm in paradigms]
 
     logger.debug('calculating prediction data..')
-    suffixes_dawg_data = _suffixes_prediction_data(
-        words, popularity, gramtab, paradigms, **prediction_options
+    suffixes_dawgs_data = _suffixes_prediction_data(
+        words, paradigm_popularity, gramtab, paradigms, suffixes, **_prediction_options
     )
 
     logger.debug('building word DAWG..')
@@ -134,11 +143,15 @@ def compile_parsed_dict(parsed_dict, prediction_options=None):
 
     del words
 
-    logger.debug('building prediction_suffixes DAWG..')
-    prediction_suffixes_dawg = dawg.PredictionSuffixesDAWG(suffixes_dawg_data)
+
+    prediction_suffixes_dawgs = []
+    for prefix_id, dawg_data in enumerate(suffixes_dawgs_data):
+        logger.debug('building prediction_suffixes DAWGs #%d..' % prefix_id)
+        prediction_suffixes_dawgs.append(dawg.PredictionSuffixesDAWG(dawg_data))
 
     return CompiledDictionary(tuple(gramtab), suffixes, paradigms,
-                              words_dawg, prediction_suffixes_dawg, parsed_dict)
+                              words_dawg, prediction_suffixes_dawgs, parsed_dict,
+                              _prediction_options)
 
 
 def _join_lexemes(lexemes, links):
@@ -225,20 +238,26 @@ def _to_paradigm(lexeme):
     return stem, tuple(zip(suffixes, tags, prefixes))
 
 
-def _suffixes_prediction_data(words, popularity, gramtab, paradigms,
-                              min_ending_freq=2, min_paradigm_popularity=3):
+def _suffixes_prediction_data(words, paradigm_popularity, gramtab, paradigms, suffixes,
+                              min_ending_freq, min_paradigm_popularity, max_suffix_length):
 
     logger.debug('calculating prediction data: removing non-productive paradigms..')
     productive_paradigms = set(
         para_id
-        for (para_id, count) in popularity.items()
+        for (para_id, count) in paradigm_popularity.items()
         if count >= min_paradigm_popularity
     )
 
-    ending_counts = collections.Counter()
+    # ["suffix"] => number of occurrences
+    # this is for removing non-productive suffixes
+    ending_counts = collections.defaultdict(int)
 
+    # [form_prefix_id]["suffix"]["POS"][(para_id, idx)] => number or occurrences
+    # this is for selecting most popular parses
     endings = collections.defaultdict(
-        lambda: collections.defaultdict(collections.Counter)
+        lambda: collections.defaultdict(
+            lambda: collections.defaultdict(
+                lambda: collections.defaultdict(int)))
     )
 
     logger.debug('calculating prediction data: checking word endings..')
@@ -248,34 +267,59 @@ def _suffixes_prediction_data(words, popularity, gramtab, paradigms,
             continue
 
         paradigm = paradigms[para_id]
-        tag = gramtab[paradigm[len(paradigm) // 3 + idx]]
-        cls = tuple(tag.replace(' ', ',', 1).split(','))[0]
 
-        for i in 1,2,3,4,5:
-            word_end = word[-i:]
-            ending_counts[word_end] += 1
-            endings[word_end][cls][(para_id, idx)] += 1
+        form_count = len(paradigm) // 3
 
-    logger.debug('calculating prediction data: preparing DAWG data..')
-    counted_suffixes_dawg_data = []
-    for suff in endings:
+        tag = gramtab[paradigm[form_count + idx]]
+        form_prefix_id = paradigm[2*form_count + idx]
+        form_prefix = PARADIGM_PREFIXES[form_prefix_id]
+        form_suffix = suffixes[paradigm[idx]]
 
-        if ending_counts[suff] < min_ending_freq:
+        assert len(word) >= len(form_prefix+form_suffix), word
+        assert word.startswith(form_prefix), word
+        assert word.endswith(form_suffix), word
+
+        if len(word) == len(form_prefix)+len(form_suffix):
+            # pseudo-paradigm
             continue
 
-        for cls in endings[suff]:
+        POS = tuple(tag.replace(' ', ',', 1).split(','))[0]
 
-            common_endings = largest_group(
-                endings[suff][cls].items(),
-                operator.itemgetter(1)
-            )
+        for i in range(max(len(form_suffix), 1), max_suffix_length+1): #was: 1,2,3,4,5
+            word_end = word[-i:]
 
-            for form, cnt in common_endings:
-                counted_suffixes_dawg_data.append(
-                    (suff, (cnt,)+ form)
+            ending_counts[word_end] += 1
+            endings[form_prefix_id][word_end][POS][(para_id, idx)] += 1
+
+    dawgs_data = []
+
+    for form_prefix_id in sorted(endings.keys()):
+
+        logger.debug('calculating prediction data: preparing DAWGs data #%d..' % form_prefix_id)
+
+        counted_suffixes_dawg_data = []
+
+        endings_with_prefix = endings[form_prefix_id]
+        for suff in endings_with_prefix:
+
+            if ending_counts[suff] < min_ending_freq:
+                continue
+
+            for POS in endings_with_prefix[suff]:
+
+                common_endings = largest_group(
+                    endings_with_prefix[suff][POS].items(),
+                    operator.itemgetter(1)
                 )
 
-    return counted_suffixes_dawg_data
+                for form, cnt in common_endings:
+                    counted_suffixes_dawg_data.append(
+                        (suff, (cnt,)+ form)
+                    )
+
+        dawgs_data.append(counted_suffixes_dawg_data)
+
+    return dawgs_data
 
 
 def _linearized_paradigm(paradigm):

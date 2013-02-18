@@ -25,11 +25,11 @@ from pymorphy2.utils import json_write, json_read
 
 logger = logging.getLogger(__name__)
 
-CURRENT_FORMAT_VERSION = '1.1'
+CURRENT_FORMAT_VERSION = '2.0'
 
 LoadedDictionary = collections.namedtuple(
     'LoadedDictionary',
-    'meta, gramtab, suffixes, paradigms, words, prediction_prefixes, prediction_suffixes, Tag, paradigm_prefixes'
+    'meta, gramtab, suffixes, paradigms, words, prediction_prefixes, prediction_suffixes_dawgs, Tag, paradigm_prefixes'
 )
 
 
@@ -52,12 +52,16 @@ def load_dict(path, gramtab_format='opencorpora-int'):
     paradigms = _load_paradigms(_f('paradigms.array'))
     words = dawg.WordsDawg().load(_f('words.dawg'))
 
-    prediction_suffixes = dawg.PredictionSuffixesDAWG().load(_f('prediction-suffixes.dawg'))
     prediction_prefixes = dawg.DAWG().load(_f('prediction-prefixes.dawg'))
 
+    prediction_suffixes_dawgs = []
+    for prefix_id in range(len(paradigm_prefixes)):
+        fn = _f('prediction-suffixes-%s.dawg' % prefix_id)
+        prediction_suffixes_dawgs.append(dawg.PredictionSuffixesDAWG().load(fn))
+
     return LoadedDictionary(meta, gramtab, suffixes, paradigms, words,
-                            prediction_prefixes, prediction_suffixes, Tag,
-                            paradigm_prefixes)
+                            prediction_prefixes, prediction_suffixes_dawgs,
+                            Tag, paradigm_prefixes)
 
 
 def save_compiled_dict(compiled_dict, out_path):
@@ -88,7 +92,11 @@ def save_compiled_dict(compiled_dict, out_path):
 
     json_write(_f('suffixes.json'), compiled_dict.suffixes)
     compiled_dict.words_dawg.save(_f('words.dawg'))
-    compiled_dict.prediction_suffixes_dawg.save(_f('prediction-suffixes.dawg'))
+
+    for prefix_id, prediction_suffixes_dawg in enumerate(compiled_dict.prediction_suffixes_dawgs):
+        prediction_suffixes_dawg.save(_f('prediction-suffixes-%s.dawg' % prefix_id))
+
+
     dawg.DAWG(PREDICTION_PREFIXES).save(_f('prediction-prefixes.dawg'))
     json_write(_f('paradigm-prefixes.json'), PARADIGM_PREFIXES)
 
@@ -99,8 +107,11 @@ def save_compiled_dict(compiled_dict, out_path):
 
     logger.debug('  words_dawg_len')
     words_dawg_len = _dawg_len(compiled_dict.words_dawg)
-    logger.debug('  prediction_suffixes_dawg_len')
-    prediction_suffixes_dawg_len = _dawg_len(compiled_dict.prediction_suffixes_dawg)
+    logger.debug('  prediction_suffixes_dawgs_len')
+
+    prediction_suffixes_dawg_lenghts = []
+    for prediction_suffixes_dawg in compiled_dict.prediction_suffixes_dawgs:
+        prediction_suffixes_dawg_lenghts.append(_dawg_len(prediction_suffixes_dawg))
 
     meta = [
         ['format_version', CURRENT_FORMAT_VERSION],
@@ -119,7 +130,8 @@ def save_compiled_dict(compiled_dict, out_path):
         ['suffixes_length', len(compiled_dict.suffixes)],
 
         ['words_dawg_length', words_dawg_len],
-        ['prediction_suffixes_dawg_length', prediction_suffixes_dawg_len],
+        ['prediction_options', compiled_dict.prediction_options],
+        ['prediction_suffixes_dawg_lengths', prediction_suffixes_dawg_lenghts],
         ['prediction_prefixes_dawg_length', len(PREDICTION_PREFIXES)],
         ['paradigm_prefixes_length', len(PARADIGM_PREFIXES)],
     ]
