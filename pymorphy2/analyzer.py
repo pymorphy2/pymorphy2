@@ -41,6 +41,9 @@ class Parse(_Parse):
         return self.__class__(self.normal_form, tag, self.normal_form,
                               self.para_id, 0, self.estimate)
 
+    @property
+    def paradigm(self):
+        return self._morph._build_paradigm_info(self.para_id)
 
 class MorphAnalyzer(object):
     """
