@@ -8,6 +8,10 @@ Morphological Analyzer
     :members:
     :undoc-members:
 
+.. automodule:: pymorphy2.predictors
+    :members:
+    :undoc-members:
+
 Tagset
 ------
 
