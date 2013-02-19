@@ -32,12 +32,16 @@ class KnownPrefixPredictor(BasePredictor):
 
     terminal = True
     ESTIMATE_DECAY = 0.75
+    MIN_REMINDER_LENGTH = 3
 
     def parse(self, word, seen_parses=None):
         res = []
         word_prefixes = self.dict.prediction_prefixes.prefixes(word)
         for prefix in word_prefixes:
             unprefixed_word = word[len(prefix):]
+
+            if len(unprefixed_word) < self.MIN_REMINDER_LENGTH:
+                continue
 
             for fixed_word, tag, normal_form, para_id, idx, estimate in self.morph.parse(unprefixed_word):
 
@@ -54,6 +58,9 @@ class KnownPrefixPredictor(BasePredictor):
         word_prefixes = self.dict.prediction_prefixes.prefixes(word)
         for pref in word_prefixes:
             unprefixed_word = word[len(pref):]
+
+            if len(unprefixed_word) < self.MIN_REMINDER_LENGTH:
+                continue
 
             for tag in self.morph.tag(unprefixed_word):
                 if not tag.is_productive():
