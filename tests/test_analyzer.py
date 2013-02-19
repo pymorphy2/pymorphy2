@@ -2,6 +2,7 @@
 from __future__ import absolute_import, unicode_literals
 import pytest
 import pymorphy2
+from pymorphy2.predictors import UnknownPrefixPredictor, KnownPrefixPredictor
 
 from .utils import morph
 
@@ -171,21 +172,24 @@ class TestTagWithPrefix:
 
     def test_tag_with_unknown_prefix(self):
         word = 'мегакот'
-        parse1 = morph._tag_as_word_with_unknown_prefix(word)
-        parse2 = morph._tag_as_word_with_known_prefix(word)
+        pred1 = UnknownPrefixPredictor(morph)
+        pred2 = KnownPrefixPredictor(morph)
+
+        parse1 = pred1.tag(word)
+        parse2 = pred2.tag(word)
         assert parse1 == parse2
 
 
 class TestUtils:
     def test_word_is_known(self):
-        assert morph.word_is_known('еж')
-        assert morph.word_is_known('ёж')
-        assert not morph.word_is_known('еш')
+        assert morph.dictionary.word_is_known('еж')
+        assert morph.dictionary.word_is_known('ёж')
+        assert not morph.dictionary.word_is_known('еш')
 
     def test_word_is_known_strict(self):
-        assert not morph.word_is_known('еж', strict_ee=True)
-        assert morph.word_is_known('ёж', strict_ee=True)
-        assert not morph.word_is_known('еш', strict_ee=True)
+        assert not morph.dictionary.word_is_known('еж', strict_ee=True)
+        assert morph.dictionary.word_is_known('ёж', strict_ee=True)
+        assert not morph.dictionary.word_is_known('еш', strict_ee=True)
 
 
 class TestParseResultClass:

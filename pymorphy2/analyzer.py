@@ -3,9 +3,9 @@ from __future__ import print_function, unicode_literals, division
 import os
 import heapq
 import collections
-import operator
 import logging
 from pymorphy2 import opencorpora_dict
+from pymorphy2 import predictors
 
 logger = logging.getLogger(__name__)
 
@@ -16,6 +16,7 @@ class Parse(_Parse):
     Parse result wrapper.
     """
     _morph = None
+    _dict = None
 
     def inflect(self, required_grammemes):
         res = self._morph._inflect(self, required_grammemes)
@@ -30,7 +31,7 @@ class Parse(_Parse):
     def is_known(self):
         """ True if this form is a known dictionary form. """
         # return self.estimate == 1?
-        return self._morph.word_is_known(self.word, strict_ee=True)
+        return self._dict.word_is_known(self.word, strict_ee=True)
 
     @property
     def normalized(self):
@@ -38,13 +39,198 @@ class Parse(_Parse):
         if self.idx == 0:
             return self
 
-        tag = self._morph._build_tag_info(self.para_id, 0)
+        tag = self._dict.build_tag_info(self.para_id, 0)
         return self.__class__(self.normal_form, tag, self.normal_form,
                               self.para_id, 0, self.estimate)
 
     @property
     def paradigm(self):
-        return self._morph._build_paradigm_info(self.para_id)
+        return self._dict.build_paradigm_info(self.para_id)
+
+
+class Dictionary(object):
+    """
+    OpenCorpora dictionary wrapper class.
+    """
+
+    def __init__(self, path):
+
+        logger.info("Loading dictionaries from %s", path)
+
+        self._data = opencorpora_dict.load(path)
+
+        logger.info("format: %(format_version)s, revision: %(source_revision)s, updated: %(compiled_at)s", self._data.meta)
+
+        # attributes from opencorpora_dict.storage.LoadedDictionary
+        self.paradigms = self._data.paradigms
+        self.gramtab = self._data.gramtab
+        self.paradigm_prefixes = self._data.paradigm_prefixes
+        self.suffixes = self._data.suffixes
+        self.words = self._data.words
+        self.prediction_prefixes = self._data.prediction_prefixes
+        self.prediction_suffixes_dawgs = self._data.prediction_suffixes_dawgs
+        self.meta = self._data.meta
+        self.Tag = self._data.Tag
+
+        # extra attributes
+        self.path = path
+        self.ee = self.words.compile_replaces({'е': 'ё'})
+
+
+    def build_tag_info(self, para_id, idx):
+        """
+        Return tag as a string.
+        """
+        paradigm = self.paradigms[para_id]
+        tag_info_offset = len(paradigm) // 3
+        tag_id = paradigm[tag_info_offset + idx]
+        return self.gramtab[tag_id]
+
+    def build_paradigm_info(self, para_id):
+        """
+        Return a list of
+
+            (prefix, tag, suffix)
+
+        tuples representing the paradigm.
+        """
+        paradigm = self.paradigms[para_id]
+        paradigm_len = len(paradigm) // 3
+        res = []
+        for idx in range(paradigm_len):
+            prefix_id = paradigm[paradigm_len*2 + idx]
+            prefix = self.paradigm_prefixes[prefix_id]
+
+            suffix_id = paradigm[idx]
+            suffix = self.suffixes[suffix_id]
+
+            res.append(
+                (prefix, self.build_tag_info(para_id, idx), suffix)
+            )
+        return res
+
+    def build_normal_form(self, para_id, idx, fixed_word):
+        """
+        Build a normal form.
+        """
+
+        if idx == 0: # a shortcut: normal form is a word itself
+            return fixed_word
+
+        paradigm = self.paradigms[para_id]
+        paradigm_len = len(paradigm) // 3
+
+        stem = self.build_stem(paradigm, idx, fixed_word)
+
+        normal_prefix_id = paradigm[paradigm_len*2 + 0]
+        normal_suffix_id = paradigm[0]
+
+        normal_prefix = self.paradigm_prefixes[normal_prefix_id]
+        normal_suffix = self.suffixes[normal_suffix_id]
+
+        return normal_prefix + stem + normal_suffix
+
+    def build_stem(self, paradigm, idx, fixed_word):
+        """
+        Return word stem (given a word, paradigm and the word index).
+        """
+        paradigm_len = len(paradigm) // 3
+
+        prefix_id = paradigm[paradigm_len*2 + idx]
+        prefix = self.paradigm_prefixes[prefix_id]
+
+        suffix_id = paradigm[idx]
+        suffix = self.suffixes[suffix_id]
+
+        if suffix:
+            return fixed_word[len(prefix):-len(suffix)]
+        else:
+            return fixed_word[len(prefix):]
+
+    # ====== basic parsing ============
+
+    def parse(self, word):
+        """
+        Parse a word using this dictionary.
+        """
+        res = []
+        para_normal_forms = {}
+        para_data = self.words.similar_items(word, self.ee)
+
+        for fixed_word, parses in para_data:
+            # `fixed_word` is a word with proper ё letters
+            for para_id, idx in parses:
+
+                if para_id not in para_normal_forms:
+                    normal_form = self.build_normal_form(para_id, idx, fixed_word)
+                    para_normal_forms[para_id] = normal_form
+                else:
+                    normal_form = para_normal_forms[para_id]
+
+                tag = self.build_tag_info(para_id, idx)
+
+                res.append(
+                    (fixed_word, tag, normal_form, para_id, idx, 1.0)
+                )
+
+        return res
+
+    def tag(self, word):
+        """
+        Tag a word using this dictionary.
+        """
+        para_data = self.words.similar_item_values(word, self.ee)
+
+        # avoid extra attribute lookups
+        paradigms = self.paradigms
+        gramtab = self.gramtab
+
+        # tag known word
+        result = []
+        for parse in para_data:
+            for para_id, idx in parse:
+                # result.append(self.build_tag_info(para_id, idx))
+                # .build_tag_info is unrolled for speed
+                paradigm = paradigms[para_id]
+                paradigm_len = len(paradigm) // 3
+                tag_id = paradigm[paradigm_len + idx]
+                result.append(gramtab[tag_id])
+
+        return result
+
+    # ===== misc =======
+
+    def word_is_known(self, word, strict_ee=False):
+        """
+        Check if a ``word`` is in the dictionary.
+        Pass ``strict_ee=True`` if ``word`` is guaranteed to
+        have correct е/ё letters.
+
+        .. note::
+
+            Dictionary words are not always correct words;
+            the dictionary also contains incorrect forms which
+            are commonly used. So for spellchecking tasks this
+            method should be used with extra care.
+
+        """
+        if strict_ee:
+            return word in self.words
+        else:
+            return bool(self.words.similar_keys(word, self.ee))
+
+
+    def iter_known_word_parses(self, prefix=""):
+        """
+        Return an iterator over parses of dictionary words that starts
+        with a given prefix (default empty prefix means "all words").
+        """
+        for word, (para_id, idx) in self.words.iteritems(prefix):
+            tag = self.build_tag_info(para_id, idx)
+            normal_form = self.build_normal_form(para_id, idx, word)
+            yield (word, tag, normal_form, para_id, idx, 1.0)
+
+
 
 class MorphAnalyzer(object):
     """
@@ -82,20 +268,16 @@ class MorphAnalyzer(object):
     """
 
     env_variable = 'PYMORPHY2_DICT_PATH'
+    DictionaryClass = Dictionary
+    DEFAULT_PREDICTORS = [
+        predictors.KnownPrefixPredictor,
+        predictors.UnknownPrefixPredictor,
+        predictors.KnownSuffixPredictor,
+    ]
 
-    def __init__(self, path=None, result_type=Parse):
+    def __init__(self, path=None, result_type=Parse, predictors=None):
 
-        path = self.choose_dictionary_path(path)
-        logger.info("Loading dictionaries from %s", path)
-        self._dictionary = opencorpora_dict.load(path)
-        self._dictionary_path = path
-        logger.info("format: %(format_version)s, revision: %(source_revision)s, updated: %(compiled_at)s", self.dict_meta)
-
-        # precompute some variables
-        self._ee = self._dictionary.words.compile_replaces({'е': 'ё'})
-        self._paradigm_prefixes = list(reversed(list(enumerate(self._dictionary.paradigm_prefixes))))
-        max_suffix_length = self.dict_meta['prediction_options']['max_suffix_length']
-        self._prediction_splits = list(reversed(range(1, max_suffix_length+1)))
+        self.dictionary = self.DictionaryClass(self.choose_dictionary_path(path))
 
         if result_type is not None:
             # create a subclass with the same name,
@@ -103,11 +285,18 @@ class MorphAnalyzer(object):
             res_type = type(
                 result_type.__name__,
                 (result_type,),
-                {'_morph': self}
+                {'_morph': self, '_dict': self.dictionary}
             )
             self._result_type = res_type
         else:
             self._result_type = None
+
+        # initialize predictors
+        if predictors is None:
+            predictors = self.DEFAULT_PREDICTORS
+
+        self._predictors = [cls(self) for cls in predictors]
+
 
     @classmethod
     def choose_dictionary_path(cls, path=None):
@@ -136,146 +325,21 @@ class MorphAnalyzer(object):
 
         (or plain tuples if ``result_type=None`` was used in constructor).
         """
-        res = self._parse_as_known(word)
-        if not res:
-            res = self._parse_as_word_with_known_prefix(word)
+        res = self.dictionary.parse(word)
+
         if not res:
             seen = set()
-            res = self._parse_as_word_with_unknown_prefix(word, seen)
-            res.extend(self._parse_as_word_with_known_suffix(word, seen))
+
+            for predictor in self._predictors:
+                res.extend(predictor.parse(word, seen))
+
+                if res and predictor.terminal:
+                    break
 
         if self._result_type is None:
             return res
 
         return [self._result_type(*p) for p in res]
-
-    def _parse_as_known(self, word):
-        """
-        Parse the word using a dictionary.
-        """
-        res = []
-        para_normal_forms = {}
-        para_data = self._dictionary.words.similar_items(word, self._ee)
-
-        for fixed_word, parses in para_data:
-            # `fixed_word` is a word with proper ё letters
-            for para_id, idx in parses:
-
-                if para_id not in para_normal_forms:
-                    normal_form = self._build_normal_form(para_id, idx, fixed_word)
-                    para_normal_forms[para_id] = normal_form
-                else:
-                    normal_form = para_normal_forms[para_id]
-
-                tag = self._build_tag_info(para_id, idx)
-
-                res.append(
-                    (fixed_word, tag, normal_form, para_id, idx, 1.0)
-                )
-
-        return res
-
-    def _parse_as_word_with_known_prefix(self, word):
-        """
-        Parse the word by checking if it starts with a known prefix
-        and parsing the reminder.
-        """
-        res = []
-        ESTIMATE_DECAY = 0.75
-        word_prefixes = self._dictionary.prediction_prefixes.prefixes(word)
-        for prefix in word_prefixes:
-            unprefixed_word = word[len(prefix):]
-
-            for fixed_word, tag, normal_form, para_id, idx, estimate in self.parse(unprefixed_word):
-
-                if not tag.is_productive():
-                    continue
-
-                parse = (prefix+fixed_word, tag, prefix+normal_form, para_id, idx, estimate*ESTIMATE_DECAY)
-                res.append(parse)
-
-        return res
-
-    def _parse_as_word_with_unknown_prefix(self, word, _seen_parses=None):
-        """
-        Parse the word by parsing only the word suffix
-        (with restrictions on prefix & suffix lengths).
-        """
-        if _seen_parses is None:
-            _seen_parses = set()
-        res = []
-        ESTIMATE_DECAY = 0.5
-        for prefix, unprefixed_word in _split_word(word):
-            for fixed_word, tag, normal_form, para_id, idx, estimate in self._parse_as_known(unprefixed_word):
-
-                if not tag.is_productive():
-                    continue
-
-                parse = (prefix+fixed_word, tag, prefix+normal_form, para_id, idx, estimate*ESTIMATE_DECAY)
-
-                reduced_parse = parse[:3]
-                if reduced_parse in _seen_parses:
-                    continue
-                _seen_parses.add(reduced_parse)
-
-                res.append(parse)
-
-        return res
-
-    def _parse_as_word_with_known_suffix(self, word, _seen_parses=None):
-        """
-        Parse the word by checking how the words with similar suffixes
-        are parsed.
-        """
-        if _seen_parses is None:
-            _seen_parses = set()
-
-        ESTIMATE_DECAY = 0.5
-        result = []
-
-        total_counts = [1] * len(self._paradigm_prefixes) # smoothing; XXX: isn't max_cnt better?
-
-        for prefix_id, prefix in self._paradigm_prefixes:
-
-            if not word.startswith(prefix):
-                continue
-
-            suffixes_dawg = self._dictionary.prediction_suffixes_dawgs[prefix_id]
-
-            for i in self._prediction_splits:
-                end = word[-i:]  # XXX: this should be counted once, not for each prefix
-
-                para_data = suffixes_dawg.similar_items(end, self._ee)
-
-                for fixed_suffix, parses in para_data:
-                    for cnt, para_id, idx in parses:
-
-                        tag = self._build_tag_info(para_id, idx)
-
-                        if not tag.is_productive():
-                            continue
-
-                        total_counts[prefix_id] += cnt
-
-                        fixed_word = word[:-i] + fixed_suffix
-                        normal_form = self._build_normal_form(para_id, idx, fixed_word)
-
-                        parse = (cnt, fixed_word, tag, normal_form, para_id, idx, prefix_id)
-                        reduced_parse = parse[1:4]
-                        if reduced_parse in _seen_parses:
-                            continue
-
-                        result.append(parse)
-
-                if total_counts[prefix_id] > 1:
-                    break
-
-        result = [
-            (fixed_word, tag, normal_form, para_id, idx, cnt/total_counts[prefix_id] * ESTIMATE_DECAY)
-            for (cnt, fixed_word, tag, normal_form, para_id, idx, prefix_id) in result
-        ]
-        result.sort(key=operator.itemgetter(5), reverse=True)
-        return result
 
 
     def normal_forms(self, word):
@@ -294,110 +358,18 @@ class MorphAnalyzer(object):
     # XXX: one can use .parse method, but .tag is up to 2x faster.
 
     def tag(self, word):
-        res = self._tag_as_known(word)
-        if not res:
-            res = self._tag_as_word_with_known_prefix(word)
+        res = self.dictionary.tag(word)
 
         if not res:
             seen = set()
-            res = self._tag_as_word_with_unknown_prefix(word, seen)
-            res.extend(self._tag_as_word_with_known_suffix(word, seen))
 
-        return res
+            for predictor in self._predictors:
+                res.extend(predictor.tag(word, seen))
 
-    def _tag_as_known(self, word):
-        para_data = self._dictionary.words.similar_item_values(word, self._ee)
-
-        # avoid extra attribute lookups
-        paradigms = self._dictionary.paradigms
-        gramtab = self._dictionary.gramtab
-
-        # tag known word
-        result = []
-        for parse in para_data:
-            for para_id, idx in parse:
-                # result.append(self._build_tag_info(para_id, idx))
-                # .tag_info is unrolled for speed
-                paradigm = paradigms[para_id]
-                paradigm_len = len(paradigm) // 3
-                tag_id = paradigm[paradigm_len + idx]
-                result.append(gramtab[tag_id])
-
-        return result
-
-    def _tag_as_word_with_known_prefix(self, word):
-        res = []
-        word_prefixes = self._dictionary.prediction_prefixes.prefixes(word)
-        for pref in word_prefixes:
-            unprefixed_word = word[len(pref):]
-
-            for tag in self.tag(unprefixed_word):
-                if not tag.is_productive():
-                    continue
-                res.append(tag)
-
-        return res
-
-    def _tag_as_word_with_unknown_prefix(self, word, _seen_tags=None):
-        if _seen_tags is None:
-            _seen_tags = set()
-
-        res = []
-        for _, unprefixed_word in _split_word(word):
-            for tag in self._tag_as_known(unprefixed_word):
-
-                if not tag.is_productive():
-                    continue
-
-                if tag in _seen_tags:
-                    continue
-                _seen_tags.add(tag)
-
-                res.append(tag)
-
-        return res
-
-    def _tag_as_word_with_known_suffix(self, word, _seen_tags=None):
-        # XXX: the result order may be different from
-        # _parse_as_word_with_known_suffix.
-
-        if _seen_tags is None:
-            _seen_tags = set()
-
-        result = []
-
-        for prefix_id, prefix in self._paradigm_prefixes:
-
-            if not word.startswith(prefix):
-                continue
-
-            suffixes_dawg = self._dictionary.prediction_suffixes_dawgs[prefix_id]
-
-            for i in self._prediction_splits:
-                end = word[-i:]  # XXX: this should be counted once, not for each prefix
-
-                para_data = suffixes_dawg.similar_items(end, self._ee)
-
-                found = False
-                for fixed_suffix, parses in para_data:
-                    for cnt, para_id, idx in parses:
-
-                        tag = self._build_tag_info(para_id, idx)
-
-                        if not tag.is_productive():
-                            continue
-
-                        found = True
-                        if tag in _seen_tags:
-                            continue
-                        _seen_tags.add(tag)
-                        result.append((cnt, tag))
-
-                if found:
+                if res and predictor.terminal:
                     break
 
-        result.sort(reverse=True)
-        return [tag for cnt, tag in result]
+        return res
 
 
     # ==== inflection ========
@@ -448,7 +420,7 @@ class MorphAnalyzer(object):
         Return parses for all possible word forms (given a list of
         possible word parses).
         """
-        paradigms = self._dictionary.paradigms
+        paradigms = self.dictionary.paradigms
         seen_paradigms = set()
         result = []
 
@@ -457,9 +429,9 @@ class MorphAnalyzer(object):
                 continue
             seen_paradigms.add(para_id)
 
-            stem = self._build_stem(paradigms[para_id], idx, fixed_word)
+            stem = self.dictionary.build_stem(paradigms[para_id], idx, fixed_word)
 
-            for index, (_prefix, _tag, _suffix) in enumerate(self._build_paradigm_info(para_id)):
+            for index, (_prefix, _tag, _suffix) in enumerate(self.dictionary.build_paradigm_info(para_id)):
                 word = _prefix + stem + _suffix
 
                 # XXX: what to do with estimate?
@@ -473,126 +445,23 @@ class MorphAnalyzer(object):
 
         return [self._result_type(*p) for p in result]
 
-    # ==== dictionary access utilities ===
-
-    def _build_tag_info(self, para_id, idx):
-        """
-        Return gram. tag as a string.
-        """
-        paradigm = self._dictionary.paradigms[para_id]
-        tag_info_offset = len(paradigm) // 3
-        tag_id = paradigm[tag_info_offset + idx]
-        return self._dictionary.gramtab[tag_id]
-
-    def _build_paradigm_info(self, para_id):
-        """
-        Return a list of
-
-            (prefix, tag, suffix)
-
-        tuples representing the paradigm.
-        """
-        paradigm = self._dictionary.paradigms[para_id]
-        paradigm_len = len(paradigm) // 3
-        res = []
-        for idx in range(paradigm_len):
-            prefix_id = paradigm[paradigm_len*2 + idx]
-            prefix = self._dictionary.paradigm_prefixes[prefix_id]
-
-            suffix_id = paradigm[idx]
-            suffix = self._dictionary.suffixes[suffix_id]
-
-            res.append(
-                (prefix, self._build_tag_info(para_id, idx), suffix)
-            )
-        return res
-
-    def _build_normal_form(self, para_id, idx, fixed_word):
-        """
-        Build a normal form.
-        """
-
-        if idx == 0: # a shortcut: normal form is a word itself
-            return fixed_word
-
-        paradigm = self._dictionary.paradigms[para_id]
-        paradigm_len = len(paradigm) // 3
-
-        stem = self._build_stem(paradigm, idx, fixed_word)
-
-        normal_prefix_id = paradigm[paradigm_len*2 + 0]
-        normal_suffix_id = paradigm[0]
-
-        normal_prefix = self._dictionary.paradigm_prefixes[normal_prefix_id]
-        normal_suffix = self._dictionary.suffixes[normal_suffix_id]
-
-        return normal_prefix + stem + normal_suffix
-
-    def _build_stem(self, paradigm, idx, fixed_word):
-        """
-        Return word stem (given a word, paradigm and the word index).
-        """
-        paradigm_len = len(paradigm) // 3
-
-        prefix_id = paradigm[paradigm_len*2 + idx]
-        prefix = self._dictionary.paradigm_prefixes[prefix_id]
-
-        suffix_id = paradigm[idx]
-        suffix = self._dictionary.suffixes[suffix_id]
-
-        if suffix:
-            return fixed_word[len(prefix):-len(suffix)]
-        else:
-            return fixed_word[len(prefix):]
-
     # ====== misc =========
-
-    def word_is_known(self, word, strict_ee=False):
-        """
-        Check if a ``word`` is in the dictionary.
-        Pass ``strict_ee=True`` if ``word`` is guaranteed to
-        have correct е/ё letters.
-
-        .. note::
-
-            Dictionary words are not always correct words;
-            the dictionary also contains incorrect forms which
-            are commonly used. So for spellchecking tasks this
-            method should be used with extra care.
-
-        """
-        if strict_ee:
-            return word in self._dictionary.words
-        else:
-            return bool(self._dictionary.words.similar_keys(word, self._ee))
 
     def iter_known_word_parses(self, prefix=""):
         """
         Return an iterator over parses of dictionary words that starts
         with a given prefix (default empty prefix means "all words").
         """
-        for word, (para_id, idx) in self._dictionary.words.iteritems(prefix):
-            tag = self._build_tag_info(para_id, idx)
-            normal_form = self._build_normal_form(para_id, idx, word)
-            parse = (word, tag, normal_form, para_id, idx, 1.0)
-            if self._result_type is not None:
-                parse = self._result_type(*parse)
-            yield parse
+        known_parses = self.dictionary.iter_known_word_parses(prefix)
+        if self._result_type is None:
+            return known_parses
+        return (self._result_type(*p) for p in known_parses)
 
     @property
     def dict_meta(self):
-        return self._dictionary.meta
+        return self.dictionary.meta
 
     @property
     def TagClass(self):
-        return self._dictionary.Tag
+        return self.dictionary.Tag
 
-
-def _split_word(word, min_reminder=3, max_prefix_length=5):
-    """
-    Return all splits of a word (taking in account min_reminder and
-    max_prefix_length).
-    """
-    max_split = min(max_prefix_length, len(word)-min_reminder)
-    split_indexes = range(1, 1+max_split)
-    return [(word[:i], word[i:]) for i in split_indexes]

@@ -105,3 +105,13 @@ def largest_group(iterable, key):
     it1, it2 = itertools.tee(iterable)
     max_key = max(map(key, it1))
     return [el for el in it2 if key(el) == max_key]
+
+
+def word_splits(word, min_reminder=3, max_prefix_length=5):
+    """
+    Return all splits of a word (taking in account min_reminder and
+    max_prefix_length).
+    """
+    max_split = min(max_prefix_length, len(word)-min_reminder)
+    split_indexes = range(1, 1+max_split)
+    return [(word[:i], word[i:]) for i in split_indexes]
