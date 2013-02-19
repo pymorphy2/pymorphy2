@@ -25,7 +25,7 @@ class Parse(_Parse):
     @property
     def lexeme(self):
         """ A lexeme this form belongs to. """
-        return self._morph._decline([self])
+        return self._morph._decline_wrapped([self])
 
     @property
     def is_known(self):
@@ -198,6 +198,32 @@ class Dictionary(object):
 
         return result
 
+    def decline(self, word_parses):
+        """
+        Return parses for all possible word forms (given a list of
+        possible word parses).
+        """
+        seen_paradigms = set()
+        result = []
+
+        for fixed_word, tag, normal_form, para_id, idx, estimate in word_parses:
+            if para_id in seen_paradigms:
+                continue
+            seen_paradigms.add(para_id)
+
+            stem = self.build_stem(self.paradigms[para_id], idx, fixed_word)
+
+            for index, (_prefix, _tag, _suffix) in enumerate(self.build_paradigm_info(para_id)):
+                word = _prefix + stem + _suffix
+
+                # XXX: what to do with estimate?
+                # XXX: do we need all info?
+                result.append(
+                    (word, _tag, normal_form, para_id, index, estimate)
+                )
+
+        return result
+
     # ===== misc =======
 
     def word_is_known(self, word, strict_ee=False):
@@ -342,21 +368,6 @@ class MorphAnalyzer(object):
         return [self._result_type(*p) for p in res]
 
 
-    def normal_forms(self, word):
-        """
-        Return a list of word normal forms.
-        """
-        seen = set()
-        result = []
-        for fixed_word, tag, normal_form, para_id, idx, estimate in self.parse(word):
-            if normal_form not in seen:
-                result.append(normal_form)
-                seen.add(normal_form)
-        return result
-
-    # ====== tag ========
-    # XXX: one can use .parse method, but .tag is up to 2x faster.
-
     def tag(self, word):
         res = self.dictionary.tag(word)
 
@@ -370,6 +381,19 @@ class MorphAnalyzer(object):
                     break
 
         return res
+
+
+    def normal_forms(self, word):
+        """
+        Return a list of word normal forms.
+        """
+        seen = set()
+        result = []
+        for fixed_word, tag, normal_form, para_id, idx, estimate in self.parse(word):
+            if normal_form not in seen:
+                result.append(normal_form)
+                seen.add(normal_form)
+        return result
 
 
     # ==== inflection ========
@@ -400,7 +424,7 @@ class MorphAnalyzer(object):
     def _inflect(self, form, required_grammemes):
         grammemes = form[1].updated_grammemes(required_grammemes)
 
-        possible_results = [form for form in self._decline([form])
+        possible_results = [form for form in self._decline_wrapped([form])
                             if required_grammemes.issubset(form[1].grammemes)]
 
         def similarity(form):
@@ -413,37 +437,18 @@ class MorphAnalyzer(object):
         """
         Return parses for all possible word forms.
         """
-        return self._decline(self.parse(word))
+        return self._decline_wrapped(self.parse(word))
 
-    def _decline(self, word_parses):
+    def _decline_wrapped(self, word_parses):
         """
         Return parses for all possible word forms (given a list of
         possible word parses).
         """
-        paradigms = self.dictionary.paradigms
-        seen_paradigms = set()
-        result = []
-
-        for fixed_word, tag, normal_form, para_id, idx, estimate in word_parses:
-            if para_id in seen_paradigms:
-                continue
-            seen_paradigms.add(para_id)
-
-            stem = self.dictionary.build_stem(paradigms[para_id], idx, fixed_word)
-
-            for index, (_prefix, _tag, _suffix) in enumerate(self.dictionary.build_paradigm_info(para_id)):
-                word = _prefix + stem + _suffix
-
-                # XXX: what to do with estimate?
-                # XXX: do we need all info?
-                result.append(
-                    (word, _tag, normal_form, para_id, index, estimate)
-                )
-
+        result = self.dictionary.decline(word_parses)
         if self._result_type is None:
             return result
-
         return [self._result_type(*p) for p in result]
+
 
     # ====== misc =========
 
