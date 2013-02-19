@@ -293,17 +293,20 @@ class MorphAnalyzer(object):
 
     """
 
-    env_variable = 'PYMORPHY2_DICT_PATH'
-    DictionaryClass = Dictionary
+    ENV_VARIABLE = 'PYMORPHY2_DICT_PATH'
     DEFAULT_PREDICTORS = [
         predictors.KnownPrefixPredictor,
         predictors.UnknownPrefixPredictor,
         predictors.KnownSuffixPredictor,
     ]
+    DEFAULT_DICTIONARY_CLASS = Dictionary
 
-    def __init__(self, path=None, result_type=Parse, predictors=None):
+    def __init__(self, path=None, result_type=Parse, predictors=None,
+                 dictionary_class=None):
 
-        self.dictionary = self.DictionaryClass(self.choose_dictionary_path(path))
+        if dictionary_class is None:
+            dictionary_class = self.DEFAULT_DICTIONARY_CLASS
+        self.dictionary = dictionary_class(self.choose_dictionary_path(path))
 
         if result_type is not None:
             # create a subclass with the same name,
@@ -329,8 +332,8 @@ class MorphAnalyzer(object):
         if path is not None:
             return path
 
-        if cls.env_variable in os.environ:
-            return os.environ[cls.env_variable]
+        if cls.ENV_VARIABLE in os.environ:
+            return os.environ[cls.ENV_VARIABLE]
 
         try:
             import pymorphy2_dicts
@@ -339,7 +342,7 @@ class MorphAnalyzer(object):
             msg = ("Can't find dictionaries. "
                    "Please either pass a path to dictionaries, "
                    "or install 'pymorphy2-dicts' package, "
-                   "or set %s environment variable.") % cls.env_variable
+                   "or set %s environment variable.") % cls.ENV_VARIABLE
             raise ValueError(msg)
 
 
@@ -469,4 +472,3 @@ class MorphAnalyzer(object):
     @property
     def TagClass(self):
         return self.dictionary.Tag
-
