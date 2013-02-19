@@ -16,7 +16,24 @@ def parse_opencorpora_xml(filename):
     """
     Parse OpenCorpora dict XML and return a ``ParsedDictionary`` namedtuple.
     """
-    from lxml import etree
+
+    try:
+        from lxml.etree import iterparse
+
+        def _clear(elem):
+            elem.clear()
+            while elem.getprevious() is not None:
+                del elem.getparent()[0]
+
+    except ImportError:
+        try:
+            from xml.etree.cElementTree import iterparse
+        except ImportError:
+            from xml.etree.ElementTree import iterparse
+
+        def _clear(elem):
+            elem.clear()
+
 
     links = []
     lexemes = {}
@@ -24,12 +41,7 @@ def parse_opencorpora_xml(filename):
     version, revision = None, None
     _lexemes_len = 0
 
-    def _clear(elem):
-        elem.clear()
-        while elem.getprevious() is not None:
-            del elem.getparent()[0]
-
-    for ev, elem in etree.iterparse(filename):
+    for ev, elem in iterparse(filename):
 
         if elem.tag == 'grammeme':
             name = elem.find('name').text
