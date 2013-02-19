@@ -11,7 +11,7 @@ __all__ = [
 ]
 
 class BasePredictor(object):
-    terminal = NotImplemented
+    terminal = False
 
     def __init__(self, morph):
         self.morph = morph
