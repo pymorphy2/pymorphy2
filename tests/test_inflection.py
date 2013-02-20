@@ -55,6 +55,9 @@ def assert_first_inflected_variant(word, grammemes, result):
     # сравнительные степени прилагательных
     ('быстрый', ['COMP'], 'быстрее'),
     ('хорошая', ['COMP'], 'лучше'),
+
+    # частицы - отрезаются
+    ('скажи-ка', ['futr'], 'скажу'),
 ])
 def test_first_inflected_value(word, grammemes, result):
     assert_first_inflected_variant(word, grammemes, result)

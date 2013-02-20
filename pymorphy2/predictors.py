@@ -225,6 +225,16 @@ class KnownSuffixPredictor(BasePredictor):
 
 
 class HyphenSeparatedParticlePredictor(BasePredictor):
+    """
+    Parse the word by removing a particle after a hyphen
+    (tokens like "смотри-ка").
+
+    .. note::
+
+        If possible, handle such particles at tokenization
+        level because this predictor removes the particle.
+
+    """
     terminal = True
     ESTIMATE_DECAY = 0.9
 
@@ -245,7 +255,7 @@ class HyphenSeparatedParticlePredictor(BasePredictor):
                 continue
 
             for fixed_word, tag, normal_form, para_id, idx, estimate in self.morph.parse(unsuffixed_word):
-                parse = (fixed_word+particle, tag, normal_form, para_id, idx, estimate*self.ESTIMATE_DECAY)
+                parse = (fixed_word, tag, normal_form, para_id, idx, estimate*self.ESTIMATE_DECAY)
                 _add_parse_if_not_seen(parse, result, seen_parses)
 
             # If a word ends with with one of the particles,
