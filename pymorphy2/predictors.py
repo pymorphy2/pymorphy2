@@ -132,7 +132,7 @@ class KnownSuffixPredictor(BasePredictor):
         super(KnownSuffixPredictor, self).__init__(morph)
 
         self._paradigm_prefixes = list(reversed(list(enumerate(self.dict.paradigm_prefixes))))
-        max_suffix_length = self.morph.dict_meta['prediction_options']['max_suffix_length']
+        max_suffix_length = self.dict.meta['prediction_options']['max_suffix_length']
         self._prediction_splits = list(reversed(range(1, max_suffix_length+1)))
 
 

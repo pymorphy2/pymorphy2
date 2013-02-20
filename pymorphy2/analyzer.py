@@ -466,9 +466,21 @@ class MorphAnalyzer(object):
             return known_parses
         return (self._result_type(*p) for p in known_parses)
 
-    @property
-    def dict_meta(self):
-        return self.dictionary.meta
+    def word_is_known(self, word, strict_ee=False):
+        """
+        Check if a ``word`` is in the dictionary.
+        Pass ``strict_ee=True`` if ``word`` is guaranteed to
+        have correct е/ё letters.
+
+        .. note::
+
+            Dictionary words are not always correct words;
+            the dictionary also contains incorrect forms which
+            are commonly used. So for spellchecking tasks this
+            method should be used with extra care.
+
+        """
+        return self.dictionary.word_is_known(word, strict_ee)
 
     @property
     def TagClass(self):

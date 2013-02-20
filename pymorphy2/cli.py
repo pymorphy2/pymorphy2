@@ -58,7 +58,7 @@ def show_dict_mem_usage(dict_path=None, verbose=False):
 def show_dict_meta(dict_path=None):
     morph = pymorphy2.MorphAnalyzer(dict_path)
 
-    for key, value in morph.dict_meta.items():
+    for key, value in morph.dictionary.meta.items():
         logger.info("%s: %s", key, value)
 
 
