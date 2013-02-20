@@ -183,6 +183,11 @@ class TestTagWithPrefix:
         parse2 = pred2.tag(word, set())
         assert parse1 == parse2
 
+    def test_longest_prefixes_are_used(self):
+        parses = morph.parse('недобарабаном')
+        assert len(parses) == 1
+        assert len(parses[0].methods) == 2 # недо+барабаном, not не+до+барабаном
+
 
 class TestUtils:
     def test_word_is_known(self):

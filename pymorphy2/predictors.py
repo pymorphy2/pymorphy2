@@ -52,10 +52,16 @@ class KnownPrefixPredictor(BasePredictor):
     ESTIMATE_DECAY = 0.75
     MIN_REMINDER_LENGTH = 3
 
+    def _word_prefixes(self, word):
+        return sorted(
+            self.dict.prediction_prefixes.prefixes(word),
+            key=len,
+            reverse=True,
+        )
+
     def parse(self, word, seen_parses):
         result = []
-        word_prefixes = self.dict.prediction_prefixes.prefixes(word)
-        for prefix in word_prefixes:
+        for prefix in self._word_prefixes(word):
             unprefixed_word = word[len(prefix):]
 
             if len(unprefixed_word) < self.MIN_REMINDER_LENGTH:
@@ -73,15 +79,15 @@ class KnownPrefixPredictor(BasePredictor):
                     para_id, idx, estimate*self.ESTIMATE_DECAY,
                     methods+(method,)
                 )
+
                 _add_parse_if_not_seen(parse, result, seen_parses)
 
         return result
 
     def tag(self, word, seen_tags):
         result = []
-        word_prefixes = self.dict.prediction_prefixes.prefixes(word)
-        for pref in word_prefixes:
-            unprefixed_word = word[len(pref):]
+        for prefix in self._word_prefixes(word):
+            unprefixed_word = word[len(prefix):]
 
             if len(unprefixed_word) < self.MIN_REMINDER_LENGTH:
                 continue
