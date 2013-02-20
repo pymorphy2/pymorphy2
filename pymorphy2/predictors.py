@@ -18,11 +18,25 @@ class BasePredictor(object):
         self.morph = morph
         self.dict = morph.dictionary
 
-    def parse(self, word, seen_parses=None):
+    def parse(self, word, seen_parses):
         raise NotImplementedError()
 
-    def tag(self, word, seen_tags=None):
+    def tag(self, word, seen_tags):
         raise NotImplementedError()
+
+
+def _add_parse_if_not_seen(parse, result_list, seen_parses):
+    reduced_parse = parse[:3]
+    if reduced_parse in seen_parses:
+        return
+    seen_parses.add(reduced_parse)
+    result_list.append(parse)
+
+def _add_tag_if_not_seen(tag, result_list, seen_tags):
+    if tag in seen_tags:
+        return
+    seen_tags.add(tag)
+    result_list.append(tag)
 
 
 class KnownPrefixPredictor(BasePredictor):
@@ -35,8 +49,8 @@ class KnownPrefixPredictor(BasePredictor):
     ESTIMATE_DECAY = 0.75
     MIN_REMINDER_LENGTH = 3
 
-    def parse(self, word, seen_parses=None):
-        res = []
+    def parse(self, word, seen_parses):
+        result = []
         word_prefixes = self.dict.prediction_prefixes.prefixes(word)
         for prefix in word_prefixes:
             unprefixed_word = word[len(prefix):]
@@ -50,12 +64,12 @@ class KnownPrefixPredictor(BasePredictor):
                     continue
 
                 parse = (prefix+fixed_word, tag, prefix+normal_form, para_id, idx, estimate*self.ESTIMATE_DECAY)
-                res.append(parse)
+                _add_parse_if_not_seen(parse, result, seen_parses)
 
-        return res
+        return result
 
-    def tag(self, word, seen_tags=None):
-        res = []
+    def tag(self, word, seen_tags):
+        result = []
         word_prefixes = self.dict.prediction_prefixes.prefixes(word)
         for pref in word_prefixes:
             unprefixed_word = word[len(pref):]
@@ -66,9 +80,9 @@ class KnownPrefixPredictor(BasePredictor):
             for tag in self.morph.tag(unprefixed_word):
                 if not tag.is_productive():
                     continue
-                res.append(tag)
+                _add_tag_if_not_seen(tag, result, seen_tags)
 
-        return res
+        return result
 
 
 class UnknownPrefixPredictor(BasePredictor):
@@ -79,10 +93,8 @@ class UnknownPrefixPredictor(BasePredictor):
     terminal = False
     ESTIMATE_DECAY = 0.5
 
-    def parse(self, word, seen_parses=None):
-        if seen_parses is None:
-            seen_parses = set()
-        res = []
+    def parse(self, word, seen_parses):
+        result = []
         for prefix, unprefixed_word in word_splits(word):
             for fixed_word, tag, normal_form, para_id, idx, estimate in self.dict.parse(unprefixed_word):
 
@@ -90,34 +102,21 @@ class UnknownPrefixPredictor(BasePredictor):
                     continue
 
                 parse = (prefix+fixed_word, tag, prefix+normal_form, para_id, idx, estimate*self.ESTIMATE_DECAY)
+                _add_parse_if_not_seen(parse, result, seen_parses)
 
-                reduced_parse = parse[:3]
-                if reduced_parse in seen_parses:
-                    continue
-                seen_parses.add(reduced_parse)
+        return result
 
-                res.append(parse)
-
-        return res
-
-    def tag(self, word, seen_tags=None):
-        if seen_tags is None:
-            seen_tags = set()
-
-        res = []
+    def tag(self, word, seen_tags):
+        result = []
         for _, unprefixed_word in word_splits(word):
             for tag in self.dict.tag(unprefixed_word):
 
                 if not tag.is_productive():
                     continue
 
-                if tag in seen_tags:
-                    continue
-                seen_tags.add(tag)
+                _add_tag_if_not_seen(tag, result, seen_tags)
 
-                res.append(tag)
-
-        return res
+        return result
 
 
 class KnownSuffixPredictor(BasePredictor):
@@ -136,10 +135,7 @@ class KnownSuffixPredictor(BasePredictor):
         self._prediction_splits = list(reversed(range(1, max_suffix_length+1)))
 
 
-    def parse(self, word, seen_parses=None):
-        if seen_parses is None:
-            seen_parses = set()
-
+    def parse(self, word, seen_parses):
         result = []
 
         # smoothing; XXX: isn't max_cnt better?
@@ -188,12 +184,9 @@ class KnownSuffixPredictor(BasePredictor):
         return result
 
 
-    def tag(self, word, seen_tags=None):
+    def tag(self, word, seen_tags):
         # XXX: the result order may be different from
         # ``self.parse(...)``.
-
-        if seen_tags is None:
-            seen_tags = set()
 
         result = []
 
@@ -240,9 +233,9 @@ class HyphenSeparatedParticlePredictor(BasePredictor):
         "-то", "-ка", "-таки", "-де", "-тко", "-тка", "-с", "-ста"
     ]
 
-    def parse(self, word, seen_parses=None):
+    def parse(self, word, seen_parses):
 
-        res = []
+        result = []
         for particle in self.PARTICLES_AFTER_HYPHEN:
             if not word.endswith(particle):
                 continue
@@ -253,17 +246,17 @@ class HyphenSeparatedParticlePredictor(BasePredictor):
 
             for fixed_word, tag, normal_form, para_id, idx, estimate in self.morph.parse(unsuffixed_word):
                 parse = (fixed_word+particle, tag, normal_form, para_id, idx, estimate*self.ESTIMATE_DECAY)
-                res.append(parse)
+                _add_parse_if_not_seen(parse, result, seen_parses)
 
             # If a word ends with with one of the particles,
             # it can't ends with an another.
             break
 
-        return res
+        return result
 
 
-    def tag(self, word, seen_tags=None):
-        res = []
+    def tag(self, word, seen_tags):
+        result = []
         for particle in self.PARTICLES_AFTER_HYPHEN:
             if not word.endswith(particle):
                 continue
@@ -272,10 +265,10 @@ class HyphenSeparatedParticlePredictor(BasePredictor):
             if not unsuffixed_word:
                 continue
 
-            res.extend(self.morph.tag(unsuffixed_word))
+            result.extend(self.morph.tag(unsuffixed_word))
 
             # If a word ends with with one of the particles,
             # it can't ends with an another.
             break
 
-        return res
+        return result

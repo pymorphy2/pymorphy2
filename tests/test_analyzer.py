@@ -179,8 +179,8 @@ class TestTagWithPrefix:
         pred1 = UnknownPrefixPredictor(morph)
         pred2 = KnownPrefixPredictor(morph)
 
-        parse1 = pred1.tag(word)
-        parse2 = pred2.tag(word)
+        parse1 = pred1.tag(word, set())
+        parse2 = pred2.tag(word, set())
         assert parse1 == parse2
 
 
