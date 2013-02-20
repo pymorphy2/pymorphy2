@@ -262,7 +262,7 @@ class Dictionary(object):
             yield parse
 
     def __repr__(self):
-        return str("%s") % self.__class__.__name__
+        return str("<%s>") % self.__class__.__name__
 
 
 

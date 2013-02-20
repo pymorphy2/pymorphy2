@@ -25,7 +25,7 @@ class BasePredictor(object):
         raise NotImplementedError()
 
     def __repr__(self):
-        return str("%s") % self.__class__.__name__
+        return str("<%s>") % self.__class__.__name__
 
 
 def _add_parse_if_not_seen(parse, result_list, seen_parses):
