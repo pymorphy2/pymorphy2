@@ -9,7 +9,7 @@ from pymorphy2 import predictors
 
 logger = logging.getLogger(__name__)
 
-_Parse = collections.namedtuple('Parse', 'word, tag, normal_form, para_id, idx, estimate')
+_Parse = collections.namedtuple('Parse', 'word, tag, normal_form, para_id, idx, estimate, methods')
 
 class Parse(_Parse):
     """
@@ -41,7 +41,7 @@ class Parse(_Parse):
 
         tag = self._dict.build_tag_info(self.para_id, 0)
         return self.__class__(self.normal_form, tag, self.normal_form,
-                              self.para_id, 0, self.estimate)
+                              self.para_id, 0, self.estimate, self.methods)
 
     @property
     def paradigm(self):
@@ -170,7 +170,7 @@ class Dictionary(object):
                 tag = self.build_tag_info(para_id, idx)
 
                 res.append(
-                    (fixed_word, tag, normal_form, para_id, idx, 1.0)
+                    (fixed_word, tag, normal_form, para_id, idx, 1.0, (self,))
                 )
 
         return res
@@ -206,7 +206,7 @@ class Dictionary(object):
         seen_paradigms = set()
         result = []
 
-        for fixed_word, tag, normal_form, para_id, idx, estimate in word_parses:
+        for fixed_word, tag, normal_form, para_id, idx, estimate, methods in word_parses:
             if para_id in seen_paradigms:
                 continue
             seen_paradigms.add(para_id)
@@ -219,7 +219,7 @@ class Dictionary(object):
                 # XXX: what to do with estimate?
                 # XXX: do we need all info?
                 result.append(
-                    (word, _tag, normal_form, para_id, index, estimate)
+                    (word, _tag, normal_form, para_id, index, estimate, methods)
                 )
 
         return result
@@ -255,6 +255,9 @@ class Dictionary(object):
             tag = self.build_tag_info(para_id, idx)
             normal_form = self.build_normal_form(para_id, idx, word)
             yield (word, tag, normal_form, para_id, idx, 1.0)
+
+    def __repr__(self):
+        return str("%s") % self.__class__.__name__
 
 
 
@@ -393,7 +396,7 @@ class MorphAnalyzer(object):
         """
         seen = set()
         result = []
-        for fixed_word, tag, normal_form, para_id, idx, estimate in self.parse(word):
+        for fixed_word, tag, normal_form, para_id, idx, estimate, methods in self.parse(word):
             if normal_form not in seen:
                 result.append(normal_form)
                 seen.add(normal_form)

@@ -24,6 +24,9 @@ class BasePredictor(object):
     def tag(self, word, seen_tags):
         raise NotImplementedError()
 
+    def __repr__(self):
+        return str("%s") % self.__class__.__name__
+
 
 def _add_parse_if_not_seen(parse, result_list, seen_parses):
     reduced_parse = parse[:3]
@@ -58,12 +61,12 @@ class KnownPrefixPredictor(BasePredictor):
             if len(unprefixed_word) < self.MIN_REMINDER_LENGTH:
                 continue
 
-            for fixed_word, tag, normal_form, para_id, idx, estimate in self.morph.parse(unprefixed_word):
+            for fixed_word, tag, normal_form, para_id, idx, estimate, methods in self.morph.parse(unprefixed_word):
 
                 if not tag.is_productive():
                     continue
 
-                parse = (prefix+fixed_word, tag, prefix+normal_form, para_id, idx, estimate*self.ESTIMATE_DECAY)
+                parse = (prefix+fixed_word, tag, prefix+normal_form, para_id, idx, estimate*self.ESTIMATE_DECAY, methods+(self,))
                 _add_parse_if_not_seen(parse, result, seen_parses)
 
         return result
@@ -96,12 +99,12 @@ class UnknownPrefixPredictor(BasePredictor):
     def parse(self, word, seen_parses):
         result = []
         for prefix, unprefixed_word in word_splits(word):
-            for fixed_word, tag, normal_form, para_id, idx, estimate in self.dict.parse(unprefixed_word):
+            for fixed_word, tag, normal_form, para_id, idx, estimate, methods in self.dict.parse(unprefixed_word):
 
                 if not tag.is_productive():
                     continue
 
-                parse = (prefix+fixed_word, tag, prefix+normal_form, para_id, idx, estimate*self.ESTIMATE_DECAY)
+                parse = (prefix+fixed_word, tag, prefix+normal_form, para_id, idx, estimate*self.ESTIMATE_DECAY, methods+(self,))
                 _add_parse_if_not_seen(parse, result, seen_parses)
 
         return result
@@ -166,7 +169,7 @@ class KnownSuffixPredictor(BasePredictor):
                         fixed_word = word[:-i] + fixed_suffix
                         normal_form = self.dict.build_normal_form(para_id, idx, fixed_word)
 
-                        parse = (cnt, fixed_word, tag, normal_form, para_id, idx, prefix_id)
+                        parse = (cnt, fixed_word, tag, normal_form, para_id, idx, prefix_id, (self,))
                         reduced_parse = parse[1:4]
                         if reduced_parse in seen_parses:
                             continue
@@ -177,8 +180,8 @@ class KnownSuffixPredictor(BasePredictor):
                     break
 
         result = [
-            (fixed_word, tag, normal_form, para_id, idx, cnt/total_counts[prefix_id] * self.ESTIMATE_DECAY)
-            for (cnt, fixed_word, tag, normal_form, para_id, idx, prefix_id) in result
+            (fixed_word, tag, normal_form, para_id, idx, cnt/total_counts[prefix_id] * self.ESTIMATE_DECAY, methods)
+            for (cnt, fixed_word, tag, normal_form, para_id, idx, prefix_id, methods) in result
         ]
         result.sort(key=operator.itemgetter(5), reverse=True)
         return result
@@ -254,8 +257,8 @@ class HyphenSeparatedParticlePredictor(BasePredictor):
             if not unsuffixed_word:
                 continue
 
-            for fixed_word, tag, normal_form, para_id, idx, estimate in self.morph.parse(unsuffixed_word):
-                parse = (fixed_word, tag, normal_form, para_id, idx, estimate*self.ESTIMATE_DECAY)
+            for fixed_word, tag, normal_form, para_id, idx, estimate, methods in self.morph.parse(unsuffixed_word):
+                parse = (fixed_word, tag, normal_form, para_id, idx, estimate*self.ESTIMATE_DECAY, methods+(self,))
                 _add_parse_if_not_seen(parse, result, seen_parses)
 
             # If a word ends with with one of the particles,
