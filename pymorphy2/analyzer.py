@@ -169,9 +169,11 @@ class Dictionary(object):
 
                 tag = self.build_tag_info(para_id, idx)
 
-                res.append(
-                    (fixed_word, tag, normal_form, para_id, idx, 1.0, (self,))
-                )
+                parse = (fixed_word, tag, normal_form,
+                         para_id, idx, 1.0,
+                         ((self, fixed_word),))
+
+                res.append(parse)
 
         return res
 
@@ -254,7 +256,10 @@ class Dictionary(object):
         for word, (para_id, idx) in self.words.iteritems(prefix):
             tag = self.build_tag_info(para_id, idx)
             normal_form = self.build_normal_form(para_id, idx, word)
-            yield (word, tag, normal_form, para_id, idx, 1.0)
+            parse = (word, tag, normal_form,
+                     para_id, idx, 1.0,
+                     ((self, word),))
+            yield parse
 
     def __repr__(self):
         return str("%s") % self.__class__.__name__

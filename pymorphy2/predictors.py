@@ -61,12 +61,18 @@ class KnownPrefixPredictor(BasePredictor):
             if len(unprefixed_word) < self.MIN_REMINDER_LENGTH:
                 continue
 
+            method = (self, prefix)
+
             for fixed_word, tag, normal_form, para_id, idx, estimate, methods in self.morph.parse(unprefixed_word):
 
                 if not tag.is_productive():
                     continue
 
-                parse = (prefix+fixed_word, tag, prefix+normal_form, para_id, idx, estimate*self.ESTIMATE_DECAY, methods+(self,))
+                parse = (
+                    prefix+fixed_word, tag, prefix+normal_form,
+                    para_id, idx, estimate*self.ESTIMATE_DECAY,
+                    methods+(method,)
+                )
                 _add_parse_if_not_seen(parse, result, seen_parses)
 
         return result
@@ -99,12 +105,17 @@ class UnknownPrefixPredictor(BasePredictor):
     def parse(self, word, seen_parses):
         result = []
         for prefix, unprefixed_word in word_splits(word):
+
+            method = (self, prefix)
+
             for fixed_word, tag, normal_form, para_id, idx, estimate, methods in self.dict.parse(unprefixed_word):
 
                 if not tag.is_productive():
                     continue
 
-                parse = (prefix+fixed_word, tag, prefix+normal_form, para_id, idx, estimate*self.ESTIMATE_DECAY, methods+(self,))
+                parse = (prefix+fixed_word, tag, prefix+normal_form,
+                         para_id, idx, estimate*self.ESTIMATE_DECAY,
+                         methods+(method,))
                 _add_parse_if_not_seen(parse, result, seen_parses)
 
         return result
@@ -157,6 +168,9 @@ class KnownSuffixPredictor(BasePredictor):
                 para_data = suffixes_dawg.similar_items(end, self.dict.ee)
 
                 for fixed_suffix, parses in para_data:
+
+                    method = (self, fixed_suffix)
+
                     for cnt, para_id, idx in parses:
 
                         tag = self.dict.build_tag_info(para_id, idx)
@@ -169,7 +183,8 @@ class KnownSuffixPredictor(BasePredictor):
                         fixed_word = word[:-i] + fixed_suffix
                         normal_form = self.dict.build_normal_form(para_id, idx, fixed_word)
 
-                        parse = (cnt, fixed_word, tag, normal_form, para_id, idx, prefix_id, (self,))
+                        parse = (cnt, fixed_word, tag, normal_form,
+                                 para_id, idx, prefix_id, (method,))
                         reduced_parse = parse[1:4]
                         if reduced_parse in seen_parses:
                             continue
@@ -257,8 +272,14 @@ class HyphenSeparatedParticlePredictor(BasePredictor):
             if not unsuffixed_word:
                 continue
 
+            method = (self, particle)
+
             for fixed_word, tag, normal_form, para_id, idx, estimate, methods in self.morph.parse(unsuffixed_word):
-                parse = (fixed_word, tag, normal_form, para_id, idx, estimate*self.ESTIMATE_DECAY, methods+(self,))
+                parse = (
+                    fixed_word, tag, normal_form,
+                    para_id, idx, estimate*self.ESTIMATE_DECAY,
+                    methods+(method,)
+                )
                 _add_parse_if_not_seen(parse, result, seen_parses)
 
             # If a word ends with with one of the particles,
