@@ -8,6 +8,7 @@ __all__ = [
     "KnownPrefixPredictor",
     "UnknownPrefixPredictor",
     "KnownSuffixPredictor",
+    "HyphenSeparatedParticlePredictor",
 ]
 
 class BasePredictor(object):
@@ -228,3 +229,53 @@ class KnownSuffixPredictor(BasePredictor):
 
         result.sort(reverse=True)
         return [tag for cnt, tag in result]
+
+
+class HyphenSeparatedParticlePredictor(BasePredictor):
+    terminal = True
+    ESTIMATE_DECAY = 0.9
+
+    # XXX: maybe the code can be made faster by compiling this list to a DAWG?
+    PARTICLES_AFTER_HYPHEN = [
+        "-то", "-ка", "-таки", "-де", "-тко", "-тка", "-с", "-ста"
+    ]
+
+    def parse(self, word, seen_parses=None):
+
+        res = []
+        for particle in self.PARTICLES_AFTER_HYPHEN:
+            if not word.endswith(particle):
+                continue
+
+            unsuffixed_word = word[:-len(particle)]
+            if not unsuffixed_word:
+                continue
+
+            for fixed_word, tag, normal_form, para_id, idx, estimate in self.morph.parse(unsuffixed_word):
+                parse = (fixed_word+particle, tag, normal_form, para_id, idx, estimate*self.ESTIMATE_DECAY)
+                res.append(parse)
+
+            # If a word ends with with one of the particles,
+            # it can't ends with an another.
+            break
+
+        return res
+
+
+    def tag(self, word, seen_tags=None):
+        res = []
+        for particle in self.PARTICLES_AFTER_HYPHEN:
+            if not word.endswith(particle):
+                continue
+
+            unsuffixed_word = word[:-len(particle)]
+            if not unsuffixed_word:
+                continue
+
+            res.extend(self.morph.tag(unsuffixed_word))
+
+            # If a word ends with with one of the particles,
+            # it can't ends with an another.
+            break
+
+        return res
