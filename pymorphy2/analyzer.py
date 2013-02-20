@@ -9,7 +9,7 @@ from pymorphy2 import predictors
 
 logger = logging.getLogger(__name__)
 
-_Parse = collections.namedtuple('Parse', 'word, tag, normal_form, para_id, idx, estimate')
+_Parse = collections.namedtuple('Parse', 'word, tag, para_id, idx, estimate')
 
 class Parse(_Parse):
     """
@@ -17,6 +17,8 @@ class Parse(_Parse):
     """
     _morph = None
     _dict = None
+
+    _normal_form = None
 
     def inflect(self, required_grammemes):
         res = self._morph._inflect(self, required_grammemes)
@@ -40,12 +42,28 @@ class Parse(_Parse):
             return self
 
         tag = self._dict.build_tag_info(self.para_id, 0)
-        return self.__class__(self.normal_form, tag, self.normal_form,
-                              self.para_id, 0, self.estimate)
+        return self.__class__(self.normal_form, tag, self.para_id, 0, self.estimate)
+
+    @property
+    def normal_form(self):
+        """ Word normal form (as text) """
+        if self.idx == 0:
+            return self.word
+
+        if self._normal_form is not None:
+            return self._normal_form
+
+        normal_form = self._dict.build_normal_form(self.para_id, self.idx, self.word)
+        self._normal_form = normal_form
+        return normal_form
 
     @property
     def paradigm(self):
         return self._dict.build_paradigm_info(self.para_id)
+
+    # def __repr__(self):
+    #     'Return a nicely formatted representation string'
+    #     return self.__class__.__name__ + '({repr_fmt})' % self
 
 
 class Dictionary(object):
@@ -154,23 +172,23 @@ class Dictionary(object):
         Parse a word using this dictionary.
         """
         res = []
-        para_normal_forms = {}
+        #para_normal_forms = {}
         para_data = self.words.similar_items(word, self.ee)
 
         for fixed_word, parses in para_data:
             # `fixed_word` is a word with proper ё letters
             for para_id, idx in parses:
 
-                if para_id not in para_normal_forms:
-                    normal_form = self.build_normal_form(para_id, idx, fixed_word)
-                    para_normal_forms[para_id] = normal_form
-                else:
-                    normal_form = para_normal_forms[para_id]
+                # if para_id not in para_normal_forms:
+                #     normal_form = self.build_normal_form(para_id, idx, fixed_word)
+                #     para_normal_forms[para_id] = normal_form
+                # else:
+                #     normal_form = para_normal_forms[para_id]
 
                 tag = self.build_tag_info(para_id, idx)
 
                 res.append(
-                    (fixed_word, tag, normal_form, para_id, idx, 1.0)
+                    (fixed_word, tag, para_id, idx, 1.0)
                 )
 
         return res
@@ -206,7 +224,7 @@ class Dictionary(object):
         seen_paradigms = set()
         result = []
 
-        for fixed_word, tag, normal_form, para_id, idx, estimate in word_parses:
+        for fixed_word, tag, para_id, idx, estimate in word_parses:
             if para_id in seen_paradigms:
                 continue
             seen_paradigms.add(para_id)
@@ -219,7 +237,7 @@ class Dictionary(object):
                 # XXX: what to do with estimate?
                 # XXX: do we need all info?
                 result.append(
-                    (word, _tag, normal_form, para_id, index, estimate)
+                    (word, _tag, para_id, index, estimate)
                 )
 
         return result
@@ -253,8 +271,8 @@ class Dictionary(object):
         """
         for word, (para_id, idx) in self.words.iteritems(prefix):
             tag = self.build_tag_info(para_id, idx)
-            normal_form = self.build_normal_form(para_id, idx, word)
-            yield (word, tag, normal_form, para_id, idx, 1.0)
+            #normal_form = self.build_normal_form(para_id, idx, word)
+            yield (word, tag, para_id, idx, 1.0)
 
 
 
@@ -393,7 +411,8 @@ class MorphAnalyzer(object):
         """
         seen = set()
         result = []
-        for fixed_word, tag, normal_form, para_id, idx, estimate in self.parse(word):
+        for fixed_word, tag, para_id, idx, estimate in self.parse(word):
+            normal_form = self.dictionary.build_normal_form(para_id, idx, fixed_word)
             if normal_form not in seen:
                 result.append(normal_form)
                 seen.add(normal_form)
@@ -412,7 +431,7 @@ class MorphAnalyzer(object):
 
         def weigth(parse):
             # order by (probability, index in lexeme)
-            return -parse[5], parse[4]
+            return -parse[4], parse[3]
 
         result = []
         seen = set()
