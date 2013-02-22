@@ -4,6 +4,7 @@ import os
 import heapq
 import collections
 import logging
+
 from pymorphy2 import opencorpora_dict
 from pymorphy2 import predictors
 
@@ -15,8 +16,12 @@ class Parse(_Parse):
     """
     Parse result wrapper.
     """
+
     _morph = None
+    """ @type _morph: MorphAnalyzer """
+
     _dict = None
+    """ @type _dict: Dictionary """
 
     def inflect(self, required_grammemes):
         res = self._morph._inflect(self, required_grammemes)
@@ -25,7 +30,7 @@ class Parse(_Parse):
     @property
     def lexeme(self):
         """ A lexeme this form belongs to. """
-        return self._morph._decline_wrapped([self])
+        return self._morph.get_lexeme(self)
 
     @property
     def is_known(self):
@@ -76,6 +81,7 @@ class Dictionary(object):
         self.path = path
         self.ee = self.words.compile_replaces({'е': 'ё'})
 
+    # ======== dictionary access methods =========
 
     def build_tag_info(self, para_id, idx):
         """
@@ -147,7 +153,8 @@ class Dictionary(object):
         else:
             return fixed_word[len(prefix):]
 
-    # ====== basic parsing ============
+
+    # ======== parsing/prediction interface ============
 
     def parse(self, word):
         """
@@ -200,31 +207,25 @@ class Dictionary(object):
 
         return result
 
-    def decline(self, word_parses):
+    def get_lexeme(self, form, methods):
         """
-        Return parses for all possible word forms (given a list of
-        possible word parses).
+        Return a lexeme (given a parsed word).
         """
-        seen_paradigms = set()
+        assert len(methods) == 0 or methods[0][0] is self
+
+        fixed_word, tag, normal_form, para_id, idx, estimate, methods = form
+        stem = self.build_stem(self.paradigms[para_id], idx, fixed_word)
+
         result = []
+        for index, (_prefix, _tag, _suffix) in enumerate(self.build_paradigm_info(para_id)):
+            word = _prefix + stem + _suffix
 
-        for fixed_word, tag, normal_form, para_id, idx, estimate, methods in word_parses:
-            if para_id in seen_paradigms:
-                continue
-            seen_paradigms.add(para_id)
-
-            stem = self.build_stem(self.paradigms[para_id], idx, fixed_word)
-
-            for index, (_prefix, _tag, _suffix) in enumerate(self.build_paradigm_info(para_id)):
-                word = _prefix + stem + _suffix
-
-                # XXX: what to do with estimate?
-                # XXX: do we need all info?
-                result.append(
-                    (word, _tag, normal_form, para_id, index, estimate, methods)
-                )
+            result.append(
+                (word, _tag, normal_form, para_id, index, estimate, methods)
+            )
 
         return result
+
 
     # ===== misc =======
 
@@ -410,56 +411,28 @@ class MorphAnalyzer(object):
 
     # ==== inflection ========
 
-    def inflect(self, word, required_grammemes):
+    def get_lexeme(self, form):
         """
-        Return a list of parsed words that are closest to ``word`` and
-        have all ``required_grammemes``.
+        Return the lexeme this parse belongs to.
         """
-        required_grammemes = set(required_grammemes)
-        parses = self.parse(word)
+        methods = form[6]
+        result = methods[-1][0].get_lexeme(form, methods)
+        if self._result_type is None:
+            return result
+        return [self._result_type(*p) for p in result]
 
-        def weigth(parse):
-            # order by (probability, index in lexeme)
-            return -parse[5], parse[4]
-
-        result = []
-        seen = set()
-        for form in sorted(parses, key=weigth):
-            for inflected in self._inflect(form, required_grammemes):
-                if inflected in seen:
-                    continue
-                seen.add(inflected)
-                result.append(inflected)
-
-        return result
 
     def _inflect(self, form, required_grammemes):
         grammemes = form[1].updated_grammemes(required_grammemes)
 
-        possible_results = [form for form in self._decline_wrapped([form])
-                            if required_grammemes.issubset(form[1].grammemes)]
+        possible_results = [f for f in self.get_lexeme(form)
+                            if required_grammemes <= f[1].grammemes]
 
         def similarity(form):
             tag = form[1]
             return len(grammemes & tag.grammemes)
 
         return heapq.nlargest(1, possible_results, key=similarity)
-
-    def decline(self, word):
-        """
-        Return parses for all possible word forms.
-        """
-        return self._decline_wrapped(self.parse(word))
-
-    def _decline_wrapped(self, word_parses):
-        """
-        Return parses for all possible word forms (given a list of
-        possible word parses).
-        """
-        result = self.dictionary.decline(word_parses)
-        if self._result_type is None:
-            return result
-        return [self._result_type(*p) for p in result]
 
 
     # ====== misc =========

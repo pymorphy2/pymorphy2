@@ -11,7 +11,9 @@ def with_test_data(data):
     )
 
 def assert_first_inflected_variant(word, grammemes, result):
-    inflected_variants = morph.inflect(word, grammemes)
+    inflected_variants = [p.inflect(set(grammemes)) for p in morph.parse(word)]
+    inflected_variants = [v for v in inflected_variants if v]
+    # inflected_variants = morph.inflect(word, grammemes)
     assert len(inflected_variants)
 
     inflected = inflected_variants[0]
@@ -56,8 +58,8 @@ def assert_first_inflected_variant(word, grammemes, result):
     ('быстрый', ['COMP'], 'быстрее'),
     ('хорошая', ['COMP'], 'лучше'),
 
-    # частицы - отрезаются
-    ('скажи-ка', ['futr'], 'скажу'),
+    # частицы - не отрезаются
+    ('скажи-ка', ['futr'], 'скажу-ка'),
 ])
 def test_first_inflected_value(word, grammemes, result):
     assert_first_inflected_variant(word, grammemes, result)

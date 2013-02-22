@@ -1,8 +1,11 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, unicode_literals, division
 import operator
+import logging
 
 from .utils import word_splits
+
+logger = logging.getLogger(__name__)
 
 __all__ = [
     "KnownPrefixPredictor",
@@ -12,9 +15,14 @@ __all__ = [
 ]
 
 class BasePredictor(object):
+
     terminal = False
 
     def __init__(self, morph):
+        """
+        @type morph: pymorphy2.analyzer.MorphAnalyzer
+        @type self.dict: pymorphy2.analyzer.Dictionary
+        """
         self.morph = morph
         self.dict = morph.dictionary
 
@@ -24,22 +32,18 @@ class BasePredictor(object):
     def tag(self, word, seen_tags):
         raise NotImplementedError()
 
+    def get_lexeme(self, form, methods):
+        # be default, predictor gets a lexeme from a previous predictor:
+        assert methods[-1][0] is self
+        if len(methods) == 1:
+            return self.dict.get_lexeme(form, [])
+
+        assert len(methods) > 1, len(methods)
+        previous_predictor = methods[-2][0]
+        return previous_predictor.get_lexeme(form, methods[:-1])
+
     def __repr__(self):
         return str("<%s>") % self.__class__.__name__
-
-
-def _add_parse_if_not_seen(parse, result_list, seen_parses):
-    reduced_parse = parse[:3]
-    if reduced_parse in seen_parses:
-        return
-    seen_parses.add(reduced_parse)
-    result_list.append(parse)
-
-def _add_tag_if_not_seen(tag, result_list, seen_tags):
-    if tag in seen_tags:
-        return
-    seen_tags.add(tag)
-    result_list.append(tag)
 
 
 class KnownPrefixPredictor(BasePredictor):
@@ -170,20 +174,16 @@ class KnownSuffixPredictor(BasePredictor):
 
             for i in self._prediction_splits:
                 end = word[-i:]  # XXX: this should be counted once, not for each prefix
-
                 para_data = suffixes_dawg.similar_items(end, self.dict.ee)
 
                 for fixed_suffix, parses in para_data:
-
                     method = (self, fixed_suffix)
 
                     for cnt, para_id, idx in parses:
-
                         tag = self.dict.build_tag_info(para_id, idx)
 
                         if not tag.is_productive():
                             continue
-
                         total_counts[prefix_id] += cnt
 
                         fixed_word = word[:-i] + fixed_suffix
@@ -223,10 +223,9 @@ class KnownSuffixPredictor(BasePredictor):
 
             for i in self._prediction_splits:
                 end = word[-i:]  # XXX: this should be counted once, not for each prefix
-
                 para_data = suffixes_dawg.similar_items(end, self.dict.ee)
-
                 found = False
+
                 for fixed_suffix, parses in para_data:
                     for cnt, para_id, idx in parses:
 
@@ -255,8 +254,9 @@ class HyphenSeparatedParticlePredictor(BasePredictor):
 
     .. note::
 
-        If possible, handle such particles at tokenization
-        level because this predictor removes the particle.
+        This predictor doesn' remove particles
+        so for normalization you may need to handle
+        particles at tokenization level.
 
     """
     terminal = True
@@ -266,6 +266,31 @@ class HyphenSeparatedParticlePredictor(BasePredictor):
     PARTICLES_AFTER_HYPHEN = [
         "-то", "-ка", "-таки", "-де", "-тко", "-тка", "-с", "-ста"
     ]
+
+    def get_lexeme(self, form, methods):
+        particle = methods[-1][1]
+
+        return list(
+            self._suffixed_lexeme(
+                super(HyphenSeparatedParticlePredictor, self).get_lexeme(
+                    self._unsuffixed_form(form, particle),
+                    methods
+                ),
+                particle
+            )
+        )
+
+    def _suffixed_lexeme(self, lexeme, suffix):
+        for p in lexeme:
+            word, tag, normal_form, para_id, idx, estimate, methods = p
+            yield (word+suffix, tag, normal_form+suffix,
+                   para_id, idx, estimate, methods)
+
+    def _unsuffixed_form(self, form, suffix):
+        word, tag, normal_form, para_id, idx, estimate, methods = form
+        return (word[:-len(suffix)], tag, normal_form[:-len(suffix)],
+                para_id, idx, estimate, methods)
+
 
     def parse(self, word, seen_parses):
 
@@ -282,7 +307,7 @@ class HyphenSeparatedParticlePredictor(BasePredictor):
 
             for fixed_word, tag, normal_form, para_id, idx, estimate, methods in self.morph.parse(unsuffixed_word):
                 parse = (
-                    fixed_word, tag, normal_form,
+                    fixed_word+particle, tag, normal_form+particle,
                     para_id, idx, estimate*self.ESTIMATE_DECAY,
                     methods+(method,)
                 )
@@ -312,3 +337,19 @@ class HyphenSeparatedParticlePredictor(BasePredictor):
             break
 
         return result
+
+
+def _add_parse_if_not_seen(parse, result_list, seen_parses):
+    reduced_parse = parse[:3]
+    if reduced_parse in seen_parses:
+        return
+    seen_parses.add(reduced_parse)
+    result_list.append(parse)
+
+def _add_tag_if_not_seen(tag, result_list, seen_tags):
+    if tag in seen_tags:
+        return
+    seen_tags.add(tag)
+    result_list.append(tag)
+
+
