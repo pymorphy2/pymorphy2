@@ -310,6 +310,7 @@ class MorphAnalyzer(object):
 
     ENV_VARIABLE = 'PYMORPHY2_DICT_PATH'
     DEFAULT_PREDICTORS = [
+        predictors.PunctuationPredictor,
         predictors.LatinPredictor,
         predictors.HyphenSeparatedParticlePredictor,
         predictors.KnownPrefixPredictor,

@@ -242,3 +242,10 @@ class TestLatinPredictor:
 
     def test_normal_forms(self):
         assert morph.normal_forms('Maßstab') == ['Maßstab']
+
+
+class TetsPunctuationPredictor:
+    def test_tag(self):
+        tags = morph.tag('…')
+        assert len(tags) == 1
+        assert 'PNCT' in tags[0]

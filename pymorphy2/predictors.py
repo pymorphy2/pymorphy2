@@ -4,7 +4,7 @@ import operator
 import logging
 
 from .utils import word_splits
-from .shapes import is_latin
+from .shapes import is_latin, is_punctuation
 
 logger = logging.getLogger(__name__)
 
@@ -13,6 +13,7 @@ __all__ = [
     "UnknownPrefixPredictor",
     "KnownSuffixPredictor",
     "HyphenSeparatedParticlePredictor",
+    "PunctuationPredictor",
     "LatinPredictor",
 ]
 
@@ -343,8 +344,64 @@ class HyphenSeparatedParticlePredictor(BasePredictor):
 
         return result
 
+class _ShapeAnalyzer(BasePredictor):
+    ESTIMATE = 0.5
+    EXTRA_GRAMMEMES = []
 
-class LatinPredictor(BasePredictor):
+    def __init__(self, morph):
+        super(_ShapeAnalyzer, self).__init__(morph)
+        self.morph.TagClass.KNOWN_GRAMMEMES.update(self.EXTRA_GRAMMEMES)
+
+    def _check_shape(self, word):
+        raise NotImplementedError()
+
+    def _get_tag(self, word, shape):
+        raise NotImplementedError()
+
+    def parse(self, word, seen_parses):
+        shape = self._check_shape(word)
+        if not shape:
+            return []
+
+        return [(
+            word, self._get_tag(word, shape), word,
+            None, None, self.ESTIMATE,
+            [(self, )],
+        )]
+
+    def tag(self, word, seen_tags):
+        shape = self._check_shape(word)
+        if not shape:
+            return []
+        return [self._get_tag(word, shape)]
+
+    def get_lexeme(self, form, methods):
+        return [form]
+
+    def normalized(self, form):
+        return form
+
+
+class PunctuationPredictor(_ShapeAnalyzer):
+    """
+    This predictor tags punctuation marks as "PNCT".
+    """
+    terminal = True
+    ESTIMATE = 0.5
+    EXTRA_GRAMMEMES = ['PNCT']
+
+    def __init__(self, morph):
+        super(PunctuationPredictor, self).__init__(morph)
+        self._tag = self.morph.TagClass('PNCT')
+
+    def _get_tag(self, word, shape):
+        return self._tag
+
+    def _check_shape(self, word):
+        return is_punctuation(word)
+
+
+class LatinPredictor(_ShapeAnalyzer):
     """
     This predictor marks latin words with "LATN" tag.
     """
@@ -354,29 +411,13 @@ class LatinPredictor(BasePredictor):
 
     def __init__(self, morph):
         super(LatinPredictor, self).__init__(morph)
-        self.morph.TagClass.KNOWN_GRAMMEMES.update(self.EXTRA_GRAMMEMES)
         self._tag = self.morph.TagClass('LATN')
 
-    def parse(self, word, seen_parses):
-        if not is_latin(word):
-            return []
+    def _get_tag(self, word, shape):
+        return self._tag
 
-        return [(
-            word, self._tag, word,
-            None, None, self.ESTIMATE,
-            [(self, )],
-        )]
-
-    def tag(self, word, seen_tags):
-        if not is_latin(word):
-            return []
-        return [self._tag]
-
-    def get_lexeme(self, form, methods):
-        return [form]
-
-    def normalized(self, form):
-        return form
+    def _check_shape(self, word):
+        return is_latin(word)
 
 
 def _add_parse_if_not_seen(parse, result_list, seen_parses):
