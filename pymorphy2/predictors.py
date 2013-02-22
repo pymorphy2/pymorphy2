@@ -255,12 +255,12 @@ class KnownSuffixPredictor(BasePredictor):
 
 class HyphenSeparatedParticlePredictor(BasePredictor):
     """
-    Parse the word by removing a particle after a hyphen
-    (tokens like "смотри-ка").
+    Parse the word by analyzing it without
+    a particle after a hyphen (tokens like "смотри-ка").
 
     .. note::
 
-        This predictor doesn' remove particles
+        This predictor doesn't remove particles from the result
         so for normalization you may need to handle
         particles at tokenization level.
 
@@ -343,6 +343,7 @@ class HyphenSeparatedParticlePredictor(BasePredictor):
             break
 
         return result
+
 
 class _ShapeAnalyzer(BasePredictor):
     ESTIMATE = 0.5
@@ -432,5 +433,3 @@ def _add_tag_if_not_seen(tag, result_list, seen_tags):
         return
     seen_tags.add(tag)
     result_list.append(tag)
-
-

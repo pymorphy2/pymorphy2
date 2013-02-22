@@ -38,6 +38,9 @@ Low-level Utilities for OpenCorpora Dictionaries
 Various Utilities
 -----------------
 
+.. automodule:: pymorphy2.shapes
+    :members:
+
 .. automodule:: pymorphy2.utils
     :members:
 
