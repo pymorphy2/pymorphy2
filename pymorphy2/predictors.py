@@ -4,6 +4,7 @@ import operator
 import logging
 
 from .utils import word_splits
+from .shapes import is_latin
 
 logger = logging.getLogger(__name__)
 
@@ -12,6 +13,7 @@ __all__ = [
     "UnknownPrefixPredictor",
     "KnownSuffixPredictor",
     "HyphenSeparatedParticlePredictor",
+    "LatinPredictor",
 ]
 
 class BasePredictor(object):
@@ -41,6 +43,9 @@ class BasePredictor(object):
         assert len(methods) > 1, len(methods)
         previous_predictor = methods[-2][0]
         return previous_predictor.get_lexeme(form, methods[:-1])
+
+    def normalized(self, form):
+        return self.dict.normalized(form)
 
     def __repr__(self):
         return str("<%s>") % self.__class__.__name__
@@ -337,6 +342,41 @@ class HyphenSeparatedParticlePredictor(BasePredictor):
             break
 
         return result
+
+
+class LatinPredictor(BasePredictor):
+    """
+    This predictor marks latin words with "LATN" tag.
+    """
+    terminal = True
+    ESTIMATE = 0.5
+    EXTRA_GRAMMEMES = ['LATN']
+
+    def __init__(self, morph):
+        super(LatinPredictor, self).__init__(morph)
+        self.morph.TagClass.KNOWN_GRAMMEMES.update(self.EXTRA_GRAMMEMES)
+        self._tag = self.morph.TagClass('LATN')
+
+    def parse(self, word, seen_parses):
+        if not is_latin(word):
+            return []
+
+        return [(
+            word, self._tag, word,
+            None, None, self.ESTIMATE,
+            [(self, )],
+        )]
+
+    def tag(self, word, seen_tags):
+        if not is_latin(word):
+            return []
+        return [self._tag]
+
+    def get_lexeme(self, form, methods):
+        return [form]
+
+    def normalized(self, form):
+        return form
 
 
 def _add_parse_if_not_seen(parse, result_list, seen_parses):

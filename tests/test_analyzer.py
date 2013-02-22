@@ -219,3 +219,26 @@ class TestParseResultClass:
         self.assertAllTuples(morph_plain.parse('кот'))
         # self.assertAllTuples(morph_plain.inflect('кот', set(['plur'])))
         # self.assertAllTuples(morph_plain.decline('кот'))
+
+class TestLatinPredictor:
+
+    def test_tag(self):
+        tags = morph.tag('Maßstab')
+        assert len(tags) == 1
+        assert 'LATN' in tags[0]
+
+    def test_parse(self):
+        parses = morph.parse('Maßstab')
+        assert len(parses) == 1
+        assert 'LATN' in parses[0].tag
+
+    def test_lexeme(self):
+        p = morph.parse('Maßstab')[0]
+        assert p.lexeme == [p]
+
+    def test_normalized(self):
+        p = morph.parse('Maßstab')[0]
+        assert p.normalized == p
+
+    def test_normal_forms(self):
+        assert morph.normal_forms('Maßstab') == ['Maßstab']

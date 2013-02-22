@@ -41,12 +41,7 @@ class Parse(_Parse):
     @property
     def normalized(self):
         """ A :class:`Parse` instance for :attr:`self.normal_form`. """
-        if self.idx == 0:
-            return self
-
-        tag = self._dict.build_tag_info(self.para_id, 0)
-        return self.__class__(self.normal_form, tag, self.normal_form,
-                              self.para_id, 0, self.estimate, self.methods)
+        return self.__class__(*self.methods[-1][0].normalized(self))
 
     @property
     def paradigm(self):
@@ -226,6 +221,17 @@ class Dictionary(object):
 
         return result
 
+    def normalized(self, form):
+        fixed_word, tag, normal_form, para_id, idx, estimate, methods = form
+
+        if idx == 0:
+            return form
+
+        tag = self.build_tag_info(para_id, 0)
+        return (normal_form, tag, normal_form,
+                para_id, 0, estimate, methods)
+
+
 
     # ===== misc =======
 
@@ -304,6 +310,7 @@ class MorphAnalyzer(object):
 
     ENV_VARIABLE = 'PYMORPHY2_DICT_PATH'
     DEFAULT_PREDICTORS = [
+        predictors.LatinPredictor,
         predictors.HyphenSeparatedParticlePredictor,
         predictors.KnownPrefixPredictor,
         predictors.UnknownPrefixPredictor,
@@ -408,7 +415,6 @@ class MorphAnalyzer(object):
                 seen.add(normal_form)
         return result
 
-
     # ==== inflection ========
 
     def get_lexeme(self, form):
@@ -420,7 +426,6 @@ class MorphAnalyzer(object):
         if self._result_type is None:
             return result
         return [self._result_type(*p) for p in result]
-
 
     def _inflect(self, form, required_grammemes):
         grammemes = form[1].updated_grammemes(required_grammemes)
