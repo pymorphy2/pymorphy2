@@ -37,7 +37,6 @@ def test_extra_grammemes():
 
     assert 'new_grammeme' not in Tag.KNOWN_GRAMMEMES
     assert 'new_grammeme' not in m.TagClass.KNOWN_GRAMMEMES
-    assert 'NEW_PART_OF_SPEECH' not in m.TagClass.PARTS_OF_SPEECH
 
     m.TagClass.KNOWN_GRAMMEMES.add('new_grammeme')
 
