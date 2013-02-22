@@ -154,7 +154,12 @@ def _load_tag_class(gramtab_format, grammemes_filename):
 
     grammemes = json_read(grammemes_filename)
 
-    Tag = tagset.registry[gramtab_format]
+    # clone the class
+    OriginalTag = tagset.registry[gramtab_format]
+    Tag = type(OriginalTag.__name__, (OriginalTag,), {
+        'KNOWN_GRAMMEMES': OriginalTag.KNOWN_GRAMMEMES.copy(),
+    })
+
     Tag._init_grammemes(grammemes)
 
     return Tag
