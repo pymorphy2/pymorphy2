@@ -2,7 +2,7 @@
 from __future__ import absolute_import, unicode_literals
 import pytest
 import pymorphy2
-from pymorphy2.predictors import UnknownPrefixPredictor, KnownPrefixPredictor
+from pymorphy2.units.by_analogy import UnknownPrefixAnalyzer, KnownPrefixAnalyzer
 
 from .utils import morph
 
@@ -231,8 +231,8 @@ class TestTagWithPrefix:
 
     def test_tag_with_unknown_prefix(self):
         word = 'мегакот'
-        pred1 = UnknownPrefixPredictor(morph)
-        pred2 = KnownPrefixPredictor(morph)
+        pred1 = UnknownPrefixAnalyzer(morph)
+        pred2 = KnownPrefixAnalyzer(morph)
 
         parse1 = pred1.tag(word, set())
         parse2 = pred2.tag(word, set())

@@ -6,7 +6,7 @@ import collections
 import logging
 
 from pymorphy2 import opencorpora_dict
-from pymorphy2 import predictors
+from pymorphy2 import units
 
 logger = logging.getLogger(__name__)
 
@@ -309,18 +309,18 @@ class MorphAnalyzer(object):
     """
 
     ENV_VARIABLE = 'PYMORPHY2_DICT_PATH'
-    DEFAULT_PREDICTORS = [
-        predictors.PunctuationPredictor,
-        predictors.LatinPredictor,
-        predictors.HyphenSeparatedParticlePredictor,
-        predictors.HyphenatedWordsPredictor,
-        predictors.KnownPrefixPredictor,
-        predictors.UnknownPrefixPredictor,
-        predictors.KnownSuffixPredictor,
+    DEFAULT_UNITS = [
+        units.PunctuationAnalyzer,
+        units.LatinAnalyzer,
+        units.HyphenSeparatedParticleAnalyzer,
+        units.HyphenatedWordsAnalyzer,
+        units.KnownPrefixAnalyzer,
+        units.UnknownPrefixAnalyzer,
+        units.KnownSuffixAnalyzer,
     ]
     DEFAULT_DICTIONARY_CLASS = Dictionary
 
-    def __init__(self, path=None, result_type=Parse, predictors=None,
+    def __init__(self, path=None, result_type=Parse, units=None,
                  dictionary_class=None):
 
         if dictionary_class is None:
@@ -339,11 +339,11 @@ class MorphAnalyzer(object):
         else:
             self._result_type = None
 
-        # initialize predictors
-        if predictors is None:
-            predictors = self.DEFAULT_PREDICTORS
+        # initialize units
+        if units is None:
+            units = self.DEFAULT_UNITS
 
-        self._predictors = [cls(self) for cls in predictors]
+        self._units = [cls(self) for cls in units]
 
 
     @classmethod
@@ -378,10 +378,10 @@ class MorphAnalyzer(object):
         if not res:
             seen = set()
 
-            for predictor in self._predictors:
-                res.extend(predictor.parse(word, seen))
+            for unit in self._units:
+                res.extend(unit.parse(word, seen))
 
-                if res and predictor.terminal:
+                if res and unit.terminal:
                     break
 
         if self._result_type is None:
@@ -396,10 +396,10 @@ class MorphAnalyzer(object):
         if not res:
             seen = set()
 
-            for predictor in self._predictors:
-                res.extend(predictor.tag(word, seen))
+            for unit in self._units:
+                res.extend(unit.tag(word, seen))
 
-                if res and predictor.terminal:
+                if res and unit.terminal:
                     break
 
         return res

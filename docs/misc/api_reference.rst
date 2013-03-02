@@ -8,9 +8,17 @@ Morphological Analyzer
     :members:
     :undoc-members:
 
-.. automodule:: pymorphy2.predictors
+Analyzer units
+~~~~~~~~~~~~~~
+
+.. automodule:: pymorphy2.units.by_analogy
     :members:
-    :undoc-members:
+
+.. automodule:: pymorphy2.units.by_shape
+    :members:
+
+.. automodule:: pymorphy2.units.by_hyphen
+    :members:
 
 Tagset
 ------
