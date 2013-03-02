@@ -13,6 +13,7 @@ __all__ = [
     "UnknownPrefixPredictor",
     "KnownSuffixPredictor",
     "HyphenSeparatedParticlePredictor",
+    "HyphenatedWordsPredictor",
     "PunctuationPredictor",
     "LatinPredictor",
 ]
@@ -343,6 +344,86 @@ class HyphenSeparatedParticlePredictor(BasePredictor):
             break
 
         return result
+
+
+class HyphenatedWordsPredictor(BasePredictor):
+    """
+    Parse the word by parsing its hyphen-separated parts.
+    """
+
+    terminal = True
+    ESTIMATE_DECAY = 0.75
+
+    def _similarity_features(self, tag):
+        """
+        @type tag: pymorphy2.tagset.OpencorporaTag
+        """
+        return (tag.POS, tag.number, tag.case, tag.person, tag.tense)
+
+    def parse(self, word, seen_parses):
+        if '-' not in word:
+            return []
+
+        result = []
+
+        # If there are more than 2 parts, the rest would be parsed
+        # by recursion.
+        left, right = word.split('-', 1)
+
+        left_parses = self.morph.parse(left)
+        right_parses = self.morph.parse(right)
+
+        # Step 1: Assume that the left part is an uninflected prefix.
+        # Examples: интернет-магазин, воздушно-капельный
+        method1 = (self, right)
+        right_features = []
+
+        for fixed_word, tag, normal_form, para_id, idx, estimate, methods in right_parses:
+            parse = (
+                '-'.join([left, fixed_word]), tag, '-'.join([left, normal_form]),
+                para_id, idx, estimate*self.ESTIMATE_DECAY,
+                methods+(method1,)
+            )
+            _add_parse_if_not_seen(parse, result, seen_parses)
+            right_features.append(self._similarity_features(tag))
+
+        # Step 2: if left and right can be parsed the same way,
+        # then it may be the case that both parts should be inflected.
+        # Examples: человек-гора, команд-участниц, компания-производитель
+
+        method2 = (self, word)
+
+        # FIXME: quadratic algorithm
+        for left_parse in left_parses:
+
+            left_feat = self._similarity_features(left_parse[1])
+
+            for parse_index, right_parse in enumerate(right_parses):
+                right_feat = right_features[parse_index]
+
+                if left_feat != right_feat:
+                    continue
+
+                # tag
+                parse = (
+                    '-'.join([left_parse[0], right_parse[0]]), # word
+                    left_parse[1], # tag is from the left part
+                    '-'.join([left_parse[2], right_parse[2]]),  # normal form
+                    left_parse[3], left_parse[4], # para_id, idx?
+                    left_parse[5]*self.ESTIMATE_DECAY,
+                    left_parse[6]+(method2,)
+                )
+                _add_parse_if_not_seen(parse, result, seen_parses)
+
+        return result
+
+    def tag(self, word, seen_tags):
+        result = []
+        for p in self.parse(word, set()):
+            _add_tag_if_not_seen(p[1], result, seen_tags)
+        return result
+
+
 
 
 class _ShapeAnalyzer(BasePredictor):

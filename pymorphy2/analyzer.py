@@ -313,6 +313,7 @@ class MorphAnalyzer(object):
         predictors.PunctuationPredictor,
         predictors.LatinPredictor,
         predictors.HyphenSeparatedParticlePredictor,
+        predictors.HyphenatedWordsPredictor,
         predictors.KnownPrefixPredictor,
         predictors.UnknownPrefixPredictor,
         predictors.KnownSuffixPredictor,

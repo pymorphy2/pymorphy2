@@ -82,10 +82,43 @@ PREDICTION_TEST_DATA = [
 
     ('кюди', ['кюдить', 'кюдь', 'кюди']), # и никаких "человек"
 
-    ("ей-то", ["она-то"]),
-    ("скажи-ка", ["сказать-ка"]),
-    ('измохратился-таки', ['измохратиться-таки']),
 ]
+
+HYPHEN_TEST_DATA = [
+    # particles
+    ("ей-то", "она-то", 'NPRO,femn,3per sing,datv'),
+    ("скажи-ка", "сказать-ка", "VERB,perf,tran sing,impr,excl"),
+    ('измохратился-таки', 'измохратиться-таки', "VERB,perf,intr masc,sing,past,indc"),
+
+    # compound words with immutable left
+    ('интернет-магазина', 'интернет-магазин', 'NOUN,inan,masc sing,gent'),
+    ('pdf-документов', 'pdf-документ', 'NOUN,inan,masc plur,gent'),
+    ('аммиачно-селитрового', 'аммиачно-селитровый', 'ADJF,Qual masc,sing,gent'),
+    ('быстро-быстро', 'быстро-быстро', 'ADVB'),
+
+    # compound words with mutable left
+    ('команд-участниц', 'команда-участница', 'NOUN,inan,femn plur,gent'),
+    ('бегает-прыгает', 'бегать-прыгать', 'VERB,impf,intr sing,3per,pres,indc'),
+    ('дул-надувался', 'дуть-надуваться', 'VERB,impf,tran masc,sing,past,indc'),
+
+    # ПО-
+    ('почтово-банковский', 'почтово-банковский', 'ADJF masc,sing,nomn'),
+    ('по-прежнему', 'по-прежнему', 'ADVB'),
+
+    # old bugs
+    ('поездов-экспрессов', 'поезд-экспресс', 'NOUN,inan,masc plur,gent'),
+    ('подростками-практикантами', 'подросток-практикант', 'NOUN,anim,masc plur,ablt'),
+    ('подводников-североморцев', 'подводник-североморец', 'NOUN,anim,masc plur,gent'),
+
+    # cities
+    ('санкт-петербурга', 'санкт-петербург', 'NOUN,inan,masc,Geox sing,gent'),
+    ('ростове-на-дону', 'ростов-на-дону', 'NOUN,inan,masc,Sgtm,Geox sing,loct'),
+]
+
+HYPHEN_TEST_DATA_XFAIL = [
+    ('по-воробьиному', 'по-воробьиному', 'ADVB'),
+]
+
 
 NON_PRODUCTIVE_BUGS_DATA = [
     ('бякобы', 'PRCL'),
@@ -94,11 +127,13 @@ NON_PRODUCTIVE_BUGS_DATA = [
     ('псевдоякобы', 'CONJ'),
 ]
 
+
 def with_test_data(data, second_param_name='parse_result'):
     return pytest.mark.parametrize(
         ("word", second_param_name),
         data
     )
+
 
 class TestNormalForms:
 
@@ -170,6 +205,26 @@ class TestParse:
         assert self._parsed_as(parse, 'NOUN')
         assert self._parsed_as(parse, 'ADVB')
         assert self._parse_cls_first_index(parse, 'NOUN') < self._parse_cls_first_index(parse, 'ADVB')
+
+
+class TestHyphen:
+
+    def assertHasParse(self, word, normal_form, tag):
+        for p in morph.parse(word):
+            if p.normal_form == normal_form and str(p.tag) == tag:
+                return
+
+        assert False, morph.parse(word)
+
+
+    @pytest.mark.parametrize(("word", "normal_form", "tag"), HYPHEN_TEST_DATA)
+    def test_hyphenated_words(self, word, normal_form, tag):
+        self.assertHasParse(word, normal_form, tag)
+
+    @pytest.mark.xfail
+    @pytest.mark.parametrize(("word", "normal_form", "tag"), HYPHEN_TEST_DATA_XFAIL)
+    def test_hyphenated_words_xfail(self, word, normal_form, tag):
+        self.assertHasParse(word, normal_form, tag)
 
 
 class TestTagWithPrefix:
