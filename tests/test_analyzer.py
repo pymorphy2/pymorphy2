@@ -3,6 +3,7 @@ from __future__ import absolute_import, unicode_literals
 import pytest
 import pymorphy2
 from pymorphy2.units.by_analogy import UnknownPrefixAnalyzer, KnownPrefixAnalyzer
+from pymorphy2.units.by_hyphen import HyphenatedWordsAnalyzer
 
 from .utils import morph
 
@@ -136,7 +137,6 @@ def with_test_data(data, second_param_name='parse_result'):
 
 
 class TestNormalForms:
-
     @with_test_data(TEST_DATA)
     def test_normal_forms(self, word, parse_result):
         assert morph.normal_forms(word) == parse_result
@@ -150,8 +150,31 @@ class TestNormalForms:
         assert morph.normal_forms(word) == parse_result
 
 
-class TestTagMethod:
+class TestTagAndParse:
+    """
+    This test checks if morph.tag produces the same results as morph.parse.
+    """
+    def assertTagAndParseAgree(self, word):
+        assert set(morph.tag(word)) == set(p.tag for p in morph.parse(word))
 
+    @with_test_data(TEST_DATA)
+    def test_basic(self, word, parse_result):
+        self.assertTagAndParseAgree(word)
+
+    @with_test_data(PREDICTION_TEST_DATA)
+    def test_prediction(self, word, parse_result):
+        self.assertTagAndParseAgree(word)
+
+    @with_test_data(PREFIX_PREDICTION_DATA)
+    def test_prefix_prediction(self, word, parse_result):
+        self.assertTagAndParseAgree(word)
+
+    @pytest.mark.parametrize(("word", "normal_form", "tag"), HYPHEN_TEST_DATA)
+    def test_hyphens(self, word, normal_form, tag):
+        self.assertTagAndParseAgree(word)
+
+
+class TestTagMethod:
     def _tagged_as(self, tags, cls):
         return any(tag.POS == cls for tag in tags)
 
@@ -159,26 +182,12 @@ class TestTagMethod:
         tags = morph.tag(word)
         assert not self._tagged_as(tags, cls), (tags, cls)
 
-    @with_test_data(TEST_DATA)
-    def test_tag_is_on_par_with_parse(self, word, parse_result): #parse_result is unused here
-        assert set(morph.tag(word)) == set(p.tag for p in morph.parse(word))
-
-
-    @with_test_data(PREDICTION_TEST_DATA)
-    def test_tag_is_on_par_with_parse__prediction(self, word, parse_result): #parse_result is unused here
-        assert set(morph.tag(word)) == set(p.tag for p in morph.parse(word))
-
-    @with_test_data(PREFIX_PREDICTION_DATA)
-    def test_tag_is_on_par_with_parse__prefix_prediction(self, word, parse_result): #parse_result is unused here
-        assert set(morph.tag(word)) == set(p.tag for p in morph.parse(word))
-
     @with_test_data(NON_PRODUCTIVE_BUGS_DATA, 'cls')
     def test_no_nonproductive_forms(self, word, cls):
         self.assertNotTaggedAs(word, cls)
 
 
 class TestParse:
-
     def _parsed_as(self, parse, cls):
         return any(p[1].POS==cls for p in parse)
 
@@ -208,14 +217,12 @@ class TestParse:
 
 
 class TestHyphen:
-
     def assertHasParse(self, word, normal_form, tag):
         for p in morph.parse(word):
             if p.normal_form == normal_form and str(p.tag) == tag:
                 return
 
         assert False, morph.parse(word)
-
 
     @pytest.mark.parametrize(("word", "normal_form", "tag"), HYPHEN_TEST_DATA)
     def test_hyphenated_words(self, word, normal_form, tag):
@@ -226,9 +233,14 @@ class TestHyphen:
     def test_hyphenated_words_xfail(self, word, normal_form, tag):
         self.assertHasParse(word, normal_form, tag)
 
+    def test_no_hyphen_analyzer_for_known_prefixes(self):
+        # this word should be parsed by KnownPrefixAnalyzer
+        for p in morph.parse('мини-будильник'):
+            for analyzer, data in p.methods_stack:
+                assert not isinstance(analyzer, HyphenatedWordsAnalyzer), p.methods_stack
+
 
 class TestTagWithPrefix:
-
     def test_tag_with_unknown_prefix(self):
         word = 'мегакот'
         pred1 = UnknownPrefixAnalyzer(morph)
@@ -241,7 +253,7 @@ class TestTagWithPrefix:
     def test_longest_prefixes_are_used(self):
         parses = morph.parse('недобарабаном')
         assert len(parses) == 1
-        assert len(parses[0].methods) == 2 # недо+барабаном, not не+до+барабаном
+        assert len(parses[0].methods_stack) == 2 # недо+барабаном, not не+до+барабаном
 
 
 class TestUtils:
@@ -257,7 +269,6 @@ class TestUtils:
 
 
 class TestParseResultClass:
-
     def assertNotTuples(self, parses):
         assert all(type(p) != tuple for p in parses)
 
@@ -276,7 +287,6 @@ class TestParseResultClass:
         # self.assertAllTuples(morph_plain.decline('кот'))
 
 class TestLatinPredictor:
-
     def test_tag(self):
         tags = morph.tag('Maßstab')
         assert len(tags) == 1

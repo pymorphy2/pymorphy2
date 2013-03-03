@@ -13,11 +13,29 @@ from __future__ import absolute_import, unicode_literals, division
 import operator
 
 from pymorphy2.units.base import BaseAnalyzerUnit
+from pymorphy2.units.by_lookup import DictionaryAnalyzer
 from pymorphy2.units.utils import add_parse_if_not_seen, add_tag_if_not_seen
 from pymorphy2.utils import word_splits
 
+class _AnalogyAnalizer(BaseAnalyzerUnit):
 
-class KnownPrefixAnalyzer(BaseAnalyzerUnit):
+    def __init__(self, morph):
+        super(_AnalogyAnalizer, self).__init__(morph)
+        self.dict_analyzer = DictionaryAnalyzer(morph)
+
+
+    # def get_lexeme(self, form, methods_stack):
+    #     """
+    #     Return a lexeme (given a parsed word).
+    #     """
+    #     return self.dict_analyzer.get_lexeme(form, methods_stack)
+    #
+
+    def normalized(self, form):
+        return self.dict_analyzer.normalized(form)
+
+
+class KnownPrefixAnalyzer(_AnalogyAnalizer):
     """
     Parse the word by checking if it starts with a known prefix
     and parsing the reminder.
@@ -29,13 +47,6 @@ class KnownPrefixAnalyzer(BaseAnalyzerUnit):
     ESTIMATE_DECAY = 0.75
     MIN_REMINDER_LENGTH = 3
 
-    def _word_prefixes(self, word):
-        return sorted(
-            self.dict.prediction_prefixes.prefixes(word),
-            key=len,
-            reverse=True,
-        )
-
     def parse(self, word, seen_parses):
         result = []
         for prefix in self._word_prefixes(word):
@@ -46,7 +57,7 @@ class KnownPrefixAnalyzer(BaseAnalyzerUnit):
 
             method = (self, prefix)
 
-            for fixed_word, tag, normal_form, para_id, idx, estimate, methods in self.morph.parse(unprefixed_word):
+            for fixed_word, tag, normal_form, para_id, idx, estimate, methods_stack in self.morph.parse(unprefixed_word):
 
                 if not tag.is_productive():
                     continue
@@ -54,7 +65,7 @@ class KnownPrefixAnalyzer(BaseAnalyzerUnit):
                 parse = (
                     prefix+fixed_word, tag, prefix+normal_form,
                     para_id, idx, estimate*self.ESTIMATE_DECAY,
-                    methods+(method,)
+                    methods_stack+(method,)
                 )
 
                 add_parse_if_not_seen(parse, result, seen_parses)
@@ -76,8 +87,17 @@ class KnownPrefixAnalyzer(BaseAnalyzerUnit):
 
         return result
 
+    def _word_prefixes(self, word):
+        return sorted(
+            self.dict.prediction_prefixes.prefixes(word),
+            key=len,
+            reverse=True,
+        )
 
-class UnknownPrefixAnalyzer(BaseAnalyzerUnit):
+
+
+
+class UnknownPrefixAnalyzer(_AnalogyAnalizer):
     """
     Parse the word by parsing only the word suffix
     (with restrictions on prefix & suffix lengths).
@@ -88,20 +108,22 @@ class UnknownPrefixAnalyzer(BaseAnalyzerUnit):
     terminal = False
     ESTIMATE_DECAY = 0.5
 
+
     def parse(self, word, seen_parses):
         result = []
         for prefix, unprefixed_word in word_splits(word):
 
             method = (self, prefix)
 
-            for fixed_word, tag, normal_form, para_id, idx, estimate, methods in self.dict.parse(unprefixed_word):
+            parses = self.dict_analyzer.parse(unprefixed_word, seen_parses)
+            for fixed_word, tag, normal_form, para_id, idx, estimate, methods_stack in parses:
 
                 if not tag.is_productive():
                     continue
 
                 parse = (prefix+fixed_word, tag, prefix+normal_form,
                          para_id, idx, estimate*self.ESTIMATE_DECAY,
-                         methods+(method,))
+                         methods_stack+(method,))
                 add_parse_if_not_seen(parse, result, seen_parses)
 
         return result
@@ -109,7 +131,9 @@ class UnknownPrefixAnalyzer(BaseAnalyzerUnit):
     def tag(self, word, seen_tags):
         result = []
         for _, unprefixed_word in word_splits(word):
-            for tag in self.dict.tag(unprefixed_word):
+
+            tags = self.dict_analyzer.tag(unprefixed_word, seen_tags)
+            for tag in tags:
 
                 if not tag.is_productive():
                     continue
@@ -119,7 +143,7 @@ class UnknownPrefixAnalyzer(BaseAnalyzerUnit):
         return result
 
 
-class KnownSuffixAnalyzer(BaseAnalyzerUnit):
+class KnownSuffixAnalyzer(_AnalogyAnalizer):
     """
     Parse the word by checking how the words with similar suffixes
     are parsed.
@@ -157,7 +181,10 @@ class KnownSuffixAnalyzer(BaseAnalyzerUnit):
                 para_data = suffixes_dawg.similar_items(end, self.dict.ee)
 
                 for fixed_suffix, parses in para_data:
-                    method = (self, fixed_suffix)
+                    methods = (
+                        # (self.dict_analyzer, fixed_suffix),
+                        (self, fixed_suffix),
+                    )
 
                     for cnt, para_id, idx in parses:
                         tag = self.dict.build_tag_info(para_id, idx)
@@ -170,7 +197,7 @@ class KnownSuffixAnalyzer(BaseAnalyzerUnit):
                         normal_form = self.dict.build_normal_form(para_id, idx, fixed_word)
 
                         parse = (cnt, fixed_word, tag, normal_form,
-                                 para_id, idx, prefix_id, (method,))
+                                 para_id, idx, prefix_id, methods)
                         reduced_parse = parse[1:4]
                         if reduced_parse in seen_parses:
                             continue
@@ -181,8 +208,8 @@ class KnownSuffixAnalyzer(BaseAnalyzerUnit):
                     break
 
         result = [
-            (fixed_word, tag, normal_form, para_id, idx, cnt/total_counts[prefix_id] * self.ESTIMATE_DECAY, methods)
-            for (cnt, fixed_word, tag, normal_form, para_id, idx, prefix_id, methods) in result
+            (fixed_word, tag, normal_form, para_id, idx, cnt/total_counts[prefix_id] * self.ESTIMATE_DECAY, methods_stack)
+            for (cnt, fixed_word, tag, normal_form, para_id, idx, prefix_id, methods_stack) in result
         ]
         result.sort(key=operator.itemgetter(5), reverse=True)
         return result

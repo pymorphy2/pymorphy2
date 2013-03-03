@@ -32,31 +32,6 @@ class HyphenSeparatedParticleAnalyzer(BaseAnalyzerUnit):
         "-то", "-ка", "-таки", "-де", "-тко", "-тка", "-с", "-ста"
     ]
 
-    def get_lexeme(self, form, methods):
-        particle = methods[-1][1]
-
-        return list(
-            self._suffixed_lexeme(
-                super(HyphenSeparatedParticleAnalyzer, self).get_lexeme(
-                    self._unsuffixed_form(form, particle),
-                    methods
-                ),
-                particle
-            )
-        )
-
-    def _suffixed_lexeme(self, lexeme, suffix):
-        for p in lexeme:
-            word, tag, normal_form, para_id, idx, estimate, methods = p
-            yield (word+suffix, tag, normal_form+suffix,
-                   para_id, idx, estimate, methods)
-
-    def _unsuffixed_form(self, form, suffix):
-        word, tag, normal_form, para_id, idx, estimate, methods = form
-        return (word[:-len(suffix)], tag, normal_form[:-len(suffix)],
-                para_id, idx, estimate, methods)
-
-
     def parse(self, word, seen_parses):
 
         result = []
@@ -70,11 +45,11 @@ class HyphenSeparatedParticleAnalyzer(BaseAnalyzerUnit):
 
             method = (self, particle)
 
-            for fixed_word, tag, normal_form, para_id, idx, estimate, methods in self.morph.parse(unsuffixed_word):
+            for fixed_word, tag, normal_form, para_id, idx, estimate, methods_stack in self.morph.parse(unsuffixed_word):
                 parse = (
                     fixed_word+particle, tag, normal_form+particle,
                     para_id, idx, estimate*self.ESTIMATE_DECAY,
-                    methods+(method,)
+                    methods_stack+(method,)
                 )
                 add_parse_if_not_seen(parse, result, seen_parses)
 
@@ -104,6 +79,33 @@ class HyphenSeparatedParticleAnalyzer(BaseAnalyzerUnit):
         return result
 
 
+    def get_lexeme(self, form, methods_stack):
+        particle = methods_stack[-1][1]
+
+        form_without_particle = self._unsuffixed_form(form, particle)
+        lexeme_without_particle = super(HyphenSeparatedParticleAnalyzer, self).get_lexeme(
+            form_without_particle,
+            methods_stack
+        )
+
+        lexeme_with_particle = self._suffixed_lexeme(lexeme_without_particle, particle)
+        return list(lexeme_with_particle)
+
+
+    def _suffixed_lexeme(self, lexeme, suffix):
+        for p in lexeme:
+            word, tag, normal_form, para_id, idx, estimate, methods_stack = p
+            yield (word+suffix, tag, normal_form+suffix,
+                   para_id, idx, estimate, methods_stack)
+
+    def _unsuffixed_form(self, form, suffix):
+        word, tag, normal_form, para_id, idx, estimate, methods_stack = form
+        return (word[:-len(suffix)], tag, normal_form[:-len(suffix)],
+                para_id, idx, estimate, methods_stack)
+
+
+
+
 class HyphenatedWordsAnalyzer(HyphenSeparatedParticleAnalyzer):
     """
     Parse the word by parsing its hyphen-separated parts.
@@ -120,7 +122,7 @@ class HyphenatedWordsAnalyzer(HyphenSeparatedParticleAnalyzer):
 
     def _similarity_features(self, tag):
         """
-        @type tag: pymorphy2.tagset.OpencorporaTag
+        :type tag: pymorphy2.tagset.OpencorporaTag
         """
         return (tag.POS, tag.number, tag.case, tag.person, tag.tense)
 
@@ -128,11 +130,15 @@ class HyphenatedWordsAnalyzer(HyphenSeparatedParticleAnalyzer):
         if '-' not in word:
             return []
 
-        result = []
-
         # If there are more than 2 parts, the rest would be parsed
         # by recursion.
         left, right = word.split('-', 1)
+
+        # such words should really be parsed by KnownPrefixAnalyzer
+        if self.dict.prediction_prefixes.prefixes(word):
+            return []
+
+        result = []
 
         left_parses = self.morph.parse(left)
         right_parses = self.morph.parse(right)
@@ -142,11 +148,11 @@ class HyphenatedWordsAnalyzer(HyphenSeparatedParticleAnalyzer):
         method1 = (self, right)
         right_features = []
 
-        for fixed_word, tag, normal_form, para_id, idx, estimate, methods in right_parses:
+        for fixed_word, tag, normal_form, para_id, idx, estimate, methods_stack in right_parses:
             parse = (
                 '-'.join([left, fixed_word]), tag, '-'.join([left, normal_form]),
                 para_id, idx, estimate*self.ESTIMATE_DECAY,
-                methods+(method1,)
+                methods_stack+(method1,)
             )
             add_parse_if_not_seen(parse, result, seen_parses)
             right_features.append(self._similarity_features(tag))

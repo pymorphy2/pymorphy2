@@ -31,7 +31,7 @@ class _ShapeAnalyzer(BaseAnalyzerUnit):
         return [(
             word, self._get_tag(word, shape), word,
             None, None, self.ESTIMATE,
-            [(self, )],
+            ((self, ),),
         )]
 
     def tag(self, word, seen_tags):
@@ -40,7 +40,7 @@ class _ShapeAnalyzer(BaseAnalyzerUnit):
             return []
         return [self._get_tag(word, shape)]
 
-    def get_lexeme(self, form, methods):
+    def get_lexeme(self, form, methods_stack):
         return [form]
 
     def normalized(self, form):

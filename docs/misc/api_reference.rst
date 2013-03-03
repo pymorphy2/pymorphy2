@@ -11,13 +11,16 @@ Morphological Analyzer
 Analyzer units
 ~~~~~~~~~~~~~~
 
+.. automodule:: pymorphy2.units.by_lookup
+    :members:
+
 .. automodule:: pymorphy2.units.by_analogy
     :members:
 
-.. automodule:: pymorphy2.units.by_shape
+.. automodule:: pymorphy2.units.by_hyphen
     :members:
 
-.. automodule:: pymorphy2.units.by_hyphen
+.. automodule:: pymorphy2.units.by_shape
     :members:
 
 Tagset

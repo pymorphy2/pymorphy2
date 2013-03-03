@@ -30,14 +30,3 @@ def test_is_known():
 
 def test_normalized():
     assert morph.parse('стреляли')[0].normalized.word == 'стрелять'
-
-def test_lexeme():
-    parses = morph.parse('кот')
-    assert len(parses) == 1
-
-    forms = [p.word for p in parses[0].lexeme]
-    assert forms == ['кот', 'кота', 'коту', 'кота', 'котом', 'коте',
-                     'коты', 'котов', 'котам', 'котов', 'котами', 'котах']
-
-
-
