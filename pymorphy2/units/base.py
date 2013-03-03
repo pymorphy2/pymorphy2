@@ -34,7 +34,9 @@ class BaseAnalyzerUnit(object):
         return previous_predictor.get_lexeme(form, methods_stack[:-1])
 
     def normalized(self, form):
-        raise NotImplementedError(form)
+        # default implementation is super-slow!
+        methods_stack = form[-1]
+        return self.get_lexeme(form, methods_stack)[0]
 
     def __repr__(self):
         return str("<%s>") % self.__class__.__name__

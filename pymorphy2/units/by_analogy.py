@@ -23,14 +23,6 @@ class _AnalogyAnalizer(BaseAnalyzerUnit):
         super(_AnalogyAnalizer, self).__init__(morph)
         self.dict_analyzer = DictionaryAnalyzer(morph)
 
-
-    # def get_lexeme(self, form, methods_stack):
-    #     """
-    #     Return a lexeme (given a parsed word).
-    #     """
-    #     return self.dict_analyzer.get_lexeme(form, methods_stack)
-    #
-
     def normalized(self, form):
         return self.dict_analyzer.normalized(form)
 
@@ -182,7 +174,7 @@ class KnownSuffixAnalyzer(_AnalogyAnalizer):
 
                 for fixed_suffix, parses in para_data:
                     methods = (
-                        # (self.dict_analyzer, fixed_suffix),
+                        (self.dict_analyzer, fixed_suffix),
                         (self, fixed_suffix),
                     )
 
