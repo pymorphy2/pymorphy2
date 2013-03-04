@@ -116,7 +116,7 @@ def bench_parse(morph, words, total_usages, repeats):
     logger.info("")
 
 
-def bench_all(dict_path=None, repeats=5):
+def bench_all(repeats, dict_path=None):
     """ Run all benchmarks """
     logger.debug("loading MorphAnalyzer...")
     morph = MorphAnalyzer(dict_path)

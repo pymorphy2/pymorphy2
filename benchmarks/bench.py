@@ -39,7 +39,10 @@ def main():
         logger.setLevel(logging.INFO)
 
     if args['run']:
-        speed.bench_all(args['--dict'], int(args['--repeats']))
+        speed.bench_all(
+            dict_path=args['--dict'],
+            repeats=int(args['--repeats'])
+        )
 
     return 0
 
