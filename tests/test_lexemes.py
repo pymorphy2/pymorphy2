@@ -11,13 +11,15 @@ LEXEMES = """\
 лжекот лжекота лжекоту лжекота лжекотом лжекоте лжекоты лжекотов лжекотам лжекотов лжекотами лжекотах
 кот-маг кота-мага коту-магу кота-мага котом-магом коте-маге коты-маги котов-магов котам-магам котов-магов котами-магами котах-магах
 йотка йотки йотке йотку йоткой йоткою йотке йотки йоток йоткам йотки йотками йотках
+кото-пёс кото-пса кото-псу кото-пса кото-псом кото-псе кото-псы кото-псов кото-псам кото-псов кото-псами кото-псах
+кото-псевдопёс кото-псевдопса кото-псевдопсу кото-псевдопса кото-псевдопсом кото-псевдопсе кото-псевдопсы кото-псевдопсов кото-псевдопсам кото-псевдопсов кото-псевдопсами кото-псевдопсах
 """.splitlines()
 
 
 def _lexeme_variants(word):
-    res = set()
+    res = []
     for p in morph.parse(word):
-        res.add(tuple(f.word for f in p.lexeme))
+        res.append(tuple(f.word for f in p.lexeme))
     return res
 
 
@@ -26,10 +28,8 @@ def test_has_lexemes(lexeme):
     lexeme_words = tuple(lexeme.split())
     variants = _lexeme_variants(lexeme_words[0])
     if lexeme_words not in variants:
-        for v in variants:
-            print(" ".join(v))
-            print()
-        assert False
+        variants_repr = "\n".join([" ".join(v) for v in variants])
+        assert False, "%s not in \n%s" % (lexeme, variants_repr)
 
 
 @pytest.mark.parametrize("lexeme", LEXEMES)

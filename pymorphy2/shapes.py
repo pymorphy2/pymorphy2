@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from __future__ import absolute_import
+from __future__ import absolute_import, unicode_literals
 import unicodedata
 
 
@@ -26,6 +26,8 @@ def is_latin(token):
         >>> is_latin('123')
         False
         >>> is_latin(':)')
+        False
+        >>> is_latin('')
         False
 
     """
