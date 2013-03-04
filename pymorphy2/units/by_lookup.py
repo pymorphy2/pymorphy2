@@ -29,6 +29,9 @@ class DictionaryAnalyzer(BaseAnalyzerUnit):
 
         for fixed_word, parses in para_data:
             # `fixed_word` is a word with proper ё letters
+
+            method = ((self, fixed_word),)
+
             for para_id, idx in parses:
 
                 if para_id not in para_normal_forms:
@@ -39,7 +42,6 @@ class DictionaryAnalyzer(BaseAnalyzerUnit):
 
                 tag = self.dict.build_tag_info(para_id, idx)
 
-                method = ((self, fixed_word),)
                 parse = (fixed_word, tag, normal_form,
                          para_id, idx, 1.0, method)
 
