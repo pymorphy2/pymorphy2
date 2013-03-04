@@ -7,7 +7,8 @@ Analyzer units for unknown words with hyphens
 from __future__ import absolute_import, unicode_literals, division
 
 from pymorphy2.units.base import BaseAnalyzerUnit
-from pymorphy2.units.utils import add_parse_if_not_seen, add_tag_if_not_seen
+from pymorphy2.units.utils import (add_parse_if_not_seen, add_tag_if_not_seen,
+                                   with_suffix, without_suffix)
 
 
 class HyphenSeparatedParticleAnalyzer(BaseAnalyzerUnit):
@@ -82,27 +83,14 @@ class HyphenSeparatedParticleAnalyzer(BaseAnalyzerUnit):
     def get_lexeme(self, form, methods_stack):
         particle = methods_stack[-1][1]
 
-        form_without_particle = self._unsuffixed_form(form, particle)
-        lexeme_without_particle = super(HyphenSeparatedParticleAnalyzer, self).get_lexeme(
-            form_without_particle,
+        # undecorate
+        base_lexeme = super(HyphenSeparatedParticleAnalyzer, self).get_lexeme(
+            without_suffix(form, particle),
             methods_stack
         )
 
-        lexeme_with_particle = self._suffixed_lexeme(lexeme_without_particle, particle)
-        return list(lexeme_with_particle)
-
-
-    def _suffixed_lexeme(self, lexeme, suffix):
-        for p in lexeme:
-            word, tag, normal_form, para_id, idx, estimate, methods_stack = p
-            yield (word+suffix, tag, normal_form+suffix,
-                   para_id, idx, estimate, methods_stack)
-
-    def _unsuffixed_form(self, form, suffix):
-        word, tag, normal_form, para_id, idx, estimate, methods_stack = form
-        return (word[:-len(suffix)], tag, normal_form[:-len(suffix)],
-                para_id, idx, estimate, methods_stack)
-
+        # decorate
+        return [with_suffix(f, particle) for f in base_lexeme]
 
 
 
