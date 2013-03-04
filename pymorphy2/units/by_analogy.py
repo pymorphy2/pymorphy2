@@ -244,6 +244,3 @@ class KnownSuffixAnalyzer(_AnalogyAnalizer):
 
         result.sort(reverse=True)
         return [tag for cnt, tag in result]
-
-
-
