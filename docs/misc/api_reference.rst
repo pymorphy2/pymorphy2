@@ -34,16 +34,10 @@ Command-Line Interface
 
 .. automodule:: pymorphy2.cli
 
-Low-level Utilities for OpenCorpora Dictionaries
-------------------------------------------------
+Utilities for OpenCorpora Dictionaries
+--------------------------------------
 
-.. automodule:: pymorphy2.opencorpora_dict.parse
-    :members:
-
-.. automodule:: pymorphy2.opencorpora_dict.compile
-    :members:
-
-.. automodule:: pymorphy2.opencorpora_dict.storage
+.. automodule:: pymorphy2.opencorpora_dict.wrapper
     :members:
 
 Various Utilities
