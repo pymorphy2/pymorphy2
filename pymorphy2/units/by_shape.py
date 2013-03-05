@@ -17,12 +17,6 @@ class _ShapeAnalyzer(BaseAnalyzerUnit):
         super(_ShapeAnalyzer, self).__init__(morph)
         self.morph.TagClass.KNOWN_GRAMMEMES.update(self.EXTRA_GRAMMEMES)
 
-    def _check_shape(self, word):
-        raise NotImplementedError()
-
-    def _get_tag(self, word, shape):
-        raise NotImplementedError()
-
     def parse(self, word, seen_parses):
         shape = self._check_shape(word)
         if not shape:
@@ -46,6 +40,14 @@ class _ShapeAnalyzer(BaseAnalyzerUnit):
     def normalized(self, form):
         return form
 
+    # implement these 2 methods in a subclass:
+    def _check_shape(self, word):
+        raise NotImplementedError()
+
+    def _get_tag(self, word, shape):
+        raise NotImplementedError()
+
+
 
 class PunctuationAnalyzer(_ShapeAnalyzer):
     """
@@ -53,7 +55,7 @@ class PunctuationAnalyzer(_ShapeAnalyzer):
     Example: "," -> PNCT
     """
     terminal = True
-    ESTIMATE = 0.5
+    ESTIMATE = 0.9
     EXTRA_GRAMMEMES = ['PNCT']
 
     def __init__(self, morph):
@@ -73,7 +75,7 @@ class LatinAnalyzer(_ShapeAnalyzer):
     Example: "pdf" -> LATN
     """
     terminal = True
-    ESTIMATE = 0.5
+    ESTIMATE = 0.9
     EXTRA_GRAMMEMES = ['LATN']
 
     def __init__(self, morph):
