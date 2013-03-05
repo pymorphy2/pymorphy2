@@ -90,7 +90,7 @@ class HyphenSeparatedParticleAnalyzer(AnalogyAnalizerUnit):
 
 
 
-class HyphenatedWordsAnalyzer(AnalogyAnalizerUnit):
+class HyphenatedWordsAnalyzer(BaseAnalyzerUnit):
     """
     Parse the word by parsing its hyphen-separated parts.
 
