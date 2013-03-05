@@ -236,7 +236,8 @@ class TestHyphen:
     def test_no_hyphen_analyzer_for_known_prefixes(self):
         # this word should be parsed by KnownPrefixAnalyzer
         for p in morph.parse('мини-будильник'):
-            for analyzer, data in p.methods_stack:
+            for meth in p.methods_stack:
+                analyzer = meth[0]
                 assert not isinstance(analyzer, HyphenatedWordsAnalyzer), p.methods_stack
 
 

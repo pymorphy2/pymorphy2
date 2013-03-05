@@ -10,7 +10,7 @@ from pymorphy2 import units
 
 logger = logging.getLogger(__name__)
 
-_Parse = collections.namedtuple('Parse', 'word, tag, normal_form, para_id, idx, estimate, methods_stack')
+_Parse = collections.namedtuple('Parse', 'word, tag, normal_form, estimate, methods_stack')
 
 class Parse(_Parse):
     """
@@ -44,9 +44,9 @@ class Parse(_Parse):
         last_method = self.methods_stack[-1]
         return self.__class__(*last_method[0].normalized(self))
 
-    @property
-    def paradigm(self):
-        return self._dict.build_paradigm_info(self.para_id)
+    # @property
+    # def paradigm(self):
+    #     return self._dict.build_paradigm_info(self.para_id)
 
 
 
@@ -144,7 +144,8 @@ class MorphAnalyzer(object):
 
     def parse(self, word):
         """
-        Analyze the word and return a list of :class:`Parse` namedtuples:
+        Analyze the word and return a list of :class:`pymorphy2.analyzer.Parse`
+        namedtuples:
 
             Parse(word, tag, normal_form, para_id, idx, _estimate)
 
@@ -197,9 +198,9 @@ class MorphAnalyzer(object):
         """
         Return the lexeme this parse belongs to.
         """
-        methods_stack = form[6]
+        methods_stack = form[4]
         last_method = methods_stack[-1]
-        result = last_method[0].get_lexeme(form, methods_stack)
+        result = last_method[0].get_lexeme(form)
 
         if self._result_type is None:
             return result
@@ -212,8 +213,8 @@ class MorphAnalyzer(object):
         possible_results = [f for f in self.get_lexeme(form)
                             if required_grammemes <= f[1].grammemes]
 
-        def similarity(form):
-            tag = form[1]
+        def similarity(frm):
+            tag = frm[1]
             return len(grammemes & tag.grammemes)
 
         return heapq.nlargest(1, possible_results, key=similarity)

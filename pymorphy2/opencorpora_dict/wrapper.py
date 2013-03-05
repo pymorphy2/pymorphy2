@@ -133,6 +133,10 @@ class Dictionary(object):
         Return an iterator over parses of dictionary words that starts
         with a given prefix (default empty prefix means "all words").
         """
+
+        # XXX: This method is bad because it knows what 'parse' is,
+        # and it shouldn't.
+
         for word, (para_id, idx) in self.words.iteritems(prefix):
             tag = self.build_tag_info(para_id, idx)
             normal_form = self.build_normal_form(para_id, idx, word)

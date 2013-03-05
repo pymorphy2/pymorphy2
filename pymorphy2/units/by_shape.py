@@ -22,11 +22,8 @@ class _ShapeAnalyzer(BaseAnalyzerUnit):
         if not shape:
             return []
 
-        return [(
-            word, self._get_tag(word, shape), word,
-            None, None, self.ESTIMATE,
-            ((self, ),),
-        )]
+        methods = ((self, ),)
+        return [(word, self._get_tag(word, shape), word, self.ESTIMATE, methods)]
 
     def tag(self, word, seen_tags):
         shape = self._check_shape(word)
@@ -34,7 +31,7 @@ class _ShapeAnalyzer(BaseAnalyzerUnit):
             return []
         return [self._get_tag(word, shape)]
 
-    def get_lexeme(self, form, methods_stack):
+    def get_lexeme(self, form):
         return [form]
 
     def normalized(self, form):

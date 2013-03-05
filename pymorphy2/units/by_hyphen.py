@@ -6,12 +6,14 @@ Analyzer units for unknown words with hyphens
 
 from __future__ import absolute_import, unicode_literals, division
 
-from pymorphy2.units.base import BaseAnalyzerUnit
+from pymorphy2.units.base import BaseAnalyzerUnit, AnalogyAnalizerUnit
 from pymorphy2.units.utils import (add_parse_if_not_seen, add_tag_if_not_seen,
-                                   with_suffix, without_suffix)
+                                   with_suffix, without_fixed_suffix,
+                                   with_prefix, without_fixed_prefix,
+                                   replace_methods_stack)
 
 
-class HyphenSeparatedParticleAnalyzer(BaseAnalyzerUnit):
+class HyphenSeparatedParticleAnalyzer(AnalogyAnalizerUnit):
     """
     Parse the word by analyzing it without
     a particle after a hyphen.
@@ -36,20 +38,15 @@ class HyphenSeparatedParticleAnalyzer(BaseAnalyzerUnit):
     def parse(self, word, seen_parses):
 
         result = []
-        for particle in self.PARTICLES_AFTER_HYPHEN:
-            if not word.endswith(particle):
-                continue
-
-            unsuffixed_word = word[:-len(particle)]
-            if not unsuffixed_word:
-                continue
-
+        for unsuffixed_word, particle in self.possible_splits(word):
             method = (self, particle)
 
-            for fixed_word, tag, normal_form, para_id, idx, estimate, methods_stack in self.morph.parse(unsuffixed_word):
+            for fixed_word, tag, normal_form, estimate, methods_stack in self.morph.parse(unsuffixed_word):
                 parse = (
-                    fixed_word+particle, tag, normal_form+particle,
-                    para_id, idx, estimate*self.ESTIMATE_DECAY,
+                    fixed_word+particle,
+                    tag,
+                    normal_form+particle,
+                    estimate*self.ESTIMATE_DECAY,
                     methods_stack+(method,)
                 )
                 add_parse_if_not_seen(parse, result, seen_parses)
@@ -60,9 +57,17 @@ class HyphenSeparatedParticleAnalyzer(BaseAnalyzerUnit):
 
         return result
 
-
     def tag(self, word, seen_tags):
         result = []
+        for unsuffixed_word, particle in self.possible_splits(word):
+            result.extend(self.morph.tag(unsuffixed_word))
+            # If a word ends with with one of the particles,
+            # it can't ends with an another.
+            break
+
+        return result
+
+    def possible_splits(self, word):
         for particle in self.PARTICLES_AFTER_HYPHEN:
             if not word.endswith(particle):
                 continue
@@ -71,30 +76,21 @@ class HyphenSeparatedParticleAnalyzer(BaseAnalyzerUnit):
             if not unsuffixed_word:
                 continue
 
-            result.extend(self.morph.tag(unsuffixed_word))
+            yield unsuffixed_word, particle
 
-            # If a word ends with with one of the particles,
-            # it can't ends with an another.
-            break
+    def normalizer(self, form, this_method):
+        particle = this_method[1]
+        normal_form = yield without_fixed_suffix(form, len(particle))
+        yield with_suffix(normal_form, particle)
 
-        return result
-
-
-    def get_lexeme(self, form, methods_stack):
-        particle = methods_stack[-1][1]
-
-        # undecorate
-        base_lexeme = super(HyphenSeparatedParticleAnalyzer, self).get_lexeme(
-            without_suffix(form, particle),
-            methods_stack
-        )
-
-        # decorate
-        return [with_suffix(f, particle) for f in base_lexeme]
+    def lexemizer(self, form, this_method):
+        particle = this_method[1]
+        lexeme = yield without_fixed_suffix(form, len(particle))
+        yield [with_suffix(f, particle) for f in lexeme]
 
 
 
-class HyphenatedWordsAnalyzer(HyphenSeparatedParticleAnalyzer):
+class HyphenatedWordsAnalyzer(AnalogyAnalizerUnit):
     """
     Parse the word by parsing its hyphen-separated parts.
 
@@ -108,76 +104,190 @@ class HyphenatedWordsAnalyzer(HyphenSeparatedParticleAnalyzer):
     terminal = True
     ESTIMATE_DECAY = 0.75
 
-    def _similarity_features(self, tag):
-        """
-        :type tag: pymorphy2.tagset.OpencorporaTag
-        """
-        return (tag.POS, tag.number, tag.case, tag.person, tag.tense)
-
     def parse(self, word, seen_parses):
-        if '-' not in word:
+        if not self._should_parse(word):
             return []
 
-        # If there are more than 2 parts, the rest would be parsed
-        # by recursion.
-        left, right = word.split('-', 1)
-
-        # such words should really be parsed by KnownPrefixAnalyzer
-        if self.dict.prediction_prefixes.prefixes(word):
-            return []
-
-        result = []
-
+        left, right = word.split('-')
         left_parses = self.morph.parse(left)
         right_parses = self.morph.parse(right)
 
-        # Step 1: Assume that the left part is an uninflected prefix.
-        # Examples: интернет-магазин, воздушно-капельный
-        method1 = (self, right)
-        right_features = []
+        result = self._parse_as_variable_both(left_parses, right_parses, seen_parses)
 
-        for fixed_word, tag, normal_form, para_id, idx, estimate, methods_stack in right_parses:
+        # We copy `seen_parses` to preserve parses even if similar parses
+        # were observed at previous step (they may have different lexemes).
+        _seen = seen_parses.copy()
+        result.extend(self._parse_as_fixed_left(right_parses, _seen, left))
+        seen_parses.update(_seen)
+
+        return result
+
+    def _parse_as_fixed_left(self, right_parses, seen, left):
+        """
+        Step 1: Assume that the left part is an uninflected prefix.
+        Examples: интернет-магазин, воздушно-капельный
+        """
+        result = []
+
+        for fixed_word, tag, normal_form, estimate, right_methods in right_parses:
+
+            new_methods_stack = ((self, left, right_methods),)
+
             parse = (
-                '-'.join([left, fixed_word]), tag, '-'.join([left, normal_form]),
-                para_id, idx, estimate*self.ESTIMATE_DECAY,
-                methods_stack+(method1,)
+                '-'.join((left, fixed_word)),
+                tag,
+                '-'.join((left, normal_form)),
+                estimate * self.ESTIMATE_DECAY,
+                new_methods_stack
             )
-            add_parse_if_not_seen(parse, result, seen_parses)
-            right_features.append(self._similarity_features(tag))
+            result.append(parse)
+            # add_parse_if_not_seen(parse, result, seen_left)
 
-        # Step 2: if left and right can be parsed the same way,
-        # then it may be the case that both parts should be inflected.
-        # Examples: человек-гора, команд-участниц, компания-производитель
+        return result
 
-        method2 = (self, word)
+    def _parse_as_variable_both(self, left_parses, right_parses, seen):
+        """
+        Step 2: if left and right can be parsed the same way,
+        then it may be the case that both parts should be inflected.
+        Examples: человек-гора, команд-участниц, компания-производитель
+        """
+        result = []
+        right_features = [self._similarity_features(p[1]) for p in right_parses]
 
         # FIXME: quadratic algorithm
         for left_parse in left_parses:
 
-            left_feat = self._similarity_features(left_parse[1])
+            left_tag = left_parse[1]
+            left_feat = self._similarity_features(left_tag)
 
             for parse_index, right_parse in enumerate(right_parses):
+
                 right_feat = right_features[parse_index]
 
                 if left_feat != right_feat:
                     continue
 
+                left_methods = left_parse[4]
+                right_methods = right_parse[4]
+
+                new_methods_stack = ((self, left_methods, right_methods),)
+
                 # tag
                 parse = (
-                    '-'.join([left_parse[0], right_parse[0]]), # word
-                    left_parse[1], # tag is from the left part
-                    '-'.join([left_parse[2], right_parse[2]]),  # normal form
-                    left_parse[3], left_parse[4], # para_id, idx?
-                    left_parse[5]*self.ESTIMATE_DECAY,
-                    left_parse[6]+(method2,)
+                    '-'.join((left_parse[0], right_parse[0])),  # word
+                    left_tag,
+                    '-'.join((left_parse[2], right_parse[2])),  # normal form
+                    left_parse[3] * self.ESTIMATE_DECAY,
+                    new_methods_stack
                 )
-                add_parse_if_not_seen(parse, result, seen_parses)
+                result.append(parse)
+                # add_parse_if_not_seen(parse, result, seen_right)
 
         return result
 
     def tag(self, word, seen_tags):
         result = []
+        # TODO: do not use self.parse
         for p in self.parse(word, set()):
             add_tag_if_not_seen(p[1], result, seen_tags)
         return result
+
+    def _should_parse(self, word):
+        if word.strip('-').count('-') != 1:
+            # require exactly 1 hyphen, in the middle of the word
+            return False
+
+        if self.dict.prediction_prefixes.prefixes(word):
+            # such words should really be parsed by KnownPrefixAnalyzer
+            return False
+
+        return True
+
+    def normalized(self, form):
+        return self.get_lexeme(form)[0]
+
+    def get_lexeme(self, form):
+        methods_stack = form[4]
+        assert len(methods_stack) == 1
+
+        this_method, left_methods, right_methods = methods_stack[0]
+        assert this_method is self
+
+        if self._fixed_left_method_was_used(left_methods):
+            # Form is obtained by parsing right part,
+            # assuming that left part is an uninflected prefix.
+            # Lexeme can be calculated from the right part in this case:
+            prefix = left_methods + '-'
+
+            right_form = without_fixed_prefix(
+                replace_methods_stack(form, right_methods),
+                len(prefix)
+            )
+            base_analyzer = right_methods[-1][0]
+
+            lexeme = base_analyzer.get_lexeme(right_form)
+            return [
+                replace_methods_stack(
+                    with_prefix(f, prefix),
+                    ((this_method, left_methods, f[4]),)
+                )
+                for f in lexeme
+            ]
+
+        else:
+            # Form is obtained by parsing both parts.
+            # Compute lexemes for left and right parts,
+            # then merge them.
+            left_form = self._without_right_part(
+                replace_methods_stack(form, left_methods)
+            )
+
+            right_form = self._without_left_part(
+                replace_methods_stack(form, right_methods)
+            )
+
+            left_lexeme = left_methods[-1][0].get_lexeme(left_form)
+            right_lexeme = right_methods[-1][0].get_lexeme(right_form)
+
+            return list(self._merge_lexemes(left_lexeme, right_lexeme))
+
+    def _merge_lexemes(self, left_lexeme, right_lexeme):
+
+        # if len(left_lexeme) != len(right_lexeme):
+        #     raise NotImplementedError("%s\n%s" % (left_lexeme, right_lexeme))
+
+        # XX: merging logic is currently very naive
+
+        for left, right in zip(left_lexeme, right_lexeme):
+            word = '-'.join((left[0], right[0]))
+            tag = left[1] # tag is from the left part?
+            normal_form = '-'.join((left[2], right[2]))
+            estimate = (left[3] + right[3])/2 # is average OK?
+            method_stack = ((self, left[4], right[4]), )
+
+            yield (word, tag, normal_form, estimate, method_stack)
+
+    @classmethod
+    def _without_right_part(cls, form):
+        word, tag, normal_form, estimate, methods_stack = form
+        return (word[:word.index('-')], tag, normal_form[:normal_form.index('-')],
+                estimate, methods_stack)
+
+    @classmethod
+    def _without_left_part(cls, form):
+        word, tag, normal_form, estimate, methods_stack = form
+        return (word[word.index('-')+1:], tag, normal_form[normal_form.index('-')+1:],
+                estimate, methods_stack)
+
+
+    @classmethod
+    def _fixed_left_method_was_used(cls, left_methods):
+        return not isinstance(left_methods, tuple)
+
+    @classmethod
+    def _similarity_features(cls, tag):
+        """
+        :type tag: pymorphy2.tagset.OpencorporaTag
+        """
+        return (tag.POS, tag.number, tag.case, tag.person, tag.tense)
 
