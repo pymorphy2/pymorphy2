@@ -10,7 +10,9 @@ from pymorphy2.units.base import BaseAnalyzerUnit
 from pymorphy2.shapes import is_latin, is_punctuation
 
 class _ShapeAnalyzer(BaseAnalyzerUnit):
-    ESTIMATE = 0.5
+
+    terminal = True
+    ESTIMATE = 0.9
     EXTRA_GRAMMEMES = []
 
     def __init__(self, morph):
@@ -18,18 +20,18 @@ class _ShapeAnalyzer(BaseAnalyzerUnit):
         self.morph.TagClass.KNOWN_GRAMMEMES.update(self.EXTRA_GRAMMEMES)
 
     def parse(self, word, seen_parses):
-        shape = self._check_shape(word)
+        shape = self.check_shape(word)
         if not shape:
             return []
 
-        methods = ((self, ),)
-        return [(word, self._get_tag(word, shape), word, self.ESTIMATE, methods)]
+        methods = ((self, word),)
+        return [(word, self.get_tag(word, shape), word, self.ESTIMATE, methods)]
 
     def tag(self, word, seen_tags):
-        shape = self._check_shape(word)
+        shape = self.check_shape(word)
         if not shape:
             return []
-        return [self._get_tag(word, shape)]
+        return [self.get_tag(word, shape)]
 
     def get_lexeme(self, form):
         return [form]
@@ -38,51 +40,59 @@ class _ShapeAnalyzer(BaseAnalyzerUnit):
         return form
 
     # implement these 2 methods in a subclass:
-    def _check_shape(self, word):
+    def check_shape(self, word):
         raise NotImplementedError()
 
-    def _get_tag(self, word, shape):
+    def get_tag(self, word, shape):
         raise NotImplementedError()
 
 
+class _SingleShapeAnalyzer(_ShapeAnalyzer):
+    TAG_STR = None
 
-class PunctuationAnalyzer(_ShapeAnalyzer):
+    def __init__(self, morph):
+        assert self.TAG_STR is not None
+        self.EXTRA_GRAMMEMES = [self.TAG_STR]
+        super(_SingleShapeAnalyzer, self).__init__(morph)
+        self._tag = self.morph.TagClass(self.TAG_STR)
+
+    def get_tag(self, word, shape):
+        return self._tag
+
+
+class PunctuationAnalyzer(_SingleShapeAnalyzer):
     """
     This analyzer tags punctuation marks as "PNCT".
     Example: "," -> PNCT
     """
-    terminal = True
-    ESTIMATE = 0.9
-    EXTRA_GRAMMEMES = ['PNCT']
+    TAG_STR = 'PNCT'
 
-    def __init__(self, morph):
-        super(PunctuationAnalyzer, self).__init__(morph)
-        self._tag = self.morph.TagClass('PNCT')
-
-    def _get_tag(self, word, shape):
-        return self._tag
-
-    def _check_shape(self, word):
+    def check_shape(self, word):
         return is_punctuation(word)
 
 
-class LatinAnalyzer(_ShapeAnalyzer):
+class LatinAnalyzer(_SingleShapeAnalyzer):
     """
     This analyzer marks latin words with "LATN" tag.
     Example: "pdf" -> LATN
     """
-    terminal = True
-    ESTIMATE = 0.9
-    EXTRA_GRAMMEMES = ['LATN']
+    TAG_STR = 'LATN'
 
-    def __init__(self, morph):
-        super(LatinAnalyzer, self).__init__(morph)
-        self._tag = self.morph.TagClass('LATN')
-
-    def _get_tag(self, word, shape):
-        return self._tag
-
-    def _check_shape(self, word):
+    def check_shape(self, word):
         return is_latin(word)
 
 
+class NumberAnalyzer(_SingleShapeAnalyzer):
+    """
+    This analyzer marks numbers with "NUMB" tag.
+    Example: "12" -> NUMB
+
+    .. note::
+
+        Don't confuse it with "NUMR": "тридцать" -> NUMR
+
+    """
+    TAG_STR = 'NUMB'
+
+    def check_shape(self, word):
+        return word.isdigit()

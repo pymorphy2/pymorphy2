@@ -89,6 +89,7 @@ class MorphAnalyzer(object):
     DEFAULT_UNITS = [
         units.DictionaryAnalyzer,
 
+        units.NumberAnalyzer,
         units.PunctuationAnalyzer,
         units.LatinAnalyzer,
 
