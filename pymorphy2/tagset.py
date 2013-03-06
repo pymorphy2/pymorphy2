@@ -327,6 +327,9 @@ class OpencorporaTag(object):
         # it is faster and this method is heavily used by MorphAnalyzer.
         return not self._grammemes_tuple[0] in self._NON_PRODUCTIVE_CLASSES
 
+    def _is_unknown(self):
+        return self._grammemes_tuple[0] not in self.PARTS_OF_SPEECH
+
     @classmethod
     def grammeme_is_known(cls, grammeme):
         if not cls.KNOWN_GRAMMEMES:

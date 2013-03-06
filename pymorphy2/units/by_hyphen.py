@@ -104,6 +104,12 @@ class HyphenatedWordsAnalyzer(BaseAnalyzerUnit):
     terminal = True
     ESTIMATE_DECAY = 0.75
 
+    def __init__(self, morph):
+        super(HyphenatedWordsAnalyzer, self).__init__(morph)
+        Tag = morph.TagClass
+        self._FEATURE_GRAMMEMES = (Tag.PARTS_OF_SPEECH | Tag.NUMBERS |
+                                   Tag.CASES | Tag.PERSONS | Tag.TENSES)
+
     def parse(self, word, seen_parses):
         if not self._should_parse(word):
             return []
@@ -131,7 +137,7 @@ class HyphenatedWordsAnalyzer(BaseAnalyzerUnit):
 
         for fixed_word, tag, normal_form, estimate, right_methods in right_parses:
 
-            if tag.POS is None:
+            if tag._is_unknown():
                 continue
 
             new_methods_stack = ((self, left, right_methods),)
@@ -162,7 +168,7 @@ class HyphenatedWordsAnalyzer(BaseAnalyzerUnit):
 
             left_tag = left_parse[1]
 
-            if left_tag.POS is None:
+            if left_tag._is_unknown():
                 continue
 
             left_feat = self._similarity_features(left_tag)
@@ -192,6 +198,10 @@ class HyphenatedWordsAnalyzer(BaseAnalyzerUnit):
 
         return result
 
+    def _similarity_features(self, tag):
+        """ :type tag: pymorphy2.tagset.OpencorporaTag """
+        return tag.grammemes & self._FEATURE_GRAMMEMES
+
     def tag(self, word, seen_tags):
         result = []
         # TODO: do not use self.parse
@@ -200,6 +210,9 @@ class HyphenatedWordsAnalyzer(BaseAnalyzerUnit):
         return result
 
     def _should_parse(self, word):
+        if '-' not in word:
+            return False
+
         if word.strip('-').count('-') != 1:
             # require exactly 1 hyphen, in the middle of the word
             return False
@@ -290,11 +303,4 @@ class HyphenatedWordsAnalyzer(BaseAnalyzerUnit):
     @classmethod
     def _fixed_left_method_was_used(cls, left_methods):
         return not isinstance(left_methods, tuple)
-
-    @classmethod
-    def _similarity_features(cls, tag):
-        """
-        :type tag: pymorphy2.tagset.OpencorporaTag
-        """
-        return (tag.POS, tag.number, tag.case, tag.person, tag.tense)
 
