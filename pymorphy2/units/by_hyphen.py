@@ -131,6 +131,9 @@ class HyphenatedWordsAnalyzer(BaseAnalyzerUnit):
 
         for fixed_word, tag, normal_form, estimate, right_methods in right_parses:
 
+            if tag.POS is None:
+                continue
+
             new_methods_stack = ((self, left, right_methods),)
 
             parse = (
@@ -158,6 +161,10 @@ class HyphenatedWordsAnalyzer(BaseAnalyzerUnit):
         for left_parse in left_parses:
 
             left_tag = left_parse[1]
+
+            if left_tag.POS is None:
+                continue
+
             left_feat = self._similarity_features(left_tag)
 
             for parse_index, right_parse in enumerate(right_parses):
