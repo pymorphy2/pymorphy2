@@ -65,6 +65,11 @@ def test_first_inflected_value(word, grammemes, result):
     assert_first_inflected_variant(word, grammemes, result)
 
 
+def test_orel():
+    assert_first_inflected_variant('орел', ['gent'], 'орла')
+
+
+# TODO: see https://github.com/kmike/pymorphy2/issues/8
 @pytest.mark.xfail
 @with_test_data([
     # доп. падежи, fixme
@@ -76,8 +81,6 @@ def test_first_inflected_value(word, grammemes, result):
 def test_loc2(word, grammemes, result):
     assert_first_inflected_variant(word, grammemes, result)
 
-def test_orel():
-    assert_first_inflected_variant('орел', ['gent'], 'орла')
 
 @pytest.mark.xfail
 def test_best_guess():
