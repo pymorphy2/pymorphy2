@@ -1,0 +1,152 @@
+# -*- coding: utf-8 -*-
+from __future__ import absolute_import, unicode_literals, division
+import logging
+from .storage import load_dict
+
+logger = logging.getLogger(__name__)
+
+
+class Dictionary(object):
+    """
+    OpenCorpora dictionary wrapper class.
+    """
+
+    def __init__(self, path):
+
+        logger.info("Loading dictionaries from %s", path)
+
+        self._data = load_dict(path)
+
+        logger.info("format: %(format_version)s, revision: %(source_revision)s, updated: %(compiled_at)s", self._data.meta)
+
+        # attributes from opencorpora_dict.storage.LoadedDictionary
+        self.paradigms = self._data.paradigms
+        self.gramtab = self._data.gramtab
+        self.paradigm_prefixes = self._data.paradigm_prefixes
+        self.suffixes = self._data.suffixes
+        self.words = self._data.words
+        self.prediction_prefixes = self._data.prediction_prefixes
+        self.prediction_suffixes_dawgs = self._data.prediction_suffixes_dawgs
+        self.meta = self._data.meta
+        self.Tag = self._data.Tag
+
+        # extra attributes
+        self.path = path
+        self.ee = self.words.compile_replaces({'е': 'ё'})
+
+    def build_tag_info(self, para_id, idx):
+        """
+        Return tag as a string.
+        """
+        paradigm = self.paradigms[para_id]
+        tag_info_offset = len(paradigm) // 3
+        tag_id = paradigm[tag_info_offset + idx]
+        return self.gramtab[tag_id]
+
+
+    def build_paradigm_info(self, para_id):
+        """
+        Return a list of
+
+            (prefix, tag, suffix)
+
+        tuples representing the paradigm.
+        """
+        paradigm = self.paradigms[para_id]
+        paradigm_len = len(paradigm) // 3
+        res = []
+        for idx in range(paradigm_len):
+            prefix_id = paradigm[paradigm_len*2 + idx]
+            prefix = self.paradigm_prefixes[prefix_id]
+
+            suffix_id = paradigm[idx]
+            suffix = self.suffixes[suffix_id]
+
+            res.append(
+                (prefix, self.build_tag_info(para_id, idx), suffix)
+            )
+        return res
+
+
+    def build_normal_form(self, para_id, idx, fixed_word):
+        """
+        Build a normal form.
+        """
+
+        if idx == 0: # a shortcut: normal form is a word itself
+            return fixed_word
+
+        paradigm = self.paradigms[para_id]
+        paradigm_len = len(paradigm) // 3
+
+        stem = self.build_stem(paradigm, idx, fixed_word)
+
+        normal_prefix_id = paradigm[paradigm_len*2 + 0]
+        normal_suffix_id = paradigm[0]
+
+        normal_prefix = self.paradigm_prefixes[normal_prefix_id]
+        normal_suffix = self.suffixes[normal_suffix_id]
+
+        return normal_prefix + stem + normal_suffix
+
+
+    def build_stem(self, paradigm, idx, fixed_word):
+        """
+        Return word stem (given a word, paradigm and the word index).
+        """
+        paradigm_len = len(paradigm) // 3
+
+        prefix_id = paradigm[paradigm_len*2 + idx]
+        prefix = self.paradigm_prefixes[prefix_id]
+
+        suffix_id = paradigm[idx]
+        suffix = self.suffixes[suffix_id]
+
+        if suffix:
+            return fixed_word[len(prefix):-len(suffix)]
+        else:
+            return fixed_word[len(prefix):]
+
+
+    def word_is_known(self, word, strict_ee=False):
+        """
+        Check if a ``word`` is in the dictionary.
+        Pass ``strict_ee=True`` if ``word`` is guaranteed to
+        have correct е/ё letters.
+
+        .. note::
+
+            Dictionary words are not always correct words;
+            the dictionary also contains incorrect forms which
+            are commonly used. So for spellchecking tasks this
+            method should be used with extra care.
+
+        """
+        if strict_ee:
+            return word in self.words
+        else:
+            return bool(self.words.similar_keys(word, self.ee))
+
+
+    def iter_known_word_parses(self, prefix=""):
+        """
+        Return an iterator over parses of dictionary words that starts
+        with a given prefix (default empty prefix means "all words").
+        """
+
+        # XXX: This method is bad because it knows what 'parse' is,
+        # and it shouldn't.
+
+        for word, (para_id, idx) in self.words.iteritems(prefix):
+            tag = self.build_tag_info(para_id, idx)
+            normal_form = self.build_normal_form(para_id, idx, word)
+            parse = (word, tag, normal_form,
+                     para_id, idx, 1.0,
+                     ((self, word),))
+            yield parse
+
+
+    def __repr__(self):
+        return str("<%s>") % self.__class__.__name__
+
+

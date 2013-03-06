@@ -8,9 +8,20 @@ Morphological Analyzer
     :members:
     :undoc-members:
 
-.. automodule:: pymorphy2.predictors
+Analyzer units
+~~~~~~~~~~~~~~
+
+.. automodule:: pymorphy2.units.by_lookup
     :members:
-    :undoc-members:
+
+.. automodule:: pymorphy2.units.by_analogy
+    :members:
+
+.. automodule:: pymorphy2.units.by_hyphen
+    :members:
+
+.. automodule:: pymorphy2.units.by_shape
+    :members:
 
 Tagset
 ------
@@ -23,20 +34,17 @@ Command-Line Interface
 
 .. automodule:: pymorphy2.cli
 
-Low-level Utilities for OpenCorpora Dictionaries
-------------------------------------------------
+Utilities for OpenCorpora Dictionaries
+--------------------------------------
 
-.. automodule:: pymorphy2.opencorpora_dict.parse
-    :members:
-
-.. automodule:: pymorphy2.opencorpora_dict.compile
-    :members:
-
-.. automodule:: pymorphy2.opencorpora_dict.storage
+.. automodule:: pymorphy2.opencorpora_dict.wrapper
     :members:
 
 Various Utilities
 -----------------
+
+.. automodule:: pymorphy2.shapes
+    :members:
 
 .. automodule:: pymorphy2.utils
     :members:

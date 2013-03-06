@@ -2,7 +2,8 @@
 from __future__ import absolute_import, unicode_literals
 import pytest
 import pymorphy2
-from pymorphy2.predictors import UnknownPrefixPredictor, KnownPrefixPredictor
+from pymorphy2.units.by_analogy import UnknownPrefixAnalyzer, KnownPrefixAnalyzer
+from pymorphy2.units.by_hyphen import HyphenatedWordsAnalyzer
 
 from .utils import morph
 
@@ -82,10 +83,43 @@ PREDICTION_TEST_DATA = [
 
     ('кюди', ['кюдить', 'кюдь', 'кюди']), # и никаких "человек"
 
-    ("ей-то", ["она"]),
-    ("скажи-ка", ["сказать"]),
-    ('измохратился-таки', ['измохратиться']),
 ]
+
+HYPHEN_TEST_DATA = [
+    # particles
+    ("ей-то", "она-то", 'NPRO,femn,3per sing,datv'),
+    ("скажи-ка", "сказать-ка", "VERB,perf,tran sing,impr,excl"),
+    ('измохратился-таки', 'измохратиться-таки', "VERB,perf,intr masc,sing,past,indc"),
+
+    # compound words with immutable left
+    ('интернет-магазина', 'интернет-магазин', 'NOUN,inan,masc sing,gent'),
+    ('pdf-документов', 'pdf-документ', 'NOUN,inan,masc plur,gent'),
+    ('аммиачно-селитрового', 'аммиачно-селитровый', 'ADJF,Qual masc,sing,gent'),
+    ('быстро-быстро', 'быстро-быстро', 'ADVB'),
+
+    # compound words with mutable left
+    ('команд-участниц', 'команда-участница', 'NOUN,inan,femn plur,gent'),
+    ('бегает-прыгает', 'бегать-прыгать', 'VERB,impf,intr sing,3per,pres,indc'),
+    ('дул-надувался', 'дуть-надуваться', 'VERB,impf,tran masc,sing,past,indc'),
+
+    # ПО-
+    ('почтово-банковский', 'почтово-банковский', 'ADJF masc,sing,nomn'),
+    ('по-прежнему', 'по-прежнему', 'ADVB'),
+
+    # old bugs
+    ('поездов-экспрессов', 'поезд-экспресс', 'NOUN,inan,masc plur,gent'),
+    ('подростками-практикантами', 'подросток-практикант', 'NOUN,anim,masc plur,ablt'),
+    ('подводников-североморцев', 'подводник-североморец', 'NOUN,anim,masc plur,gent'),
+
+    # cities
+    ('санкт-петербурга', 'санкт-петербург', 'NOUN,inan,masc,Geox sing,gent'),
+    ('ростове-на-дону', 'ростов-на-дону', 'NOUN,inan,masc,Sgtm,Geox sing,loct'),
+]
+
+HYPHEN_TEST_DATA_XFAIL = [
+    ('по-воробьиному', 'по-воробьиному', 'ADVB'),
+]
+
 
 NON_PRODUCTIVE_BUGS_DATA = [
     ('бякобы', 'PRCL'),
@@ -94,14 +128,15 @@ NON_PRODUCTIVE_BUGS_DATA = [
     ('псевдоякобы', 'CONJ'),
 ]
 
+
 def with_test_data(data, second_param_name='parse_result'):
     return pytest.mark.parametrize(
         ("word", second_param_name),
         data
     )
 
-class TestNormalForms:
 
+class TestNormalForms:
     @with_test_data(TEST_DATA)
     def test_normal_forms(self, word, parse_result):
         assert morph.normal_forms(word) == parse_result
@@ -115,8 +150,31 @@ class TestNormalForms:
         assert morph.normal_forms(word) == parse_result
 
 
-class TestTagMethod:
+class TestTagAndParse:
+    """
+    This test checks if morph.tag produces the same results as morph.parse.
+    """
+    def assertTagAndParseAgree(self, word):
+        assert set(morph.tag(word)) == set(p.tag for p in morph.parse(word))
 
+    @with_test_data(TEST_DATA)
+    def test_basic(self, word, parse_result):
+        self.assertTagAndParseAgree(word)
+
+    @with_test_data(PREDICTION_TEST_DATA)
+    def test_prediction(self, word, parse_result):
+        self.assertTagAndParseAgree(word)
+
+    @with_test_data(PREFIX_PREDICTION_DATA)
+    def test_prefix_prediction(self, word, parse_result):
+        self.assertTagAndParseAgree(word)
+
+    @pytest.mark.parametrize(("word", "normal_form", "tag"), HYPHEN_TEST_DATA)
+    def test_hyphens(self, word, normal_form, tag):
+        self.assertTagAndParseAgree(word)
+
+
+class TestTagMethod:
     def _tagged_as(self, tags, cls):
         return any(tag.POS == cls for tag in tags)
 
@@ -124,26 +182,12 @@ class TestTagMethod:
         tags = morph.tag(word)
         assert not self._tagged_as(tags, cls), (tags, cls)
 
-    @with_test_data(TEST_DATA)
-    def test_tag_is_on_par_with_parse(self, word, parse_result): #parse_result is unused here
-        assert set(morph.tag(word)) == set(p.tag for p in morph.parse(word))
-
-
-    @with_test_data(PREDICTION_TEST_DATA)
-    def test_tag_is_on_par_with_parse__prediction(self, word, parse_result): #parse_result is unused here
-        assert set(morph.tag(word)) == set(p.tag for p in morph.parse(word))
-
-    @with_test_data(PREFIX_PREDICTION_DATA)
-    def test_tag_is_on_par_with_parse__prefix_prediction(self, word, parse_result): #parse_result is unused here
-        assert set(morph.tag(word)) == set(p.tag for p in morph.parse(word))
-
     @with_test_data(NON_PRODUCTIVE_BUGS_DATA, 'cls')
     def test_no_nonproductive_forms(self, word, cls):
         self.assertNotTaggedAs(word, cls)
 
 
 class TestParse:
-
     def _parsed_as(self, parse, cls):
         return any(p[1].POS==cls for p in parse)
 
@@ -172,16 +216,45 @@ class TestParse:
         assert self._parse_cls_first_index(parse, 'NOUN') < self._parse_cls_first_index(parse, 'ADVB')
 
 
-class TestTagWithPrefix:
+class TestHyphen:
+    def assertHasParse(self, word, normal_form, tag):
+        for p in morph.parse(word):
+            if p.normal_form == normal_form and str(p.tag) == tag:
+                return
 
+        assert False, morph.parse(word)
+
+    @pytest.mark.parametrize(("word", "normal_form", "tag"), HYPHEN_TEST_DATA)
+    def test_hyphenated_words(self, word, normal_form, tag):
+        self.assertHasParse(word, normal_form, tag)
+
+    @pytest.mark.xfail
+    @pytest.mark.parametrize(("word", "normal_form", "tag"), HYPHEN_TEST_DATA_XFAIL)
+    def test_hyphenated_words_xfail(self, word, normal_form, tag):
+        self.assertHasParse(word, normal_form, tag)
+
+    def test_no_hyphen_analyzer_for_known_prefixes(self):
+        # this word should be parsed by KnownPrefixAnalyzer
+        for p in morph.parse('мини-будильник'):
+            for meth in p.methods_stack:
+                analyzer = meth[0]
+                assert not isinstance(analyzer, HyphenatedWordsAnalyzer), p.methods_stack
+
+
+class TestTagWithPrefix:
     def test_tag_with_unknown_prefix(self):
         word = 'мегакот'
-        pred1 = UnknownPrefixPredictor(morph)
-        pred2 = KnownPrefixPredictor(morph)
+        pred1 = UnknownPrefixAnalyzer(morph)
+        pred2 = KnownPrefixAnalyzer(morph)
 
         parse1 = pred1.tag(word, set())
         parse2 = pred2.tag(word, set())
         assert parse1 == parse2
+
+    def test_longest_prefixes_are_used(self):
+        parses = morph.parse('недобарабаном')
+        assert len(parses) == 1
+        assert len(parses[0].methods_stack) == 2 # недо+барабаном, not не+до+барабаном
 
 
 class TestUtils:
@@ -197,7 +270,6 @@ class TestUtils:
 
 
 class TestParseResultClass:
-
     def assertNotTuples(self, parses):
         assert all(type(p) != tuple for p in parses)
 
@@ -206,11 +278,40 @@ class TestParseResultClass:
 
     def test_namedtuples(self):
         self.assertNotTuples(morph.parse('кот'))
-        self.assertNotTuples(morph.inflect('кот', set(['plur'])))
-        self.assertNotTuples(morph.decline('кот'))
+        # self.assertNotTuples(morph.inflect('кот', set(['plur'])))
+        # self.assertNotTuples(morph.decline('кот'))
 
     def test_plain_tuples(self):
         morph_plain = pymorphy2.MorphAnalyzer(result_type=None)
         self.assertAllTuples(morph_plain.parse('кот'))
-        self.assertAllTuples(morph_plain.inflect('кот', set(['plur'])))
-        self.assertAllTuples(morph_plain.decline('кот'))
+        # self.assertAllTuples(morph_plain.inflect('кот', set(['plur'])))
+        # self.assertAllTuples(morph_plain.decline('кот'))
+
+class TestLatinPredictor:
+    def test_tag(self):
+        tags = morph.tag('Maßstab')
+        assert len(tags) == 1
+        assert 'LATN' in tags[0]
+
+    def test_parse(self):
+        parses = morph.parse('Maßstab')
+        assert len(parses) == 1
+        assert 'LATN' in parses[0].tag
+
+    def test_lexeme(self):
+        p = morph.parse('Maßstab')[0]
+        assert p.lexeme == [p]
+
+    def test_normalized(self):
+        p = morph.parse('Maßstab')[0]
+        assert p.normalized == p
+
+    def test_normal_forms(self):
+        assert morph.normal_forms('Maßstab') == ['Maßstab']
+
+
+class TetsPunctuationPredictor:
+    def test_tag(self):
+        tags = morph.tag('…')
+        assert len(tags) == 1
+        assert 'PNCT' in tags[0]

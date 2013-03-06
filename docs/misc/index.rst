@@ -7,6 +7,6 @@
 .. toctree::
    :maxdepth: 2
 
-   CHANGES
+   changes
    api_reference
    2trie

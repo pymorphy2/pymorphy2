@@ -2,15 +2,15 @@
 from __future__ import absolute_import, unicode_literals
 import pytest
 
+import pymorphy2
 from pymorphy2.tagset import OpencorporaTag
 from .utils import morph
-
 Tag = morph.TagClass
 
 def test_hashing():
-    tag1 = OpencorporaTag('NOUN')
-    tag2 = OpencorporaTag('NOUN')
-    tag3 = OpencorporaTag('VERB')
+    tag1 = Tag('NOUN')
+    tag2 = Tag('NOUN')
+    tag3 = Tag('VERB')
 
     assert tag1 == tag2
     assert tag1 != tag3
@@ -24,21 +24,39 @@ def test_hashing():
         ['NOUN sing', 'NOUN'],
     ])
 def test_cls(tag, cls):
-    assert OpencorporaTag(tag).POS == cls
+    assert Tag(tag).POS == cls
 
 def test_repr():
-    assert repr(OpencorporaTag('NOUN anim,plur')) == "OpencorporaTag('NOUN anim,plur')"
+    assert repr(Tag('NOUN anim,plur')) == "OpencorporaTag('NOUN anim,plur')"
+
+def test_extra_grammemes():
+    m = pymorphy2.MorphAnalyzer()
+
+    assert m.TagClass.KNOWN_GRAMMEMES is not Tag.KNOWN_GRAMMEMES
+    assert m.TagClass.KNOWN_GRAMMEMES is not OpencorporaTag.KNOWN_GRAMMEMES
+
+    assert 'new_grammeme' not in Tag.KNOWN_GRAMMEMES
+    assert 'new_grammeme' not in m.TagClass.KNOWN_GRAMMEMES
+
+    m.TagClass.KNOWN_GRAMMEMES.add('new_grammeme')
+
+    new_tag = m.TagClass('NOUN,sing,new_grammeme')
+
+    assert 'new_grammeme' in new_tag
+    assert 'new_grammeme' in m.TagClass.KNOWN_GRAMMEMES
+    assert 'new_grammeme' not in OpencorporaTag.KNOWN_GRAMMEMES
+    assert 'new_grammeme' not in Tag.KNOWN_GRAMMEMES
 
 
 class TestUpdated:
 
     def test_number(self):
-        tag = OpencorporaTag('NOUN,sing,masc')
+        tag = Tag('NOUN,sing,masc')
         grammemes = tag.updated_grammemes(required=set(['plur']))
         assert grammemes == set(['NOUN', 'plur'])
 
     def test_order(self):
-        tag = OpencorporaTag('VERB,impf,tran sing,3per,pres,indc')
+        tag = Tag('VERB,impf,tran sing,3per,pres,indc')
         grammemes = tag.updated_grammemes(required=set(['1per']))
         assert grammemes == set('VERB,sing,impf,tran,1per,pres,indc'.split(','))
 
@@ -46,7 +64,7 @@ class TestUpdated:
 class TestAttributes:
 
     def test_attributes(self):
-        tag = OpencorporaTag('VERB,impf,tran sing,3per,pres,indc')
+        tag = Tag('VERB,impf,tran sing,3per,pres,indc')
         assert tag.POS == 'VERB'
         assert tag.gender is None
         assert tag.animacy is None
@@ -61,7 +79,7 @@ class TestAttributes:
         assert tag.involvement is None
 
     def test_attributes2(self):
-        tag = OpencorporaTag('NOUN,inan,masc plur,accs')
+        tag = Tag('NOUN,inan,masc plur,accs')
         assert tag.POS == 'NOUN'
         assert tag.gender == 'masc'
         assert tag.animacy == 'inan'
@@ -76,11 +94,11 @@ class TestAttributes:
         assert tag.involvement is None
 
     def test_attributes3(self):
-        tag = OpencorporaTag('PRTF,impf,tran,pres,pssv inan,masc,sing,accs')
+        tag = Tag('PRTF,impf,tran,pres,pssv inan,masc,sing,accs')
         assert tag.voice == 'pssv'
 
     def test_attributes4(self):
-        tag = OpencorporaTag('VERB,perf,tran plur,impr,excl')
+        tag = Tag('VERB,perf,tran plur,impr,excl')
         assert tag.involvement == 'excl'
 
     def test_attribute_exceptions(self):
@@ -103,7 +121,7 @@ class TestContains:
 
     def test_contains_correct(self):
         tag_text = 'VERB,perf,tran plur,impr,excl'
-        tag = OpencorporaTag(tag_text)
+        tag = Tag(tag_text)
         for grammeme in tag_text.replace(' ', ',').split(','):
             assert grammeme in tag
 

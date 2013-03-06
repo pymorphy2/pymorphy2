@@ -54,7 +54,7 @@ class _select_grammeme_from(object):
         return self.TypedGrammeme(res) if owner.typed_grammemes else res
 
 
-# Design notes: Tag objects should be immutable.
+# Design notes: Tag objects are immutable, but the tag class is mutable.
 class OpencorporaTag(object):
     """
     Wrapper class for OpenCorpora.org tags.
@@ -230,7 +230,7 @@ class OpencorporaTag(object):
 
     # Helper attributes for inflection/declension routines
     # ----------------------------------------------------
-    _NON_PRODUCTIVE_CLASSES = frozenset(['NUMR', 'NPRO', 'PRED', 'PREP',
+    _NON_PRODUCTIVE_CLASSES = set(['NUMR', 'NPRO', 'PRED', 'PREP',
                                    'CONJ', 'PRCL', 'INTJ'])
     _EXTRA_INCOMPATIBLE = { # XXX: is it a good idea to have these rules?
         'plur': set(['GNdr']),
@@ -239,7 +239,7 @@ class OpencorporaTag(object):
     }
     _GRAMMEME_INDICES = collections.defaultdict(lambda: 0)
     _GRAMMEME_INCOMPATIBLE = collections.defaultdict(set)
-    _KNOWN_GRAMMEMES = None
+    KNOWN_GRAMMEMES = set()
 
     def __init__(self, tag):
         self._str = tag
@@ -253,7 +253,10 @@ class OpencorporaTag(object):
         # - use byte strings for grammemes under Python 2.x;
         # - grammemes are interned.
         grammemes = tag.replace(' ', ',', 1).split(',')
-        self._grammemes_tuple = tuple([intern(str(g)) for g in grammemes])
+        grammemes_tuple = tuple([intern(str(g)) for g in grammemes])
+
+        self._assert_grammemes_are_known(set(grammemes_tuple))
+        self._grammemes_tuple = grammemes_tuple
         self._grammemes_cache = None
 
     @property
@@ -283,11 +286,7 @@ class OpencorporaTag(object):
         if isinstance(grammeme, (set, frozenset)):
             if grammeme <= self.grammemes:
                 return True
-
-            if not grammeme <= self._KNOWN_GRAMMEMES:
-                unknown = grammeme - self._KNOWN_GRAMMEMES
-                unknown_repr = ", ".join(["'%s'" % g for g in sorted(unknown)])
-                raise ValueError("Grammemes are unknown: {%s}" % unknown_repr)
+            self._assert_grammemes_are_known(grammeme)
             return False
 
         # 'NOUN' in tag
@@ -328,12 +327,22 @@ class OpencorporaTag(object):
         # it is faster and this method is heavily used by MorphAnalyzer.
         return not self._grammemes_tuple[0] in self._NON_PRODUCTIVE_CLASSES
 
+    def _is_unknown(self):
+        return self._grammemes_tuple[0] not in self.PARTS_OF_SPEECH
+
     @classmethod
     def grammeme_is_known(cls, grammeme):
-        if not cls._KNOWN_GRAMMEMES:
+        if not cls.KNOWN_GRAMMEMES:
             msg = "The class was not properly initialized."
             raise RuntimeError(msg)
-        return grammeme in cls._KNOWN_GRAMMEMES
+        return grammeme in cls.KNOWN_GRAMMEMES
+
+    @classmethod
+    def _assert_grammemes_are_known(cls, grammemes):
+        if not grammemes <= cls.KNOWN_GRAMMEMES:
+            unknown = grammemes - cls.KNOWN_GRAMMEMES
+            unknown_repr = ", ".join(["'%s'" % g for g in sorted(unknown)])
+            raise ValueError("Grammemes are unknown: {%s}" % unknown_repr)
 
     def updated_grammemes(self, required):
         """
@@ -362,7 +371,7 @@ class OpencorporaTag(object):
 
         """
         gr = dict((name, parent) for (name, parent, alias, description) in dict_grammemes)
-        cls._KNOWN_GRAMMEMES = frozenset(gr.keys())
+        cls.KNOWN_GRAMMEMES = set(gr.keys())
 
         # figure out parents & children
         children = collections.defaultdict(set)
