@@ -68,6 +68,9 @@ class HyphenSeparatedParticleAnalyzer(AnalogyAnalizerUnit):
         return result
 
     def possible_splits(self, word):
+        if '-' not in word:
+            return
+
         for particle in self.PARTICLES_AFTER_HYPHEN:
             if not word.endswith(particle):
                 continue
