@@ -79,7 +79,8 @@ class KnownPrefixAnalyzer(_PrefixAnalyzer):
 
     def possible_splits(self, word):
         word_prefixes = self.dict.prediction_prefixes.prefixes(word)
-        for prefix in sorted(word_prefixes, key=len, reverse=True):
+        word_prefixes.sort(key=len, reverse=True)
+        for prefix in word_prefixes:
             unprefixed_word = word[len(prefix):]
 
             if len(unprefixed_word) < self.MIN_REMINDER_LENGTH:
@@ -180,36 +181,35 @@ class KnownSuffixAnalyzer(AnalogyAnalizerUnit):
 
             for i in self._prediction_splits:
 
-                # XXX: word_end should be counted once, not for each prefix
-                word_end = word[-i:]
-                para_data = suffixes_dawg.similar_items(word_end, self.dict.ee)
+                # XXX: this should be counted once, not for each prefix
+                word_start, word_end = word[:-i], word[-i:]
 
+                para_data = suffixes_dawg.similar_items(word_end, self.dict.ee)
                 for fixed_suffix, parses in para_data:
+
+                    fixed_word = word_start + fixed_suffix
 
                     for cnt, para_id, idx in parses:
                         tag = self.dict.build_tag_info(para_id, idx)
 
+                        # skip non-productive tags
                         if not tag.is_productive():
                             continue
                         total_counts[prefix_id] += cnt
 
-                        this_method = (self, fixed_suffix)
-
-                        fixed_word = word[:-i] + fixed_suffix
-                        normal_form = self.dict.build_normal_form(para_id, idx, fixed_word)
-
-                        methods = (
-                            (self.fake_dict, fixed_word, para_id, idx),
-                            this_method,
-                        )
-
-                        parse = (cnt, fixed_word, tag, normal_form, prefix_id, methods)
+                        # avoid duplicate parses
                         reduced_parse = fixed_word, tag, para_id
-
                         if reduced_parse in seen_parses:
                             continue
                         seen_parses.add(reduced_parse)
 
+                        # ok, build the result
+                        normal_form = self.dict.build_normal_form(para_id, idx, fixed_word)
+                        methods = (
+                            (self.fake_dict, fixed_word, para_id, idx),
+                            (self, fixed_suffix),
+                        )
+                        parse = (cnt, fixed_word, tag, normal_form, prefix_id, methods)
                         result.append(parse)
 
                 if total_counts[prefix_id] > 1:

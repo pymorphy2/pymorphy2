@@ -40,8 +40,7 @@ class DictionaryAnalyzer(BaseAnalyzerUnit):
                 tag = self.dict.build_tag_info(para_id, idx)
                 method = ((self, fixed_word, para_id, idx),)
 
-                parse = (fixed_word, tag, normal_form, 1.0, method)
-                res.append(parse)
+                res.append((fixed_word, tag, normal_form, 1.0, method))
 
         return res
 
