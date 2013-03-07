@@ -123,7 +123,7 @@ class OpencorporaTag(object):
 
     """
 
-    __slots__ = ['_grammemes_tuple', '_grammemes_cache', '_str']
+    __slots__ = ['_grammemes_tuple', '_grammemes_cache', '_str', '_POS']
 
     # Grammeme categories
     # (see http://opencorpora.org/dict.php?act=gram for a full set)
@@ -257,6 +257,7 @@ class OpencorporaTag(object):
 
         self._assert_grammemes_are_known(set(grammemes_tuple))
         self._grammemes_tuple = grammemes_tuple
+        self._POS = self._grammemes_tuple[0]
         self._grammemes_cache = None
 
     @property
@@ -323,12 +324,10 @@ class OpencorporaTag(object):
 
 
     def is_productive(self):
-        # We use `self._grammemes_tuple[0]` instead of `self.POS` here because
-        # it is faster and this method is heavily used by MorphAnalyzer.
-        return not self._grammemes_tuple[0] in self._NON_PRODUCTIVE_CLASSES
+        return not self._POS in self._NON_PRODUCTIVE_CLASSES
 
     def _is_unknown(self):
-        return self._grammemes_tuple[0] not in self.PARTS_OF_SPEECH
+        return self._POS not in self.PARTS_OF_SPEECH
 
     @classmethod
     def grammeme_is_known(cls, grammeme):

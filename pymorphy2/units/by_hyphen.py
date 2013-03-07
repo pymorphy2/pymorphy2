@@ -306,4 +306,3 @@ class HyphenatedWordsAnalyzer(BaseAnalyzerUnit):
     @classmethod
     def _fixed_left_method_was_used(cls, left_methods):
         return not isinstance(left_methods, tuple)
-
