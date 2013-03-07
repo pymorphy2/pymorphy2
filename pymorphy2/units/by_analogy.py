@@ -51,7 +51,7 @@ class KnownPrefixAnalyzer(_PrefixAnalyzer):
             method = (self, prefix)
 
             parses = self.morph.parse(unprefixed_word)
-            for fixed_word, tag, normal_form, estimate, methods_stack in parses:
+            for fixed_word, tag, estimate, methods_stack in parses:
 
                 if not tag.is_productive():
                     continue
@@ -59,7 +59,6 @@ class KnownPrefixAnalyzer(_PrefixAnalyzer):
                 parse = (
                     prefix + fixed_word,
                     tag,
-                    prefix + normal_form,
                     estimate * self.ESTIMATE_DECAY,
                     methods_stack + (method,)
                 )
@@ -112,7 +111,7 @@ class UnknownPrefixAnalyzer(_PrefixAnalyzer):
             method = (self, prefix)
 
             parses = self.dict_analyzer.parse(unprefixed_word, seen_parses)
-            for fixed_word, tag, normal_form, estimate, methods_stack in parses:
+            for fixed_word, tag, estimate, methods_stack in parses:
 
                 if not tag.is_productive():
                     continue
@@ -120,7 +119,6 @@ class UnknownPrefixAnalyzer(_PrefixAnalyzer):
                 parse = (
                     prefix+fixed_word,
                     tag,
-                    prefix+normal_form,
                     estimate*self.ESTIMATE_DECAY,
                     methods_stack+(method,)
                 )
@@ -204,22 +202,21 @@ class KnownSuffixAnalyzer(AnalogyAnalizerUnit):
                         seen_parses.add(reduced_parse)
 
                         # ok, build the result
-                        normal_form = self.dict.build_normal_form(para_id, idx, fixed_word)
                         methods = (
                             (self.fake_dict, fixed_word, para_id, idx),
                             (self, fixed_suffix),
                         )
-                        parse = (cnt, fixed_word, tag, normal_form, prefix_id, methods)
+                        parse = (cnt, fixed_word, tag, prefix_id, methods)
                         result.append(parse)
 
                 if total_counts[prefix_id] > 1:
                     break
 
         result = [
-            (fixed_word, tag, normal_form, cnt/total_counts[prefix_id] * self.ESTIMATE_DECAY, methods_stack)
-            for (cnt, fixed_word, tag, normal_form, prefix_id, methods_stack) in result
+            (fixed_word, tag, cnt/total_counts[prefix_id] * self.ESTIMATE_DECAY, methods_stack)
+            for (cnt, fixed_word, tag, prefix_id, methods_stack) in result
         ]
-        result.sort(key=operator.itemgetter(3), reverse=True)
+        result.sort(key=operator.itemgetter(2), reverse=True)
         return result
 
 

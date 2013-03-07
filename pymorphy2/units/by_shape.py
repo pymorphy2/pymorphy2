@@ -25,7 +25,7 @@ class _ShapeAnalyzer(BaseAnalyzerUnit):
             return []
 
         methods = ((self, word),)
-        return [(word, self.get_tag(word, shape), word, self.ESTIMATE, methods)]
+        return [(word, self.get_tag(word, shape), self.ESTIMATE, methods)]
 
     def tag(self, word, seen_tags):
         shape = self.check_shape(word)

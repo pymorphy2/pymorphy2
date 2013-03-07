@@ -24,23 +24,14 @@ class DictionaryAnalyzer(BaseAnalyzerUnit):
         Parse a word using this dictionary.
         """
         res = []
-        para_normal_forms = {}
         para_data = self.dict.words.similar_items(word, self.dict.ee)
 
         for fixed_word, parses in para_data:
             # `fixed_word` is a word with proper ё letters
-
             for para_id, idx in parses:
-                if para_id not in para_normal_forms:
-                    normal_form = self.dict.build_normal_form(para_id, idx, fixed_word)
-                    para_normal_forms[para_id] = normal_form
-                else:
-                    normal_form = para_normal_forms[para_id]
-
                 tag = self.dict.build_tag_info(para_id, idx)
                 method = ((self, fixed_word, para_id, idx),)
-
-                res.append((fixed_word, tag, normal_form, 1.0, method))
+                res.append((fixed_word, tag, 1.0, method))
 
         return res
 
@@ -71,7 +62,7 @@ class DictionaryAnalyzer(BaseAnalyzerUnit):
         """
         Return a lexeme (given a parsed word).
         """
-        fixed_word, tag, normal_form, estimate, methods_stack = form
+        fixed_word, tag, estimate, methods_stack = form
         _, para_id, idx = self._extract_para_info(methods_stack)
 
         _para = self.dict.paradigms[para_id]
@@ -83,22 +74,24 @@ class DictionaryAnalyzer(BaseAnalyzerUnit):
         for index, (_prefix, _tag, _suffix) in enumerate(paradigm):
             word = _prefix + stem + _suffix
             new_methods_stack = self._fix_stack(methods_stack, word, para_id, index)
-            parse = (word, _tag, normal_form, estimate, new_methods_stack)
+            parse = (word, _tag, estimate, new_methods_stack)
             result.append(parse)
 
         return result
 
     def normalized(self, form):
-        fixed_word, tag, normal_form, estimate, methods_stack = form
+        fixed_word, tag, estimate, methods_stack = form
         original_word, para_id, idx = self._extract_para_info(methods_stack)
 
         if idx == 0:
             return form
 
+        normal_form = self.dict.build_normal_form(para_id, idx, fixed_word)
         tag = self.dict.build_tag_info(para_id, 0)
+
         new_methods_stack = self._fix_stack(methods_stack, normal_form, para_id, 0)
 
-        return (normal_form, tag, normal_form, estimate, new_methods_stack)
+        return (normal_form, tag, estimate, new_methods_stack)
 
     def _extract_para_info(self, methods_stack):
         # This method assumes that DictionaryAnalyzer is the first

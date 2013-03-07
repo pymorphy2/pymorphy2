@@ -41,11 +41,10 @@ class HyphenSeparatedParticleAnalyzer(AnalogyAnalizerUnit):
         for unsuffixed_word, particle in self.possible_splits(word):
             method = (self, particle)
 
-            for fixed_word, tag, normal_form, estimate, methods_stack in self.morph.parse(unsuffixed_word):
+            for fixed_word, tag, estimate, methods_stack in self.morph.parse(unsuffixed_word):
                 parse = (
                     fixed_word+particle,
                     tag,
-                    normal_form+particle,
                     estimate*self.ESTIMATE_DECAY,
                     methods_stack+(method,)
                 )
@@ -138,7 +137,7 @@ class HyphenatedWordsAnalyzer(BaseAnalyzerUnit):
         """
         result = []
 
-        for fixed_word, tag, normal_form, estimate, right_methods in right_parses:
+        for fixed_word, tag, estimate, right_methods in right_parses:
 
             if tag._is_unknown():
                 continue
@@ -148,7 +147,6 @@ class HyphenatedWordsAnalyzer(BaseAnalyzerUnit):
             parse = (
                 '-'.join((left, fixed_word)),
                 tag,
-                '-'.join((left, normal_form)),
                 estimate * self.ESTIMATE_DECAY,
                 new_methods_stack
             )
@@ -183,8 +181,8 @@ class HyphenatedWordsAnalyzer(BaseAnalyzerUnit):
                 if left_feat != right_feat:
                     continue
 
-                left_methods = left_parse[4]
-                right_methods = right_parse[4]
+                left_methods = left_parse[3]
+                right_methods = right_parse[3]
 
                 new_methods_stack = ((self, left_methods, right_methods),)
 
@@ -192,8 +190,7 @@ class HyphenatedWordsAnalyzer(BaseAnalyzerUnit):
                 parse = (
                     '-'.join((left_parse[0], right_parse[0])),  # word
                     left_tag,
-                    '-'.join((left_parse[2], right_parse[2])),  # normal form
-                    left_parse[3] * self.ESTIMATE_DECAY,
+                    left_parse[2] * self.ESTIMATE_DECAY,
                     new_methods_stack
                 )
                 result.append(parse)
@@ -227,10 +224,13 @@ class HyphenatedWordsAnalyzer(BaseAnalyzerUnit):
         return True
 
     def normalized(self, form):
-        return self.get_lexeme(form)[0]
+        return next(self._get_lexeme(form))
 
     def get_lexeme(self, form):
-        methods_stack = form[4]
+        return list(self._get_lexeme(form))
+
+    def _get_lexeme(self, form):
+        methods_stack = form[3]
         assert len(methods_stack) == 1
 
         this_method, left_methods, right_methods = methods_stack[0]
@@ -249,13 +249,13 @@ class HyphenatedWordsAnalyzer(BaseAnalyzerUnit):
             base_analyzer = right_methods[-1][0]
 
             lexeme = base_analyzer.get_lexeme(right_form)
-            return [
+            return (
                 replace_methods_stack(
                     with_prefix(f, prefix),
-                    ((this_method, left_methods, f[4]),)
+                    ((this_method, left_methods, f[3]),)
                 )
                 for f in lexeme
-            ]
+            )
 
         else:
             # Form is obtained by parsing both parts.
@@ -272,7 +272,7 @@ class HyphenatedWordsAnalyzer(BaseAnalyzerUnit):
             left_lexeme = left_methods[-1][0].get_lexeme(left_form)
             right_lexeme = right_methods[-1][0].get_lexeme(right_form)
 
-            return list(self._merge_lexemes(left_lexeme, right_lexeme))
+            return self._merge_lexemes(left_lexeme, right_lexeme)
 
     def _merge_lexemes(self, left_lexeme, right_lexeme):
 
@@ -284,23 +284,20 @@ class HyphenatedWordsAnalyzer(BaseAnalyzerUnit):
         for left, right in zip(left_lexeme, right_lexeme):
             word = '-'.join((left[0], right[0]))
             tag = left[1] # tag is from the left part?
-            normal_form = '-'.join((left[2], right[2]))
-            estimate = (left[3] + right[3])/2 # is average OK?
-            method_stack = ((self, left[4], right[4]), )
+            estimate = (left[2] + right[2])/2 # is average OK?
+            method_stack = ((self, left[3], right[3]), )
 
-            yield (word, tag, normal_form, estimate, method_stack)
+            yield (word, tag, estimate, method_stack)
 
     @classmethod
     def _without_right_part(cls, form):
-        word, tag, normal_form, estimate, methods_stack = form
-        return (word[:word.index('-')], tag, normal_form[:normal_form.index('-')],
-                estimate, methods_stack)
+        word, tag, estimate, methods_stack = form
+        return (word[:word.index('-')], tag, estimate, methods_stack)
 
     @classmethod
     def _without_left_part(cls, form):
-        word, tag, normal_form, estimate, methods_stack = form
-        return (word[word.index('-')+1:], tag, normal_form[normal_form.index('-')+1:],
-                estimate, methods_stack)
+        word, tag, estimate, methods_stack = form
+        return (word[word.index('-')+1:], tag, estimate, methods_stack)
 
 
     @classmethod

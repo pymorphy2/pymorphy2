@@ -69,7 +69,7 @@ class AnalogyAnalizerUnit(BaseAnalyzerUnit):
         yield lexeme
 
     def _method_info(self, form):
-        methods_stack = form[4]
+        methods_stack = form[3]
         base_method, this_method = methods_stack[-2:]
         base_analyzer = base_method[0]
         return base_analyzer, this_method

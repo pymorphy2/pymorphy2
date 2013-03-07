@@ -10,7 +10,7 @@ from pymorphy2 import units
 
 logger = logging.getLogger(__name__)
 
-_Parse = collections.namedtuple('Parse', 'word, tag, normal_form, estimate, methods_stack')
+_Parse = collections.namedtuple('Parse', 'word, tag, estimate, methods_stack')
 
 class Parse(_Parse):
     """
@@ -22,6 +22,7 @@ class Parse(_Parse):
 
     _dict = None
     """ :type _dict: pymorphy2.opencorpora_dict.Dictionary """
+
 
     def inflect(self, required_grammemes):
         res = self._morph._inflect(self, required_grammemes)
@@ -43,6 +44,10 @@ class Parse(_Parse):
         """ A :class:`Parse` instance for :attr:`self.normal_form`. """
         last_method = self.methods_stack[-1]
         return self.__class__(*last_method[0].normalized(self))
+
+    @property
+    def normal_form(self):
+        return self.normalized.word
 
     # @property
     # def paradigm(self):
@@ -179,7 +184,6 @@ class MorphAnalyzer(object):
 
         return res
 
-
     def normal_forms(self, word):
         """
         Return a list of word normal forms.
@@ -187,7 +191,7 @@ class MorphAnalyzer(object):
         seen = set()
         result = []
         for p in self.parse(word):
-            normal_form = p[2]
+            normal_form = p.normal_form # [2]  # FIXME!
             if normal_form not in seen:
                 result.append(normal_form)
                 seen.add(normal_form)
@@ -199,7 +203,7 @@ class MorphAnalyzer(object):
         """
         Return the lexeme this parse belongs to.
         """
-        methods_stack = form[4]
+        methods_stack = form[3]
         last_method = methods_stack[-1]
         result = last_method[0].get_lexeme(form)
 
