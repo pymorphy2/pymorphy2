@@ -19,13 +19,13 @@ class DictionaryAnalyzer(BaseAnalyzerUnit):
 
     terminal = True
 
-    def parse(self, word, seen_parses):
+    def parse(self, word, word_lower, seen_parses):
         """
         Parse a word using this dictionary.
         """
         res = []
         para_normal_forms = {}
-        para_data = self.dict.words.similar_items(word, self.dict.ee)
+        para_data = self.dict.words.similar_items(word_lower, self.dict.ee)
 
         for fixed_word, parses in para_data:
             # `fixed_word` is a word with proper ё letters
@@ -44,11 +44,11 @@ class DictionaryAnalyzer(BaseAnalyzerUnit):
 
         return res
 
-    def tag(self, word, seen_tags):
+    def tag(self, word, word_lower, seen_tags):
         """
         Tag a word using this dictionary.
         """
-        para_data = self.dict.words.similar_item_values(word, self.dict.ee)
+        para_data = self.dict.words.similar_item_values(word_lower, self.dict.ee)
 
         # avoid extra attribute lookups
         paradigms = self.dict.paradigms

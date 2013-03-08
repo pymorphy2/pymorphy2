@@ -35,10 +35,10 @@ class HyphenSeparatedParticleAnalyzer(AnalogyAnalizerUnit):
         "-то", "-ка", "-таки", "-де", "-тко", "-тка", "-с", "-ста"
     ]
 
-    def parse(self, word, seen_parses):
+    def parse(self, word, word_lower, seen_parses):
 
         result = []
-        for unsuffixed_word, particle in self.possible_splits(word):
+        for unsuffixed_word, particle in self.possible_splits(word_lower):
             method = (self, particle)
 
             for fixed_word, tag, normal_form, estimate, methods_stack in self.morph.parse(unsuffixed_word):
@@ -57,9 +57,9 @@ class HyphenSeparatedParticleAnalyzer(AnalogyAnalizerUnit):
 
         return result
 
-    def tag(self, word, seen_tags):
+    def tag(self, word, word_lower, seen_tags):
         result = []
-        for unsuffixed_word, particle in self.possible_splits(word):
+        for unsuffixed_word, particle in self.possible_splits(word_lower):
             result.extend(self.morph.tag(unsuffixed_word))
             # If a word ends with with one of the particles,
             # it can't ends with an another.
@@ -105,20 +105,20 @@ class HyphenAdverbAnalyzer(BaseAnalyzerUnit):
         super(HyphenAdverbAnalyzer, self).__init__(morph)
         self._tag = self.morph.TagClass('ADVB')
 
-    def parse(self, word, seen_parses):
-        if not self.should_parse(word):
+    def parse(self, word, word_lower, seen_parses):
+        if not self.should_parse(word_lower):
             return []
 
         parse = (
-            word, self._tag, word,
+            word_lower, self._tag, word_lower,
             self.ESTIMATE_DECAY,
             ((self, word),)
         )
         seen_parses.add(parse)
         return [parse]
 
-    def tag(self, word, seen_tags):
-        if not self.should_parse(word) or self._tag in seen_tags:
+    def tag(self, word, word_lower, seen_tags):
+        if not self.should_parse(word_lower) or self._tag in seen_tags:
             return []
 
         seen_tags.add(self._tag)
@@ -166,11 +166,11 @@ class HyphenatedWordsAnalyzer(BaseAnalyzerUnit):
         self._FEATURE_GRAMMEMES = (Tag.PARTS_OF_SPEECH | Tag.NUMBERS |
                                    Tag.CASES | Tag.PERSONS | Tag.TENSES)
 
-    def parse(self, word, seen_parses):
-        if not self._should_parse(word):
+    def parse(self, word, word_lower, seen_parses):
+        if not self._should_parse(word_lower):
             return []
 
-        left, right = word.split('-')
+        left, right = word_lower.split('-')
         left_parses = self.morph.parse(left)
         right_parses = self.morph.parse(right)
 
@@ -261,10 +261,10 @@ class HyphenatedWordsAnalyzer(BaseAnalyzerUnit):
             {'gen1': 'gent', 'loc1': 'loct'}
         )
 
-    def tag(self, word, seen_tags):
+    def tag(self, word, word_lower, seen_tags):
         result = []
         # TODO: do not use self.parse
-        for p in self.parse(word, set()):
+        for p in self.parse(word, word_lower, set()):
             add_tag_if_not_seen(p[1], result, seen_tags)
         return result
 

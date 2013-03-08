@@ -7,6 +7,8 @@ from pymorphy2.units.by_hyphen import HyphenatedWordsAnalyzer
 
 from .utils import morph
 
+# TODO: move most of tests to test_parsing
+
 TEST_DATA = [
     ('кошка', ['кошка']),
     ('кошке', ['кошка']),
@@ -191,8 +193,8 @@ class TestTagWithPrefix:
         pred1 = UnknownPrefixAnalyzer(morph)
         pred2 = KnownPrefixAnalyzer(morph)
 
-        parse1 = pred1.tag(word, set())
-        parse2 = pred2.tag(word, set())
+        parse1 = pred1.tag(word, word.lower(), set())
+        parse2 = pred2.tag(word, word.lower(), set())
         assert parse1 == parse2
 
     def test_longest_prefixes_are_used(self):
@@ -234,9 +236,7 @@ class TestParseResultClass:
 
 class TestLatinPredictor:
     def test_tag(self):
-        tags = morph.tag('Maßstab')
-        assert len(tags) == 1
-        assert 'LATN' in tags[0]
+        assert morph.tag('Maßstab') == [morph.TagClass('LATN')]
 
     def test_parse(self):
         parses = morph.parse('Maßstab')
@@ -252,11 +252,9 @@ class TestLatinPredictor:
         assert p.normalized == p
 
     def test_normal_forms(self):
-        assert morph.normal_forms('Maßstab') == ['Maßstab']
+        assert morph.normal_forms('Maßstab') == ['maßstab']
 
 
 class TetsPunctuationPredictor:
     def test_tag(self):
-        tags = morph.tag('…')
-        assert len(tags) == 1
-        assert 'PNCT' in tags[0]
+        assert morph.tag('…') == [morph.TagClass('PNCT')]

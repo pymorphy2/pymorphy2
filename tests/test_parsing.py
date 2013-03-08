@@ -7,12 +7,27 @@ from .utils import morph
 # Lines that starts with "#" and blank lines are skipped;
 # TODO: lines that starts with "XFAIL" excludes the next line from testing.
 PARSES = """
-# ========= particle after a hyphen:
+# ========= nouns
+кошка       кошка       NOUN,inan,femn sing,nomn
+
+# ========= adjectives
+хорошему            хороший     ADJF,Qual masc,sing,datv
+лучший              хороший     ADJF,Supr,Qual masc,sing,nomn
+наиневероятнейший   вероятный   ADJF,Supr,Qual masc,sing,nomn
+наистарейший        старый      ADJF,Supr,Qual masc,sing,nomn
+
+# ========= е/ё
+котенок     котёнок     NOUN,anim,masc sing,nomn
+котёнок     котёнок     NOUN,anim,masc sing,nomn
+озера       озеро       NOUN,inan,neut sing,gent
+озера       озеро       NOUN,inan,neut plur,nomn
+
+# ========= particle after a hyphen
 ей-то               она-то              NPRO,femn,3per sing,datv
 скажи-ка            сказать-ка          VERB,perf,tran sing,impr,excl
 измохратился-таки   измохратиться-таки  VERB,perf,intr masc,sing,past,indc
 
-# ========= compound words with hyphen and immutable left:
+# ========= compound words with hyphen and immutable left
 интернет-магазина       интернет-магазин    NOUN,inan,masc sing,gent
 pdf-документов          pdf-документ        NOUN,inan,masc plur,gent
 аммиачно-селитрового    аммиачно-селитровый ADJF,Qual masc,sing,gent
@@ -36,21 +51,39 @@ pdf-документов          pdf-документ        NOUN,inan,masc plu
 санкт-петербурга    санкт-петербург     NOUN,inan,masc,Geox sing,gent
 ростове-на-дону     ростов-на-дону      NOUN,inan,masc,Sgtm,Geox sing,loct
 
-# ========= non-dictionary adverbs:
+# ========= non-dictionary adverbs
 по-западному        по-западному        ADVB
 по-театральному     по-театральному     ADVB
 по-воробьиному      по-воробьиному      ADVB
 
+# ====================== non-words
+.       .       PNCT
+,       ,       PNCT
+...     ...     PNCT
+?!      ?!      PNCT
+-       -       PNCT
+…       …       PNCT
+
+123     123     NUMB
+0       0       NUMB
+
+# ========= LATN
+Foo     foo     LATN
+
+
 """.splitlines()
 
 PARSES = [l.split(None, 2) for l in PARSES if l.strip() and not l.startswith("#")]
+PARSES_UPPER = [(w.upper(), norm, tag) for (w, norm, tag) in PARSES]
+PARSES_TITLE = [(w.title(), norm, tag) for (w, norm, tag) in PARSES]
+
 
 def run_for_all(parses):
     return pytest.mark.parametrize(("word", "normal_form", "tag"), parses)
 
 # ====== Tests:
 
-@run_for_all(PARSES)
+@run_for_all(PARSES + PARSES_TITLE + PARSES_UPPER)
 def test_has_parse(word, normal_form, tag):
     """
     Check if one of the word parses has normal form ``normal_form``
@@ -63,7 +96,7 @@ def test_has_parse(word, normal_form, tag):
     assert False, morph.parse(word)
 
 
-@run_for_all(PARSES)
+@run_for_all(PARSES + PARSES_TITLE + PARSES_UPPER)
 def test_tag_produces_the_same_as_parse(word, normal_form, tag):
     """
     Check if morph.tag produces the same results as morph.parse.

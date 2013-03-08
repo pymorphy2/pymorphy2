@@ -48,7 +48,3 @@ Various Utilities
 
 .. automodule:: pymorphy2.utils
     :members:
-
-.. automodule:: pymorphy2.dawg
-    :members:
-

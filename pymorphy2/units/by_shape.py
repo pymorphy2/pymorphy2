@@ -19,16 +19,16 @@ class _ShapeAnalyzer(BaseAnalyzerUnit):
         super(_ShapeAnalyzer, self).__init__(morph)
         self.morph.TagClass.KNOWN_GRAMMEMES.update(self.EXTRA_GRAMMEMES)
 
-    def parse(self, word, seen_parses):
-        shape = self.check_shape(word)
+    def parse(self, word, word_lower, seen_parses):
+        shape = self.check_shape(word, word_lower)
         if not shape:
             return []
 
         methods = ((self, word),)
-        return [(word, self.get_tag(word, shape), word, self.ESTIMATE, methods)]
+        return [(word_lower, self.get_tag(word, shape), word_lower, self.ESTIMATE, methods)]
 
-    def tag(self, word, seen_tags):
-        shape = self.check_shape(word)
+    def tag(self, word, word_lower, seen_tags):
+        shape = self.check_shape(word, word_lower)
         if not shape:
             return []
         return [self.get_tag(word, shape)]
@@ -40,7 +40,7 @@ class _ShapeAnalyzer(BaseAnalyzerUnit):
         return form
 
     # implement these 2 methods in a subclass:
-    def check_shape(self, word):
+    def check_shape(self, word, word_lower):
         raise NotImplementedError()
 
     def get_tag(self, word, shape):
@@ -67,7 +67,7 @@ class PunctuationAnalyzer(_SingleShapeAnalyzer):
     """
     TAG_STR = 'PNCT'
 
-    def check_shape(self, word):
+    def check_shape(self, word, word_lower):
         return is_punctuation(word)
 
 
@@ -78,7 +78,7 @@ class LatinAnalyzer(_SingleShapeAnalyzer):
     """
     TAG_STR = 'LATN'
 
-    def check_shape(self, word):
+    def check_shape(self, word, word_lower):
         return is_latin(word)
 
 
@@ -94,5 +94,5 @@ class NumberAnalyzer(_SingleShapeAnalyzer):
     """
     TAG_STR = 'NUMB'
 
-    def check_shape(self, word):
+    def check_shape(self, word, word_lower):
         return word.isdigit()

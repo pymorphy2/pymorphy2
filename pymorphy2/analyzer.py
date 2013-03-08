@@ -155,9 +155,10 @@ class MorphAnalyzer(object):
         """
         res = []
         seen = set()
+        word_lower = word.lower()
 
         for analyzer in self._units:
-            res.extend(analyzer.parse(word, seen))
+            res.extend(analyzer.parse(word, word_lower, seen))
 
             if res and analyzer.terminal:
                 break
@@ -171,9 +172,10 @@ class MorphAnalyzer(object):
     def tag(self, word):
         res = []
         seen = set()
+        word_lower = word.lower()
 
         for analyzer in self._units:
-            res.extend(analyzer.tag(word, seen))
+            res.extend(analyzer.tag(word, word_lower, seen))
 
             if res and analyzer.terminal:
                 break
@@ -187,6 +189,7 @@ class MorphAnalyzer(object):
         """
         seen = set()
         result = []
+
         for p in self.parse(word):
             normal_form = p[2]
             if normal_form not in seen:

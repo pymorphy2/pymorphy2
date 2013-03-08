@@ -15,10 +15,10 @@ class BaseAnalyzerUnit(object):
         self.morph = morph
         self.dict = morph.dictionary
 
-    def parse(self, word, seen_parses):
+    def parse(self, word, word_lower, seen_parses):
         raise NotImplementedError()
 
-    def tag(self, word, seen_tags):
+    def tag(self, word, word_lower, seen_tags):
         raise NotImplementedError()
 
     def __repr__(self):

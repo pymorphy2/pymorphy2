@@ -70,16 +70,16 @@ pymorphy2 - морфологический анализатор для русс�
 :class:`MorphAnalyzer` заранее и работать с этим единственным экземпляром
 в дальнейшем.
 
-Метод :meth:`MorphAnalyzer.parse` принимает слово
-(обязательно в нижнем регистре) и возвращает все возможные разборы слова:
+Метод :meth:`MorphAnalyzer.parse` принимает слово и возвращает
+все возможные разборы слова:
 
     >>> morph.parse('стали')
-    [Parse(word='стали', tag=OpencorporaTag('VERB,perf,intr plur,past,indc'), normal_form='стать', para_id=879, idx=4, estimate=1.0),
-     Parse(word='стали', tag=OpencorporaTag('NOUN,inan,femn sing,gent'), normal_form='сталь', para_id=12, idx=1, estimate=1.0),
-     Parse(word='стали', tag=OpencorporaTag('NOUN,inan,femn sing,datv'), normal_form='сталь', para_id=12, idx=2, estimate=1.0),
-     Parse(word='стали', tag=OpencorporaTag('NOUN,inan,femn sing,loct'), normal_form='сталь', para_id=12, idx=5, estimate=1.0),
-     Parse(word='стали', tag=OpencorporaTag('NOUN,inan,femn plur,nomn'), normal_form='сталь', para_id=12, idx=6, estimate=1.0),
-     Parse(word='стали', tag=OpencorporaTag('NOUN,inan,femn plur,accs'), normal_form='сталь', para_id=12, idx=9, estimate=1.0)]
+    [Parse(word='стали', tag=OpencorporaTag('VERB,perf,intr plur,past,indc'), normal_form='стать', estimate=1.0, methods_stack=((<DictionaryAnalyzer>, 'стали', 883, 4),)),
+     Parse(word='стали', tag=OpencorporaTag('NOUN,inan,femn sing,gent'), normal_form='сталь', estimate=1.0, methods_stack=((<DictionaryAnalyzer>, 'стали', 12, 1),)),
+     Parse(word='стали', tag=OpencorporaTag('NOUN,inan,femn sing,datv'), normal_form='сталь', estimate=1.0, methods_stack=((<DictionaryAnalyzer>, 'стали', 12, 2),)),
+     Parse(word='стали', tag=OpencorporaTag('NOUN,inan,femn sing,loct'), normal_form='сталь', estimate=1.0, methods_stack=((<DictionaryAnalyzer>, 'стали', 12, 5),)),
+     Parse(word='стали', tag=OpencorporaTag('NOUN,inan,femn plur,nomn'), normal_form='сталь', estimate=1.0, methods_stack=((<DictionaryAnalyzer>, 'стали', 12, 6),)),
+     Parse(word='стали', tag=OpencorporaTag('NOUN,inan,femn plur,accs'), normal_form='сталь', estimate=1.0, methods_stack=((<DictionaryAnalyzer>, 'стали', 12, 9),))]
 
 .. note::
 
@@ -106,7 +106,7 @@ pymorphy2 умеет разбирать не только словарные с�
     >>> p.normal_form
     'стать'
     >>> p.normalized
-    Parse(word='стать', tag=OpencorporaTag('INFN,perf,intr'), normal_form='стать', para_id=879, idx=0, estimate=1.0)
+    Parse(word='стать', tag=OpencorporaTag('INFN,perf,intr'), normal_form='стать', estimate=1.0, methods_stack=((<DictionaryAnalyzer>, 'стать', 883, 0),))
 
 Кроме того, у каждого разбора есть :term:`тег`::
 
@@ -196,29 +196,29 @@ pymorphy2 умеет склонять (ставить в какую-то дру�
 
     >>> butyavka = morph.parse('бутявка')[0]
     >>> butyavka
-    Parse(word='бутявка', tag=OpencorporaTag('NOUN,inan,femn sing,nomn'), normal_form='бутявка', para_id=8, idx=0, estimate=0.5)
+    Parse(word='бутявка', tag=OpencorporaTag('NOUN,inan,femn sing,nomn'), normal_form='бутявка', estimate=0.5, methods_stack=((<DictionaryAnalyzer>, 'явка', 8, 0), (<UnknownPrefixAnalyzer>, 'бут')))
 
 Для склонения используйте метод ``inflect``::
 
     >>> butyavka.inflect({'gent'}) # нет кого? (родительный падеж)
-    Parse(word='бутявки', tag=OpencorporaTag('NOUN,inan,femn sing,gent'), normal_form='бутявка', para_id=8, idx=1, estimate=0.5)
+    Parse(word='бутявки', tag=OpencorporaTag('NOUN,inan,femn sing,gent'), normal_form='бутявка', estimate=0.5, methods_stack=((<DictionaryAnalyzer>, 'явки', 8, 1), (<UnknownPrefixAnalyzer>, 'бут')))
     >>> butyavka.inflect({'plur', 'gent'}) # кого много?
-    Parse(word='бутявок', tag=OpencorporaTag('NOUN,inan,femn plur,gent'), normal_form='бутявка', para_id=8, idx=8, estimate=0.5)
+    Parse(word='бутявок', tag=OpencorporaTag('NOUN,inan,femn plur,gent'), normal_form='бутявка', estimate=0.5, methods_stack=((<DictionaryAnalyzer>, 'явок', 8, 8), (<UnknownPrefixAnalyzer>, 'бут')))
 
 С помощью атрибута :attr:`lexeme` можно получить :term:`лексему <лексема>`
 слова::
 
     >>> butyavka.lexeme
-    [Parse(word='бутявка', tag=OpencorporaTag('NOUN,inan,femn sing,nomn'), normal_form='бутявка', para_id=8, idx=0, estimate=0.5),
-     Parse(word='бутявки', tag=OpencorporaTag('NOUN,inan,femn sing,gent'), normal_form='бутявка', para_id=8, idx=1, estimate=0.5),
-     Parse(word='бутявке', tag=OpencorporaTag('NOUN,inan,femn sing,datv'), normal_form='бутявка', para_id=8, idx=2, estimate=0.5),
-     Parse(word='бутявку', tag=OpencorporaTag('NOUN,inan,femn sing,accs'), normal_form='бутявка', para_id=8, idx=3, estimate=0.5),
-     Parse(word='бутявкой', tag=OpencorporaTag('NOUN,inan,femn sing,ablt'), normal_form='бутявка', para_id=8, idx=4, estimate=0.5),
-     Parse(word='бутявкою', tag=OpencorporaTag('NOUN,inan,femn sing,ablt,V-oy'), normal_form='бутявка', para_id=8, idx=5, estimate=0.5),
-     Parse(word='бутявке', tag=OpencorporaTag('NOUN,inan,femn sing,loct'), normal_form='бутявка', para_id=8, idx=6, estimate=0.5),
-     Parse(word='бутявки', tag=OpencorporaTag('NOUN,inan,femn plur,nomn'), normal_form='бутявка', para_id=8, idx=7, estimate=0.5),
-     Parse(word='бутявок', tag=OpencorporaTag('NOUN,inan,femn plur,gent'), normal_form='бутявка', para_id=8, idx=8, estimate=0.5),
-     Parse(word='бутявкам', tag=OpencorporaTag('NOUN,inan,femn plur,datv'), normal_form='бутявка', para_id=8, idx=9, estimate=0.5),
-     Parse(word='бутявки', tag=OpencorporaTag('NOUN,inan,femn plur,accs'), normal_form='бутявка', para_id=8, idx=10, estimate=0.5),
-     Parse(word='бутявками', tag=OpencorporaTag('NOUN,inan,femn plur,ablt'), normal_form='бутявка', para_id=8, idx=11, estimate=0.5),
-     Parse(word='бутявках', tag=OpencorporaTag('NOUN,inan,femn plur,loct'), normal_form='бутявка', para_id=8, idx=12, estimate=0.5)]
+    [Parse(word='бутявка', tag=OpencorporaTag('NOUN,inan,femn sing,nomn'), normal_form='бутявка', estimate=0.5, methods_stack=((<DictionaryAnalyzer>, 'явка', 8, 0), (<UnknownPrefixAnalyzer>, 'бут'))),
+     Parse(word='бутявки', tag=OpencorporaTag('NOUN,inan,femn sing,gent'), normal_form='бутявка', estimate=0.5, methods_stack=((<DictionaryAnalyzer>, 'явки', 8, 1), (<UnknownPrefixAnalyzer>, 'бут'))),
+     Parse(word='бутявке', tag=OpencorporaTag('NOUN,inan,femn sing,datv'), normal_form='бутявка', estimate=0.5, methods_stack=((<DictionaryAnalyzer>, 'явке', 8, 2), (<UnknownPrefixAnalyzer>, 'бут'))),
+     Parse(word='бутявку', tag=OpencorporaTag('NOUN,inan,femn sing,accs'), normal_form='бутявка', estimate=0.5, methods_stack=((<DictionaryAnalyzer>, 'явку', 8, 3), (<UnknownPrefixAnalyzer>, 'бут'))),
+     Parse(word='бутявкой', tag=OpencorporaTag('NOUN,inan,femn sing,ablt'), normal_form='бутявка', estimate=0.5, methods_stack=((<DictionaryAnalyzer>, 'явкой', 8, 4), (<UnknownPrefixAnalyzer>, 'бут'))),
+     Parse(word='бутявкою', tag=OpencorporaTag('NOUN,inan,femn sing,ablt,V-oy'), normal_form='бутявка', estimate=0.5, methods_stack=((<DictionaryAnalyzer>, 'явкою', 8, 5), (<UnknownPrefixAnalyzer>, 'бут'))),
+     Parse(word='бутявке', tag=OpencorporaTag('NOUN,inan,femn sing,loct'), normal_form='бутявка', estimate=0.5, methods_stack=((<DictionaryAnalyzer>, 'явке', 8, 6), (<UnknownPrefixAnalyzer>, 'бут'))),
+     Parse(word='бутявки', tag=OpencorporaTag('NOUN,inan,femn plur,nomn'), normal_form='бутявка', estimate=0.5, methods_stack=((<DictionaryAnalyzer>, 'явки', 8, 7), (<UnknownPrefixAnalyzer>, 'бут'))),
+     Parse(word='бутявок', tag=OpencorporaTag('NOUN,inan,femn plur,gent'), normal_form='бутявка', estimate=0.5, methods_stack=((<DictionaryAnalyzer>, 'явок', 8, 8), (<UnknownPrefixAnalyzer>, 'бут'))),
+     Parse(word='бутявкам', tag=OpencorporaTag('NOUN,inan,femn plur,datv'), normal_form='бутявка', estimate=0.5, methods_stack=((<DictionaryAnalyzer>, 'явкам', 8, 9), (<UnknownPrefixAnalyzer>, 'бут'))),
+     Parse(word='бутявки', tag=OpencorporaTag('NOUN,inan,femn plur,accs'), normal_form='бутявка', estimate=0.5, methods_stack=((<DictionaryAnalyzer>, 'явки', 8, 10), (<UnknownPrefixAnalyzer>, 'бут'))),
+     Parse(word='бутявками', tag=OpencorporaTag('NOUN,inan,femn plur,ablt'), normal_form='бутявка', estimate=0.5, methods_stack=((<DictionaryAnalyzer>, 'явками', 8, 11), (<UnknownPrefixAnalyzer>, 'бут'))),
+     Parse(word='бутявках', tag=OpencorporaTag('NOUN,inan,femn plur,loct'), normal_form='бутявка', estimate=0.5, methods_stack=((<DictionaryAnalyzer>, 'явках', 8, 12), (<UnknownPrefixAnalyzer>, 'бут')))]

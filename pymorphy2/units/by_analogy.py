@@ -45,9 +45,9 @@ class KnownPrefixAnalyzer(_PrefixAnalyzer):
     ESTIMATE_DECAY = 0.75
     MIN_REMINDER_LENGTH = 3
 
-    def parse(self, word, seen_parses):
+    def parse(self, word, word_lower, seen_parses):
         result = []
-        for prefix, unprefixed_word in self.possible_splits(word):
+        for prefix, unprefixed_word in self.possible_splits(word_lower):
             method = (self, prefix)
 
             parses = self.morph.parse(unprefixed_word)
@@ -68,9 +68,9 @@ class KnownPrefixAnalyzer(_PrefixAnalyzer):
 
         return result
 
-    def tag(self, word, seen_tags):
+    def tag(self, word, word_lower, seen_tags):
         result = []
-        for prefix, unprefixed_word in self.possible_splits(word):
+        for prefix, unprefixed_word in self.possible_splits(word_lower):
             for tag in self.morph.tag(unprefixed_word):
                 if not tag.is_productive():
                     continue
@@ -105,13 +105,13 @@ class UnknownPrefixAnalyzer(_PrefixAnalyzer):
         self.dict_analyzer = DictionaryAnalyzer(morph)
 
 
-    def parse(self, word, seen_parses):
+    def parse(self, word, word_lower, seen_parses):
         result = []
-        for prefix, unprefixed_word in word_splits(word):
+        for prefix, unprefixed_word in word_splits(word_lower):
 
             method = (self, prefix)
 
-            parses = self.dict_analyzer.parse(unprefixed_word, seen_parses)
+            parses = self.dict_analyzer.parse(unprefixed_word, unprefixed_word, seen_parses)
             for fixed_word, tag, normal_form, estimate, methods_stack in parses:
 
                 if not tag.is_productive():
@@ -128,11 +128,11 @@ class UnknownPrefixAnalyzer(_PrefixAnalyzer):
 
         return result
 
-    def tag(self, word, seen_tags):
+    def tag(self, word, word_lower, seen_tags):
         result = []
-        for _, unprefixed_word in word_splits(word):
+        for _, unprefixed_word in word_splits(word_lower):
 
-            tags = self.dict_analyzer.tag(unprefixed_word, seen_tags)
+            tags = self.dict_analyzer.tag(unprefixed_word, unprefixed_word, seen_tags)
             for tag in tags:
 
                 if not tag.is_productive():
@@ -170,19 +170,19 @@ class KnownSuffixAnalyzer(AnalogyAnalizerUnit):
         self.fake_dict = self.FakeDictionary(morph)
 
 
-    def parse(self, word, seen_parses):
+    def parse(self, word, word_lower, seen_parses):
         result = []
 
         # smoothing; XXX: isn't max_cnt better?
         # or maybe use a proper discounting?
         total_counts = [1] * len(self._paradigm_prefixes)
 
-        for prefix_id, prefix, suffixes_dawg in self._possible_prefixes(word):
+        for prefix_id, prefix, suffixes_dawg in self._possible_prefixes(word_lower):
 
             for i in self._prediction_splits:
 
                 # XXX: this should be counted once, not for each prefix
-                word_start, word_end = word[:-i], word[-i:]
+                word_start, word_end = word_lower[:-i], word_lower[-i:]
 
                 para_data = suffixes_dawg.similar_items(word_end, self.dict.ee)
                 for fixed_suffix, parses in para_data:
@@ -223,17 +223,17 @@ class KnownSuffixAnalyzer(AnalogyAnalizerUnit):
         return result
 
 
-    def tag(self, word, seen_tags):
+    def tag(self, word, word_lower, seen_tags):
         # XXX: the result order may be different from
         # ``self.parse(...)``.
 
         result = []
-        for prefix_id, prefix, suffixes_dawg in self._possible_prefixes(word):
+        for prefix_id, prefix, suffixes_dawg in self._possible_prefixes(word_lower):
 
             for i in self._prediction_splits:
 
                 # XXX: end should be counted once, not for each prefix
-                end = word[-i:]
+                end = word_lower[-i:]
 
                 para_data = suffixes_dawg.similar_items(end, self.dict.ee)
                 found = False
