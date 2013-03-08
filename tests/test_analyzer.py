@@ -85,42 +85,6 @@ PREDICTION_TEST_DATA = [
 
 ]
 
-HYPHEN_TEST_DATA = [
-    # particles
-    ("ей-то", "она-то", 'NPRO,femn,3per sing,datv'),
-    ("скажи-ка", "сказать-ка", "VERB,perf,tran sing,impr,excl"),
-    ('измохратился-таки', 'измохратиться-таки', "VERB,perf,intr masc,sing,past,indc"),
-
-    # compound words with immutable left
-    ('интернет-магазина', 'интернет-магазин', 'NOUN,inan,masc sing,gent'),
-    ('pdf-документов', 'pdf-документ', 'NOUN,inan,masc plur,gent'),
-    ('аммиачно-селитрового', 'аммиачно-селитровый', 'ADJF,Qual masc,sing,gent'),
-    ('быстро-быстро', 'быстро-быстро', 'ADVB'),
-
-    # compound words with mutable left
-    ('команд-участниц', 'команда-участница', 'NOUN,inan,femn plur,gent'),
-    ('бегает-прыгает', 'бегать-прыгать', 'VERB,impf,intr sing,3per,pres,indc'),
-    ('дул-надувался', 'дуть-надуваться', 'VERB,impf,tran masc,sing,past,indc'),
-
-    # ПО-
-    ('почтово-банковский', 'почтово-банковский', 'ADJF masc,sing,nomn'),
-    ('по-прежнему', 'по-прежнему', 'ADVB'),
-
-    # old bugs
-    ('поездов-экспрессов', 'поезд-экспресс', 'NOUN,inan,masc plur,gent'),
-    ('подростками-практикантами', 'подросток-практикант', 'NOUN,anim,masc plur,ablt'),
-    ('подводников-североморцев', 'подводник-североморец', 'NOUN,anim,masc plur,gent'),
-
-    # cities
-    ('санкт-петербурга', 'санкт-петербург', 'NOUN,inan,masc,Geox sing,gent'),
-    ('ростове-на-дону', 'ростов-на-дону', 'NOUN,inan,masc,Sgtm,Geox sing,loct'),
-]
-
-HYPHEN_TEST_DATA_XFAIL = [
-    ('по-воробьиному', 'по-воробьиному', 'ADVB'),
-]
-
-
 NON_PRODUCTIVE_BUGS_DATA = [
     ('бякобы', 'PRCL'),
     ('бякобы', 'CONJ'),
@@ -169,10 +133,6 @@ class TestTagAndParse:
     def test_prefix_prediction(self, word, parse_result):
         self.assertTagAndParseAgree(word)
 
-    @pytest.mark.parametrize(("word", "normal_form", "tag"), HYPHEN_TEST_DATA)
-    def test_hyphens(self, word, normal_form, tag):
-        self.assertTagAndParseAgree(word)
-
 
 class TestTagMethod:
     def _tagged_as(self, tags, cls):
@@ -217,22 +177,6 @@ class TestParse:
 
 
 class TestHyphen:
-    def assertHasParse(self, word, normal_form, tag):
-        for p in morph.parse(word):
-            if p.normal_form == normal_form and str(p.tag) == tag:
-                return
-
-        assert False, morph.parse(word)
-
-    @pytest.mark.parametrize(("word", "normal_form", "tag"), HYPHEN_TEST_DATA)
-    def test_hyphenated_words(self, word, normal_form, tag):
-        self.assertHasParse(word, normal_form, tag)
-
-    @pytest.mark.xfail
-    @pytest.mark.parametrize(("word", "normal_form", "tag"), HYPHEN_TEST_DATA_XFAIL)
-    def test_hyphenated_words_xfail(self, word, normal_form, tag):
-        self.assertHasParse(word, normal_form, tag)
-
     def test_no_hyphen_analyzer_for_known_prefixes(self):
         # this word should be parsed by KnownPrefixAnalyzer
         for p in morph.parse('мини-будильник'):
@@ -286,6 +230,7 @@ class TestParseResultClass:
         self.assertAllTuples(morph_plain.parse('кот'))
         # self.assertAllTuples(morph_plain.inflect('кот', set(['plur'])))
         # self.assertAllTuples(morph_plain.decline('кот'))
+
 
 class TestLatinPredictor:
     def test_tag(self):

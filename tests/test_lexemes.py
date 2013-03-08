@@ -93,12 +93,6 @@ XFAIL: this is currently too complex
 LEXEMES = "".join(l for l in LEXEMES.splitlines(True) if not l.startswith("#")).split("\n\n")
 
 
-def _lexemes_for_word(word):
-    res = []
-    for p in morph.parse(word):
-        res.append(tuple(f.word for f in p.lexeme))
-    return res
-
 def _parse_lexeme(lexeme):
     lexeme_words = tuple(lexeme.split())
     if lexeme_words[0].startswith('XFAIL'):
@@ -106,8 +100,13 @@ def _parse_lexeme(lexeme):
     return lexeme_words
 
 
+# ============ Tests:
+
 @pytest.mark.parametrize("lexeme", LEXEMES)
 def test_has_proper_lexemes(lexeme):
+    """
+    Check if the lexeme of first word in the lexeme is the same lexeme.
+    """
     lexeme_words = _parse_lexeme(lexeme)
 
     variants = _lexemes_for_word(lexeme_words[0])
@@ -118,6 +117,9 @@ def test_has_proper_lexemes(lexeme):
 
 @pytest.mark.parametrize("lexeme", LEXEMES)
 def test_lexemes_sanity(lexeme):
+    """
+    Check if parse.lexeme works properly by applying it several times.
+    """
     lexeme_words = _parse_lexeme(lexeme)
 
     for word in lexeme_words:
@@ -127,6 +129,9 @@ def test_lexemes_sanity(lexeme):
 
 @pytest.mark.parametrize("lexeme", LEXEMES)
 def test_normalized_is_first(lexeme):
+    """
+    Test that parse.normalized is a first form in lexeme.
+    """
     lexeme_words = _parse_lexeme(lexeme)
 
     first_parse = morph.parse(lexeme_words[0])[0]
@@ -136,3 +141,10 @@ def test_normalized_is_first(lexeme):
         parses = morph.parse(word)
         normalized = [(p.normalized.word, p.normalized.tag.POS) for p in parses]
         assert normal_form in normalized
+
+def _lexemes_for_word(word):
+    res = []
+    for p in morph.parse(word):
+        res.append(tuple(f.word for f in p.lexeme))
+    return res
+
