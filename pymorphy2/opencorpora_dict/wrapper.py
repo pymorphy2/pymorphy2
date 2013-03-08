@@ -128,22 +128,17 @@ class Dictionary(object):
             return bool(self.words.similar_keys(word, self.ee))
 
 
-    def iter_known_word_parses(self, prefix=""):
+    def iter_known_words(self, prefix=""):
         """
-        Return an iterator over parses of dictionary words that starts
-        with a given prefix (default empty prefix means "all words").
+        Return an iterator over ``(word, tag, normal_form, para_id, idx)``
+        tuples with dictionary words that starts with a given prefix
+        (default empty prefix means "all words").
         """
-
-        # XXX: This method is bad because it knows what 'parse' is,
-        # and it shouldn't.
 
         for word, (para_id, idx) in self.words.iteritems(prefix):
             tag = self.build_tag_info(para_id, idx)
             normal_form = self.build_normal_form(para_id, idx, word)
-            parse = (word, tag, normal_form,
-                     para_id, idx, 1.0,
-                     ((self, word),))
-            yield parse
+            yield word, tag, normal_form, para_id, idx
 
 
     def __repr__(self):

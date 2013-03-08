@@ -228,10 +228,16 @@ class MorphAnalyzer(object):
         Return an iterator over parses of dictionary words that starts
         with a given prefix (default empty prefix means "all words").
         """
-        known_parses = self.dictionary.iter_known_word_parses(prefix)
-        if self._result_type is None:
-            return known_parses
-        return (self._result_type(*p) for p in known_parses)
+
+        # XXX: this method currently assumes that
+        # units.DictionaryAnalyzer is the first analyzer unit.
+        for word, tag, normal_form, para_id, idx in self.dictionary.iter_known_words(prefix):
+            methods = ((self._units[0], word, para_id, idx),)
+            parse = (word, tag, normal_form, 1.0, methods)
+            if self._result_type is None:
+                yield parse
+            else:
+                yield self._result_type(*parse)
 
 
     def word_is_known(self, word, strict_ee=False):
