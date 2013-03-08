@@ -230,8 +230,8 @@ class OpencorporaTag(object):
 
     # Helper attributes for inflection/declension routines
     # ----------------------------------------------------
-    _NON_PRODUCTIVE_CLASSES = set(['NUMR', 'NPRO', 'PRED', 'PREP',
-                                   'CONJ', 'PRCL', 'INTJ'])
+    _NON_PRODUCTIVE_GRAMMEMES = set(['NUMR', 'NPRO', 'PRED', 'PREP',
+                                   'CONJ', 'PRCL', 'INTJ', 'Apro'])
     _EXTRA_INCOMPATIBLE = { # XXX: is it a good idea to have these rules?
         'plur': set(['GNdr']),
         # XXX: how to use rules from OpenCorpora?
@@ -324,7 +324,7 @@ class OpencorporaTag(object):
 
 
     def is_productive(self):
-        return not self._POS in self._NON_PRODUCTIVE_CLASSES
+        return not self.grammemes & self._NON_PRODUCTIVE_GRAMMEMES
 
     def _is_unknown(self):
         return self._POS not in self.PARTS_OF_SPEECH
@@ -451,8 +451,8 @@ class CyrillicOpencorporaTag(OpencorporaTag):
             ])
         cls._GRAMMEME_INCOMPATIBLE = GRAMMEME_INCOMPATIBLE
 
-        cls._NON_PRODUCTIVE_CLASSES = set([
-            cls._from_internal_grammeme(gr) for gr in cls._NON_PRODUCTIVE_CLASSES
+        cls._NON_PRODUCTIVE_GRAMMEMES = set([
+            cls._from_internal_grammeme(gr) for gr in cls._NON_PRODUCTIVE_GRAMMEMES
         ])
 
     @classmethod
