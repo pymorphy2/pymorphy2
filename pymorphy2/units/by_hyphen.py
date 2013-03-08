@@ -107,6 +107,8 @@ class HyphenatedWordsAnalyzer(BaseAnalyzerUnit):
     terminal = True
     ESTIMATE_DECAY = 0.75
 
+    _CONSIDER_THE_SAME = {'V-oy': 'V-ey'}
+
     def __init__(self, morph):
         super(HyphenatedWordsAnalyzer, self).__init__(morph)
         Tag = morph.TagClass
@@ -227,9 +229,12 @@ class HyphenatedWordsAnalyzer(BaseAnalyzerUnit):
         return True
 
     def normalized(self, form):
-        return self.get_lexeme(form)[0]
+        return next(self._iter_lexeme(form))
 
     def get_lexeme(self, form):
+        return list(self._iter_lexeme(form))
+
+    def _iter_lexeme(self, form):
         methods_stack = form[4]
         assert len(methods_stack) == 1
 
@@ -249,13 +254,13 @@ class HyphenatedWordsAnalyzer(BaseAnalyzerUnit):
             base_analyzer = right_methods[-1][0]
 
             lexeme = base_analyzer.get_lexeme(right_form)
-            return [
+            return (
                 replace_methods_stack(
                     with_prefix(f, prefix),
                     ((this_method, left_methods, f[4]),)
                 )
                 for f in lexeme
-            ]
+            )
 
         else:
             # Form is obtained by parsing both parts.
@@ -272,23 +277,36 @@ class HyphenatedWordsAnalyzer(BaseAnalyzerUnit):
             left_lexeme = left_methods[-1][0].get_lexeme(left_form)
             right_lexeme = right_methods[-1][0].get_lexeme(right_form)
 
-            return list(self._merge_lexemes(left_lexeme, right_lexeme))
+            return self._merge_lexemes(left_lexeme, right_lexeme)
 
     def _merge_lexemes(self, left_lexeme, right_lexeme):
 
-        # if len(left_lexeme) != len(right_lexeme):
-        #     raise NotImplementedError("%s\n%s" % (left_lexeme, right_lexeme))
-
-        # XX: merging logic is currently very naive
-
-        for left, right in zip(left_lexeme, right_lexeme):
+        for left, right in self._align_lexeme_forms(left_lexeme, right_lexeme):
             word = '-'.join((left[0], right[0]))
-            tag = left[1] # tag is from the left part?
+            tag = left[1]
             normal_form = '-'.join((left[2], right[2]))
-            estimate = (left[3] + right[3])/2 # is average OK?
+            estimate = (left[3] + right[3]) / 2
             method_stack = ((self, left[4], right[4]), )
 
             yield (word, tag, normal_form, estimate, method_stack)
+
+    def _unified_grammemes(self, grammemes):
+        return frozenset(self._CONSIDER_THE_SAME.get(gr, gr) for gr in grammemes)
+
+    def _align_lexeme_forms(self, left_lexeme, right_lexeme):
+        # FIXME: quadratic algorithm
+        for right in right_lexeme:
+            min_dist, closest = 1e6, None
+            gr_right = self._unified_grammemes(right[1].grammemes)
+
+            for left in left_lexeme:
+                gr_left = self._unified_grammemes(left[1].grammemes)
+                dist = len(gr_left ^ gr_right)
+                if dist < min_dist:
+                    min_dist = dist
+                    closest = left
+
+            yield closest, right
 
     @classmethod
     def _without_right_part(cls, form):
@@ -301,7 +319,6 @@ class HyphenatedWordsAnalyzer(BaseAnalyzerUnit):
         word, tag, normal_form, estimate, methods_stack = form
         return (word[word.index('-')+1:], tag, normal_form[normal_form.index('-')+1:],
                 estimate, methods_stack)
-
 
     @classmethod
     def _fixed_left_method_was_used(cls, left_methods):
