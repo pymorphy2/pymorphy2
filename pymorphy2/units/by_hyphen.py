@@ -107,7 +107,13 @@ class HyphenatedWordsAnalyzer(BaseAnalyzerUnit):
     terminal = True
     ESTIMATE_DECAY = 0.75
 
-    _CONSIDER_THE_SAME = {'V-oy': 'V-ey'}
+    _CONSIDER_THE_SAME = {
+        'V-oy': 'V-ey',
+        'gen1': 'gent',
+        'loc1': 'loct',
+        # 'acc1': 'accs',
+
+    }  # TODO: add more grammemes
 
     def __init__(self, morph):
         super(HyphenatedWordsAnalyzer, self).__init__(morph)
@@ -290,17 +296,14 @@ class HyphenatedWordsAnalyzer(BaseAnalyzerUnit):
 
             yield (word, tag, normal_form, estimate, method_stack)
 
-    def _unified_grammemes(self, grammemes):
-        return frozenset(self._CONSIDER_THE_SAME.get(gr, gr) for gr in grammemes)
-
     def _align_lexeme_forms(self, left_lexeme, right_lexeme):
         # FIXME: quadratic algorithm
         for right in right_lexeme:
             min_dist, closest = 1e6, None
-            gr_right = self._unified_grammemes(right[1].grammemes)
+            gr_right = replace_grammemes(right[1].grammemes, self._CONSIDER_THE_SAME)
 
             for left in left_lexeme:
-                gr_left = self._unified_grammemes(left[1].grammemes)
+                gr_left = replace_grammemes(left[1].grammemes, self._CONSIDER_THE_SAME)
                 dist = len(gr_left ^ gr_right)
                 if dist < min_dist:
                     min_dist = dist
@@ -324,3 +327,11 @@ class HyphenatedWordsAnalyzer(BaseAnalyzerUnit):
     def _fixed_left_method_was_used(cls, left_methods):
         return not isinstance(left_methods, tuple)
 
+
+def replace_grammemes(grammemes, replaces):
+    grammemes = set(grammemes)
+    for gr, replace in replaces.items():
+        if gr in grammemes:
+            grammemes.remove(gr)
+            grammemes.add(replace)
+    return grammemes
