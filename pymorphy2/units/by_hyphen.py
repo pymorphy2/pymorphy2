@@ -211,7 +211,10 @@ class HyphenatedWordsAnalyzer(BaseAnalyzerUnit):
 
     def _similarity_features(self, tag):
         """ :type tag: pymorphy2.tagset.OpencorporaTag """
-        return tag.grammemes & self._FEATURE_GRAMMEMES
+        return replace_grammemes(
+            tag.grammemes & self._FEATURE_GRAMMEMES,
+            {'gen1': 'gent', 'loc1': 'loct'}
+        )
 
     def tag(self, word, seen_tags):
         result = []
