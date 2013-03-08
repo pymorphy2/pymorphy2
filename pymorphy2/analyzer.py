@@ -94,6 +94,7 @@ class MorphAnalyzer(object):
         units.LatinAnalyzer,
 
         units.HyphenSeparatedParticleAnalyzer,
+        units.HyphenAdverbAnalyzer,
         units.HyphenatedWordsAnalyzer,
         units.KnownPrefixAnalyzer,
         units.UnknownPrefixAnalyzer,

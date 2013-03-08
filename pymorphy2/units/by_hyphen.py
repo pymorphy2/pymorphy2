@@ -92,6 +92,51 @@ class HyphenSeparatedParticleAnalyzer(AnalogyAnalizerUnit):
         yield [with_suffix(f, particle) for f in lexeme]
 
 
+class HyphenAdverbAnalyzer(BaseAnalyzerUnit):
+    """
+    Detect adverbs that starts with "по-".
+
+    Example: по-западному
+    """
+    terminal = True
+    ESTIMATE_DECAY = 0.7
+
+    def __init__(self, morph):
+        super(HyphenAdverbAnalyzer, self).__init__(morph)
+        self._tag = self.morph.TagClass('ADVB')
+
+    def parse(self, word, seen_parses):
+        if not self.should_parse(word):
+            return []
+
+        parse = (
+            word, self._tag, word,
+            self.ESTIMATE_DECAY,
+            ((self, word),)
+        )
+        seen_parses.add(parse)
+        return [parse]
+
+    def tag(self, word, seen_tags):
+        if not self.should_parse(word) or self._tag in seen_tags:
+            return []
+
+        seen_tags.add(self._tag)
+        return [self._tag]
+
+    def should_parse(self, word):
+        if len(word) < 5 or not word.startswith('по-'):
+            return False
+
+        tags = self.morph.tag(word[3:])
+        return any(set(['ADJF', 'sing', 'datv']) in tag for tag in tags)
+
+    def normalized(self, form):
+        return form
+
+    def get_lexeme(self, form):
+        return [form]
+
 
 class HyphenatedWordsAnalyzer(BaseAnalyzerUnit):
     """

@@ -63,8 +63,9 @@ LEXEMES = """
 красиво-туманно
 
 # =========== adverb ПО-..
-XFAIL: see https://github.com/kmike/pymorphy2/issues/16
 по-театральному
+
+по-западному
 
 # =========== two numerals: one depends on gender, the other doesn't
 XFAIL: see https://github.com/kmike/pymorphy2/issues/18
