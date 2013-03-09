@@ -2,19 +2,6 @@
 Руководство пользователя
 ========================
 
-pymorphy2 - морфологический анализатор для русского языка, написанный
-на языке Python и использующий словари из OpenCorpora_. Он работает
-под Python 2.6, 2.7, 3.2 и 3.3 и распространяется по лицензии MIT.
-
-Исходный код можно получить на github_ или bitbucket_. Если заметили
-ошибку - пишите в `баг-трекер`_ (на github). Для обсуждения есть
-`гугл-группа`_; если есть какие-то вопросы - пишите туда.
-
-.. _github: https://github.com/kmike/pymorphy2
-.. _bitbucket: https://bitbucket.org/kmike/pymorphy2
-.. _баг-трекер: https://github.com/kmike/pymorphy2/issues
-.. _гугл-группа: https://groups.google.com/forum/?fromgroups#!forum/pymorphy
-
 Установка
 ---------
 
