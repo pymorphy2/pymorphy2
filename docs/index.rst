@@ -5,7 +5,6 @@
    :maxdepth: 2
 
    user/index
-   dev/index
    internals/index
    misc/index
 
