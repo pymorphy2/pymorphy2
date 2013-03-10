@@ -21,4 +21,5 @@ MANIFEST$
 ^dict
 ^pymorphy2/.*\.pxd$
 \.ipynb$
-
+\.coverage
+htmlcov
