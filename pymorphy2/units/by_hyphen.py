@@ -170,7 +170,7 @@ class HyphenatedWordsAnalyzer(BaseAnalyzerUnit):
         if not self._should_parse(word_lower):
             return []
 
-        left, right = word_lower.split('-')
+        left, right = word_lower.split('-', 1)
         left_parses = self.morph.parse(left)
         right_parses = self.morph.parse(right)
 
@@ -272,7 +272,12 @@ class HyphenatedWordsAnalyzer(BaseAnalyzerUnit):
         if '-' not in word:
             return False
 
-        if word.strip('-').count('-') != 1:
+        word_stripped = word.strip('-')
+        if word_stripped != word:
+            # don't handle words that starts of ends with a hyphen
+            return False
+
+        if word_stripped.count('-') != 1:
             # require exactly 1 hyphen, in the middle of the word
             return False
 

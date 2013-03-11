@@ -179,12 +179,19 @@ class TestParse:
 
 
 class TestHyphen:
-    def test_no_hyphen_analyzer_for_known_prefixes(self):
-        # this word should be parsed by KnownPrefixAnalyzer
-        for p in morph.parse('мини-будильник'):
+
+    def assert_not_parsed_by_hyphen(self, word):
+        for p in morph.parse(word):
             for meth in p.methods_stack:
                 analyzer = meth[0]
                 assert not isinstance(analyzer, HyphenatedWordsAnalyzer), p.methods_stack
+
+    def test_no_hyphen_analyzer_for_known_prefixes(self):
+        # this word should be parsed by KnownPrefixAnalyzer
+        self.assert_not_parsed_by_hyphen('мини-будильник')
+
+    def test_no_hyphen_analyzer_bad_input(self):
+        self.assert_not_parsed_by_hyphen('привет-пока-')
 
 
 class TestTagWithPrefix:
