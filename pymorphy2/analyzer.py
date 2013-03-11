@@ -258,7 +258,7 @@ class MorphAnalyzer(object):
             method should be used with extra care.
 
         """
-        return self.dictionary.word_is_known(word, strict_ee)
+        return self.dictionary.word_is_known(word.lower(), strict_ee)
 
 
     @property
