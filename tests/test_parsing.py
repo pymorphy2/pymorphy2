@@ -3,10 +3,16 @@ from __future__ import absolute_import, unicode_literals
 import pytest
 from .utils import morph
 
-# Lines should be of this format: <word> <normal_form> <tag>.
-# Lines that starts with "#" and blank lines are skipped;
+def _to_test_data(text):
+    """
+    Lines should be of this format: <word> <normal_form> <tag>.
+    Lines that starts with "#" and blank lines are skipped.
+    """
+    return [l.split(None, 2) for l in text.splitlines()
+            if l.strip() and not l.startswith("#")]
+
 # TODO: lines that starts with "XFAIL" excludes the next line from testing.
-PARSES = """
+PARSES = _to_test_data("""
 # ========= nouns
 кошка       кошка       NOUN,inan,femn sing,nomn
 
@@ -70,35 +76,91 @@ pdf-документов          pdf-документ        NOUN,inan,masc plu
 # ========= LATN
 Foo     foo     LATN
 
+""")
 
-""".splitlines()
-
-PARSES = [l.split(None, 2) for l in PARSES if l.strip() and not l.startswith("#")]
 PARSES_UPPER = [(w.upper(), norm, tag) for (w, norm, tag) in PARSES]
 PARSES_TITLE = [(w.title(), norm, tag) for (w, norm, tag) in PARSES]
+
+SYSTEMATIC_ERRORS = _to_test_data("""
+# ============== foreign first names
+Уилл    уилл        NOUN,anim,masc,Name sing,nomn
+Джеф    джеф        NOUN,anim,masc,Name sing,nomn
+
+# ============== last names
+Сердюков    сердюков    NOUN,anim,masc,Surn sing,nomn
+Третьяк     третьяк     NOUN,anim,masc,Surn sing,nomn
+
+# ============== abbreviations 1
+# should normal forms be expanded?
+
+руб     руб     NOUN,inan,masc plur,gent
+млн     млн     NOUN,inan,masc plur,gent'
+тыс     тыс     NOUN,inan,femn plur,gent'
+г       г       NOUN,inan,masc sing,loc2
+п       п       NOUN,inan,masc sing,accs
+ст      ст      NOUN,inan,femn sing,accs
+
+# ============== abbreviations 2
+# it seems is not possible to properly guess gender and number
+
+ГКРФ        гкрф    NOUN,inan,masc,Sgtm,Fixd sing,nomn
+ПДД         пдд     NOUN,inan,neut,Pltm,Fixd plur,nomn
+ФП          фп      NOUN,inan,neut,Sgtm,Fixd sing,nomn
+ООП         ооп     NOUN,inan,neut,Sgtm,Fixd sing,nomn
+ПИН         пин     NOUN,inan,masc,Sgtm,Fixd sing,nomn
+УБРиР       убрир   NOUN,inan,masc sing,nomn
+УБРиРе      убрир   NOUN,inan,masc sing,ablt
+УБРиР-е     убрир   NOUN,inan,masc sing,ablt
+
+# =============== numerals
+3-го        3-й     ADJF,Anum masc,sing,gent
+41-й        41-й    ADJF,Anum masc,sing,nomn
+41-м        41-м    ADJF,Anum masc,sing,loct
+2001-й      2001-й  ADJF,Anum masc,sing,nomn
+8-му        8-й     ADJF,Anum masc,sing,datv
+3-х         3       NUMR,gent
+
+XVIII       xviii   NUMR,nomn
+XVIII       xviii   NUMR,loct
+""")
 
 
 def run_for_all(parses):
     return pytest.mark.parametrize(("word", "normal_form", "tag"), parses)
 
 # ====== Tests:
+def _test_has_parse(parses):
+    @run_for_all(parses)
+    def test_case(word, normal_form, tag):
+        """
+        Check if one of the word parses has normal form ``normal_form``
+        and tag ``tag``.
+        """
+        for p in morph.parse(word):
+            if p.normal_form == normal_form and str(p.tag) == tag:
+                return
 
-@run_for_all(PARSES + PARSES_TITLE + PARSES_UPPER)
-def test_has_parse(word, normal_form, tag):
-    """
-    Check if one of the word parses has normal form ``normal_form``
-    and tag ``tag``.
-    """
-    for p in morph.parse(word):
-        if p.normal_form == normal_form and str(p.tag) == tag:
-            return
+        assert False, morph.parse(word)
 
-    assert False, morph.parse(word)
+    return test_case
+
+test_has_parse = _test_has_parse(PARSES)
+test_has_parse_title = _test_has_parse(PARSES_TITLE)
+test_has_parse_upper = _test_has_parse(PARSES_UPPER)
+
+test_has_parse_systematic_errors = pytest.mark.xfail(_test_has_parse(SYSTEMATIC_ERRORS))
 
 
-@run_for_all(PARSES + PARSES_TITLE + PARSES_UPPER)
-def test_tag_produces_the_same_as_parse(word, normal_form, tag):
-    """
-    Check if morph.tag produces the same results as morph.parse.
-    """
-    assert set(morph.tag(word)) == set(p.tag for p in morph.parse(word))
+def _test_tag(parses):
+    @run_for_all(parses)
+    def test_tag_produces_the_same_as_parse(word, normal_form, tag):
+        """
+        Check if morph.tag produces the same results as morph.parse.
+        """
+        assert set(morph.tag(word)) == set(p.tag for p in morph.parse(word))
+
+    return test_tag_produces_the_same_as_parse
+
+test_tag = _test_tag(PARSES)
+test_tag_title = _test_tag(PARSES_TITLE)
+test_tag_upper = _test_tag(PARSES_UPPER)
