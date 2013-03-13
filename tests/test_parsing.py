@@ -70,11 +70,15 @@ pdf-документов          pdf-документ        NOUN,inan,masc plu
 -       -       PNCT
 …       …       PNCT
 
-123     123     NUMB
-0       0       NUMB
+123         123         NUMB
+0           0           NUMB
+I           i           NUMB,Romn
+MCMLXXXIX   mcmlxxxix   NUMB,Romn
+XVIII       xviii       NUMB,Romn
 
 # ========= LATN
 Foo     foo     LATN
+I       i       LATN
 
 """)
 
@@ -120,8 +124,6 @@ SYSTEMATIC_ERRORS = _to_test_data("""
 8-му        8-й     ADJF,Anum masc,sing,datv
 3-х         3       NUMR,gent
 
-XVIII       xviii   NUMR,nomn
-XVIII       xviii   NUMR,loct
 """)
 
 

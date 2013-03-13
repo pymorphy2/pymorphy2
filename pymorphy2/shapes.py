@@ -2,6 +2,7 @@
 from __future__ import absolute_import
 # unicode_literals future import is not needed and breaks 2.x tests
 
+import re
 import unicodedata
 
 
@@ -64,6 +65,37 @@ def is_punctuation(token):
         not token.isspace() and
         all(unicodedata.category(ch)[0] == 'P' for ch in token if not ch.isspace())
     )
+
+
+# The regex is from "Dive into Python" book.
+ROMAN_NUMBERS_RE = re.compile("""
+    M{0,4}              # thousands - 0 to 4 M's
+    (CM|CD|D?C{0,3})    # hundreds - 900 (CM), 400 (CD), 0-300 (0 to 3 C's),
+                        #            or 500-800 (D, followed by 0 to 3 C's)
+    (XC|XL|L?X{0,3})    # tens - 90 (XC), 40 (XL), 0-30 (0 to 3 X's),
+                        #        or 50-80 (L, followed by 0 to 3 X's)
+    (IX|IV|V?I{0,3})    # ones - 9 (IX), 4 (IV), 0-3 (0 to 3 I's),
+                        #        or 5-8 (V, followed by 0 to 3 I's)
+    $                   # end of string
+""", re.VERBOSE | re.IGNORECASE)
+
+def is_roman_number(token):
+    """
+    Return True if token looks like a Roman number::
+
+        >>> is_roman_number('II')
+        True
+        >>> is_roman_number('IX')
+        True
+        >>> is_roman_number('XIIIII')
+        False
+        >>> is_roman_number('')
+        False
+
+    """
+    if not token:
+        return False
+    return re.match(ROMAN_NUMBERS_RE, token) is not None
 
 
 def restore_word_case(word, example):

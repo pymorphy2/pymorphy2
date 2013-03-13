@@ -7,7 +7,7 @@ Analyzer units that analyzes non-word tokes
 from __future__ import absolute_import, unicode_literals, division
 
 from pymorphy2.units.base import BaseAnalyzerUnit
-from pymorphy2.shapes import is_latin, is_punctuation
+from pymorphy2.shapes import is_latin, is_punctuation, is_roman_number
 
 class _ShapeAnalyzer(BaseAnalyzerUnit):
 
@@ -52,7 +52,7 @@ class _SingleShapeAnalyzer(_ShapeAnalyzer):
 
     def __init__(self, morph):
         assert self.TAG_STR is not None
-        self.EXTRA_GRAMMEMES = [self.TAG_STR]
+        self.EXTRA_GRAMMEMES = self.TAG_STR.split(',')
         super(_SingleShapeAnalyzer, self).__init__(morph)
         self._tag = self.morph.TagClass(self.TAG_STR)
 
@@ -96,3 +96,11 @@ class NumberAnalyzer(_SingleShapeAnalyzer):
 
     def check_shape(self, word, word_lower):
         return word.isdigit()
+
+
+class RomanNumberAnalyzer(_SingleShapeAnalyzer):
+    TAG_STR = 'NUMB,Romn'
+    terminal = False  # give LatinAnalyzer a chance
+
+    def check_shape(self, word, word_lower):
+        return is_roman_number(word)

@@ -91,6 +91,7 @@ class MorphAnalyzer(object):
 
         units.NumberAnalyzer,
         units.PunctuationAnalyzer,
+        units.RomanNumberAnalyzer,
         units.LatinAnalyzer,
 
         units.HyphenSeparatedParticleAnalyzer,
