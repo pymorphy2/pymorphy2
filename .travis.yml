@@ -15,9 +15,14 @@ matrix:
 
 # command to install dependencies, e.g. pip install -r requirements.txt --use-mirrors
 install:
-  - 'pip install -r requirements.txt --use-mirrors'
+  - pip install -r requirements.txt --use-mirrors
+  - pip install coverage pytest-cov coveralls --use-mirrors
   - if [[ $TRAVIS_PYTHON_VERSION != 'pypy' && ! $NO_COMPILER ]]; then pip install --use-mirrors dawg; fi
   - python setup.py install
 
 # command to run tests, e.g. python setup.py test
-script: py.test --doctest-modules tests pymorphy2
+script:
+  - py.test --cov=pymorphy2 --doctest-modules tests pymorphy2
+
+after_success:
+  - coveralls
