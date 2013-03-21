@@ -52,13 +52,14 @@ def _get_test_suite(word_parses, word_limit=100):
     """
     Limit word_parses to ``word_limit`` words per tag.
     """
-    gramtab = collections.Counter() # tagset -> number of stored items
+    gramtab = collections.defaultdict(int)  # tagset -> number of stored items
     result = list()
     for word in word_parses:
-        parses = word_parses[word]
-        gramtab.update(parses)
-        if any(gramtab[tag] < word_limit for tag in parses):
-            result.append((word, parses))
+        tags = word_parses[word]
+        for tag in tags:
+            gramtab[tag] += 1
+        if any(gramtab[tag] < word_limit for tag in tags):
+            result.append((word, tags))
 
     return result
 
