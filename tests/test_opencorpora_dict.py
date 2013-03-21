@@ -1,7 +1,64 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, unicode_literals
 
-from pymorphy2.opencorpora_dict.compile import _to_paradigm
+import os
+import pymorphy2
+from pymorphy2.opencorpora_dict.compile import (_to_paradigm,
+                                                convert_to_pymorphy2)
+from pymorphy2.opencorpora_dict.parse import parse_opencorpora_xml
+from pymorphy2.dawg import assert_can_create
+
+import pytest
+
+
+class TestToyDictionary:
+
+    XML_PATH = os.path.join(
+        os.path.dirname(__file__),
+        '..',
+        'dev_data',
+        'toy_dict.xml'
+    )
+
+    def test_parse_xml(self):
+        dct = parse_opencorpora_xml(self.XML_PATH)
+        assert dct.version == '0.92'
+        assert dct.revision == '389440'
+
+        assert dct.links[0] == ('5', '6', '1')
+        assert len(dct.links) == 12
+
+        assert dct.grammemes[1] == ('NOUN', 'POST', 'СУЩ', 'имя существительное')
+        assert len(dct.grammemes) == 111
+
+        assert dct.lexemes['14'] == [('ёжиться', 'INFN,impf,intr')]
+
+
+    def test_convert_to_pymorphy2(self, tmpdir):
+
+        # import logging
+        # from pymorphy2.opencorpora_dict.compile import logger
+        # logger.setLevel(logging.DEBUG)
+        # logger.addHandler(logging.StreamHandler())
+
+        try:
+            assert_can_create()
+        except NotImplementedError as e:
+            raise pytest.skip(e)
+
+        # create a dictionary
+        out_path = str(tmpdir.join('dicts'))
+        options = {
+            'min_paradigm_popularity': 0,
+            'min_ending_freq': 0,
+        }
+        convert_to_pymorphy2(self.XML_PATH, out_path, overwrite=True,
+                             prediction_options=options)
+
+        # use it
+        morph = pymorphy2.MorphAnalyzer(out_path)
+        assert morph.tag('ёжиться') == [morph.TagClass('INFN,impf,intr')]
+
 
 class TestToParadigm(object):
 

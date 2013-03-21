@@ -1,0 +1,203 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<dictionary version="0.92" revision="389440">
+<grammemes>
+    <grammeme parent=""><name>POST</name><alias>ЧР</alias><description>часть речи</description></grammeme>
+    <grammeme parent="POST"><name>NOUN</name><alias>СУЩ</alias><description>имя существительное</description></grammeme>
+    <grammeme parent="POST"><name>ADJF</name><alias>ПРИЛ</alias><description>имя прилагательное (полное)</description></grammeme>
+    <grammeme parent="POST"><name>ADJS</name><alias>КР_ПРИЛ</alias><description>имя прилагательное (краткое)</description></grammeme>
+    <grammeme parent="POST"><name>COMP</name><alias>КОМП</alias><description>компаратив</description></grammeme>
+    <grammeme parent="POST"><name>VERB</name><alias>ГЛ</alias><description>глагол (личная форма)</description></grammeme>
+    <grammeme parent="POST"><name>INFN</name><alias>ИНФ</alias><description>глагол (инфинитив)</description></grammeme>
+    <grammeme parent="POST"><name>PRTF</name><alias>ПРИЧ</alias><description>причастие (полное)</description></grammeme>
+    <grammeme parent="POST"><name>PRTS</name><alias>КР_ПРИЧ</alias><description>причастие (краткое)</description></grammeme>
+    <grammeme parent="POST"><name>GRND</name><alias>ДЕЕПР</alias><description>деепричастие</description></grammeme>
+    <grammeme parent="POST"><name>NUMR</name><alias>ЧИСЛ</alias><description>числительное</description></grammeme>
+    <grammeme parent="POST"><name>ADVB</name><alias>Н</alias><description>наречие</description></grammeme>
+    <grammeme parent="POST"><name>NPRO</name><alias>МС</alias><description>местоимение-существительное</description></grammeme>
+    <grammeme parent="POST"><name>PRED</name><alias>ПРЕДК</alias><description>предикатив</description></grammeme>
+    <grammeme parent="POST"><name>PREP</name><alias>ПР</alias><description>предлог</description></grammeme>
+    <grammeme parent="POST"><name>CONJ</name><alias>СОЮЗ</alias><description>союз</description></grammeme>
+    <grammeme parent="POST"><name>PRCL</name><alias>ЧАСТ</alias><description>частица</description></grammeme>
+    <grammeme parent="POST"><name>INTJ</name><alias>МЕЖД</alias><description>междометие</description></grammeme>
+    <grammeme parent=""><name>ANim</name><alias>Од-неод</alias><description>одушевлённость / одушевлённость не выражена</description></grammeme>
+    <grammeme parent="ANim"><name>anim</name><alias>од</alias><description>одушевлённое</description></grammeme>
+    <grammeme parent="ANim"><name>inan</name><alias>неод</alias><description>неодушевлённое</description></grammeme>
+    <grammeme parent=""><name>GNdr</name><alias>хр</alias><description>род / род не выражен</description></grammeme>
+    <grammeme parent="GNdr"><name>masc</name><alias>мр</alias><description>мужской род</description></grammeme>
+    <grammeme parent="GNdr"><name>femn</name><alias>жр</alias><description>женский род</description></grammeme>
+    <grammeme parent="GNdr"><name>neut</name><alias>ср</alias><description>средний род</description></grammeme>
+    <grammeme parent=""><name>Ms-f</name><alias>ор</alias><description>общий род</description></grammeme>
+    <grammeme parent=""><name>NMbr</name><alias>Число</alias><description>число</description></grammeme>
+    <grammeme parent="NMbr"><name>sing</name><alias>ед</alias><description>единственное число</description></grammeme>
+    <grammeme parent="NMbr"><name>plur</name><alias>мн</alias><description>множественное число</description></grammeme>
+    <grammeme parent=""><name>Sgtm</name><alias>sg</alias><description>singularia tantum</description></grammeme>
+    <grammeme parent=""><name>Pltm</name><alias>pl</alias><description>pluralia tantum</description></grammeme>
+    <grammeme parent=""><name>Fixd</name><alias>0</alias><description>неизменяемое</description></grammeme>
+    <grammeme parent=""><name>CAse</name><alias>Падеж</alias><description>категория падежа</description></grammeme>
+    <grammeme parent="CAse"><name>nomn</name><alias>им</alias><description>именительный падеж</description></grammeme>
+    <grammeme parent="CAse"><name>gent</name><alias>рд</alias><description>родительный падеж</description></grammeme>
+    <grammeme parent="CAse"><name>datv</name><alias>дт</alias><description>дательный падеж</description></grammeme>
+    <grammeme parent="CAse"><name>accs</name><alias>вн</alias><description>винительный падеж</description></grammeme>
+    <grammeme parent="CAse"><name>ablt</name><alias>тв</alias><description>творительный падеж</description></grammeme>
+    <grammeme parent="CAse"><name>loct</name><alias>пр</alias><description>предложный падеж</description></grammeme>
+    <grammeme parent="nomn"><name>voct</name><alias>зв</alias><description>звательный падеж</description></grammeme>
+    <grammeme parent="gent"><name>gen1</name><alias>рд1</alias><description>первый родительный падеж</description></grammeme>
+    <grammeme parent="gent"><name>gen2</name><alias>рд2</alias><description>второй родительный (частичный) падеж</description></grammeme>
+    <grammeme parent="accs"><name>acc2</name><alias>вн2</alias><description>второй винительный падеж</description></grammeme>
+    <grammeme parent="loct"><name>loc1</name><alias>пр1</alias><description>первый предложный падеж</description></grammeme>
+    <grammeme parent="loct"><name>loc2</name><alias>пр2</alias><description>второй предложный (местный) падеж</description></grammeme>
+    <grammeme parent=""><name>Abbr</name><alias>аббр</alias><description>аббревиатура</description></grammeme>
+    <grammeme parent=""><name>Name</name><alias>имя</alias><description>имя</description></grammeme>
+    <grammeme parent=""><name>Surn</name><alias>фам</alias><description>фамилия</description></grammeme>
+    <grammeme parent=""><name>Patr</name><alias>отч</alias><description>отчество</description></grammeme>
+    <grammeme parent=""><name>Geox</name><alias>гео</alias><description>топоним</description></grammeme>
+    <grammeme parent=""><name>Orgn</name><alias>орг</alias><description>организация</description></grammeme>
+    <grammeme parent=""><name>Trad</name><alias>tm</alias><description>торговая марка</description></grammeme>
+    <grammeme parent=""><name>Subx</name><alias>субст?</alias><description>возможна субстантивация</description></grammeme>
+    <grammeme parent=""><name>Supr</name><alias>превосх</alias><description>превосходная степень</description></grammeme>
+    <grammeme parent=""><name>Qual</name><alias>кач</alias><description>качественное</description></grammeme>
+    <grammeme parent=""><name>Apro</name><alias>мест-п</alias><description>местоименное</description></grammeme>
+    <grammeme parent=""><name>Anum</name><alias>числ-п</alias><description>порядковое</description></grammeme>
+    <grammeme parent=""><name>Poss</name><alias>притяж</alias><description>притяжательное</description></grammeme>
+    <grammeme parent=""><name>V-ey</name><alias>*ею</alias><description>форма на -ею</description></grammeme>
+    <grammeme parent=""><name>V-oy</name><alias>*ою</alias><description>форма на -ою</description></grammeme>
+    <grammeme parent=""><name>Cmp2</name><alias>сравн2</alias><description>сравнительная степень на по-</description></grammeme>
+    <grammeme parent=""><name>V-ej</name><alias>*ей</alias><description>форма компаратива на -ей</description></grammeme>
+    <grammeme parent=""><name>ASpc</name><alias>Вид</alias><description>категория вида</description></grammeme>
+    <grammeme parent="ASpc"><name>perf</name><alias>сов</alias><description>совершенный вид</description></grammeme>
+    <grammeme parent="ASpc"><name>impf</name><alias>несов</alias><description>несовершенный вид</description></grammeme>
+    <grammeme parent=""><name>TRns</name><alias>Перех</alias><description>категория переходности</description></grammeme>
+    <grammeme parent="TRns"><name>tran</name><alias>перех</alias><description>переходный</description></grammeme>
+    <grammeme parent="TRns"><name>intr</name><alias>неперех</alias><description>непереходный</description></grammeme>
+    <grammeme parent=""><name>Impe</name><alias>безл</alias><description>безличный</description></grammeme>
+    <grammeme parent=""><name>Uimp</name><alias>безл-у</alias><description>безличное употребление</description></grammeme>
+    <grammeme parent=""><name>Mult</name><alias>мног</alias><description>многократный</description></grammeme>
+    <grammeme parent=""><name>Refl</name><alias>возвр</alias><description>возвратный</description></grammeme>
+    <grammeme parent=""><name>PErs</name><alias>Лицо</alias><description>категория лица</description></grammeme>
+    <grammeme parent="PErs"><name>1per</name><alias>1л</alias><description>1 лицо</description></grammeme>
+    <grammeme parent="PErs"><name>2per</name><alias>2л</alias><description>2 лицо</description></grammeme>
+    <grammeme parent="PErs"><name>3per</name><alias>3л</alias><description>3 лицо</description></grammeme>
+    <grammeme parent=""><name>TEns</name><alias>Время</alias><description>категория времени</description></grammeme>
+    <grammeme parent="TEns"><name>pres</name><alias>наст</alias><description>настоящее время</description></grammeme>
+    <grammeme parent="TEns"><name>past</name><alias>прош</alias><description>прошедшее время</description></grammeme>
+    <grammeme parent="TEns"><name>futr</name><alias>буд</alias><description>будущее время</description></grammeme>
+    <grammeme parent=""><name>MOod</name><alias>Накл</alias><description>категория наклонения</description></grammeme>
+    <grammeme parent="MOod"><name>indc</name><alias>изъяв</alias><description>изъявительное наклонение</description></grammeme>
+    <grammeme parent="MOod"><name>impr</name><alias>повел</alias><description>повелительное наклонение</description></grammeme>
+    <grammeme parent=""><name>INvl</name><alias>Совм</alias><description>категория совместности</description></grammeme>
+    <grammeme parent="INvl"><name>incl</name><alias>вкл</alias><description>говорящий включён в действие (идем, идемте)</description></grammeme>
+    <grammeme parent="INvl"><name>excl</name><alias>выкл</alias><description>говорящий не включён в действие (иди, идите)</description></grammeme>
+    <grammeme parent=""><name>VOic</name><alias>Залог</alias><description>категория залога</description></grammeme>
+    <grammeme parent="VOic"><name>actv</name><alias>действ</alias><description>действительный залог</description></grammeme>
+    <grammeme parent="VOic"><name>pssv</name><alias>страд</alias><description>страдательный залог</description></grammeme>
+    <grammeme parent=""><name>Infr</name><alias>разг</alias><description>разговорное</description></grammeme>
+    <grammeme parent=""><name>Slng</name><alias>жарг</alias><description>жаргонное</description></grammeme>
+    <grammeme parent=""><name>Arch</name><alias>арх</alias><description>устаревшее</description></grammeme>
+    <grammeme parent=""><name>Litr</name><alias>лит</alias><description>литературный вариант</description></grammeme>
+    <grammeme parent=""><name>Erro</name><alias>опеч</alias><description>опечатка</description></grammeme>
+    <grammeme parent=""><name>Dist</name><alias>искаж</alias><description>искажение</description></grammeme>
+    <grammeme parent=""><name>Ques</name><alias>вопр</alias><description>вопросительное</description></grammeme>
+    <grammeme parent=""><name>Dmns</name><alias>указ</alias><description>указательное</description></grammeme>
+    <grammeme parent=""><name>Prnt</name><alias>вводн</alias><description>вводное слово</description></grammeme>
+    <grammeme parent=""><name>V-be</name><alias>*ье</alias><description>форма на -ье</description></grammeme>
+    <grammeme parent=""><name>V-be</name><alias>*ье</alias><description>форма на -ье</description></grammeme>
+    <grammeme parent=""><name>V-en</name><alias>*енен</alias><description>форма на -енен</description></grammeme>
+    <grammeme parent=""><name>V-ie</name><alias>*ие</alias><description>отчество через -ие-</description></grammeme>
+    <grammeme parent=""><name>V-bi</name><alias>*ьи</alias><description>форма на -ьи</description></grammeme>
+    <grammeme parent=""><name>Fimp</name><alias>*несов</alias><description>деепричастие от глагола несовершенного вида</description></grammeme>
+    <grammeme parent=""><name>Prdx</name><alias>предк?</alias><description>может выступать в роли предикатива</description></grammeme>
+    <grammeme parent=""><name>Coun</name><alias>счетн</alias><description>счётная форма</description></grammeme>
+    <grammeme parent=""><name>Coll</name><alias>собир</alias><description>собирательное числительное</description></grammeme>
+    <grammeme parent=""><name>V-sh</name><alias>*ши</alias><description>деепричастие на -ши</description></grammeme>
+    <grammeme parent=""><name>Af-p</name><alias>*предл</alias><description>форма после предлога</description></grammeme>
+    <grammeme parent=""><name>Inmx</name><alias>неодуш?</alias><description>может использоваться как неодушевлённое</description></grammeme>
+    <grammeme parent=""><name>Vpre</name><alias>в_предл</alias><description>Вариант предлога ( со, подо, ...)</description></grammeme>
+</grammemes>
+<restrictions>
+    <restr type="obligatory" auto="0"><left type="lemma"></left><right type="lemma">POST</right></restr>
+    <restr type="obligatory" auto="0"><left type="lemma">NOUN</left><right type="lemma">ANim</right></restr>
+    <restr type="obligatory" auto="0"><left type="lemma">NOUN</left><right type="lemma">GNdr</right></restr>
+    <restr type="maybe" auto="0"><left type="lemma">NOUN</left><right type="lemma">Ms-f</right></restr>
+    <restr type="obligatory" auto="0"><left type="lemma">NOUN</left><right type="form">NMbr</right></restr>
+    <restr type="maybe" auto="0"><left type="lemma">NOUN</left><right type="lemma">Sgtm</right></restr>
+    <restr type="maybe" auto="0"><left type="lemma">NOUN</left><right type="lemma">Pltm</right></restr>
+    <restr type="maybe" auto="0"><left type="lemma">NOUN</left><right type="form"></right></restr>
+    <restr type="maybe" auto="0"><left type="lemma">NOUN</left><right type="form"></right></restr>
+    <restr type="obligatory" auto="0"><left type="lemma">NOUN</left><right type="form">CAse</right></restr>
+    <restr type="maybe" auto="0"><left type="lemma">NOUN</left><right type="lemma">Abbr</right></restr>
+    <restr type="maybe" auto="0"><left type="lemma">NOUN</left><right type="lemma">Name</right></restr>
+    <restr type="maybe" auto="0"><left type="lemma">NOUN</left><right type="lemma">Surn</right></restr>
+    <restr type="maybe" auto="0"><left type="lemma">NOUN</left><right type="lemma">Patr</right></restr>
+    <restr type="maybe" auto="0"><left type="lemma">NOUN</left><right type="lemma">Geox</right></restr>
+    <restr type="maybe" auto="0"><left type="lemma">NOUN</left><right type="lemma">Orgn</right></restr>
+    <restr type="maybe" auto="0"><left type="lemma">NOUN</left><right type="lemma">Trad</right></restr>
+    <restr type="maybe" auto="0"><left type="lemma">NOUN</left><right type="form">V-ey</right></restr>
+    <restr type="maybe" auto="0"><left type="lemma">NOUN</left><right type="form">V-oy</right></restr>
+    <restr type="maybe" auto="0"><left type="lemma">NOUN</left><right type="form">V-be</right></restr>
+    <restr type="maybe" auto="0"><left type="lemma">ADJF</left><right type="form">anim</right></restr>
+    <restr type="maybe" auto="0"><left type="lemma">ADJF</left><right type="form">inan</right></restr>
+</restrictions>
+<lemmata>
+    <lemma id="1" rev="1"><l t="ёж"><g v="NOUN"/><g v="anim"/><g v="masc"/></l><f t="ёж"><g v="sing"/><g v="nomn"/></f><f t="ежа"><g v="sing"/><g v="gent"/></f><f t="ежу"><g v="sing"/><g v="datv"/></f><f t="ежа"><g v="sing"/><g v="accs"/></f><f t="ежом"><g v="sing"/><g v="ablt"/></f><f t="еже"><g v="sing"/><g v="loct"/></f><f t="ежи"><g v="plur"/><g v="nomn"/></f><f t="ежей"><g v="plur"/><g v="gent"/></f><f t="ежам"><g v="plur"/><g v="datv"/></f><f t="ежей"><g v="plur"/><g v="accs"/></f><f t="ежами"><g v="plur"/><g v="ablt"/></f><f t="ежах"><g v="plur"/><g v="loct"/></f></lemma>
+    <lemma id="2" rev="2"><l t="ёж"><g v="NOUN"/><g v="inan"/><g v="masc"/></l><f t="ёж"><g v="sing"/><g v="nomn"/></f><f t="ежа"><g v="sing"/><g v="gent"/></f><f t="ежу"><g v="sing"/><g v="datv"/></f><f t="ёж"><g v="sing"/><g v="accs"/></f><f t="ежом"><g v="sing"/><g v="ablt"/></f><f t="еже"><g v="sing"/><g v="loct"/></f><f t="ежи"><g v="plur"/><g v="nomn"/></f><f t="ежей"><g v="plur"/><g v="gent"/></f><f t="ежам"><g v="plur"/><g v="datv"/></f><f t="ежи"><g v="plur"/><g v="accs"/></f><f t="ежами"><g v="plur"/><g v="ablt"/></f><f t="ежах"><g v="plur"/><g v="loct"/></f></lemma>
+    <lemma id="3" rev="3"><l t="ёжик"><g v="NOUN"/><g v="anim"/><g v="masc"/></l><f t="ёжик"><g v="sing"/><g v="nomn"/></f><f t="ёжика"><g v="sing"/><g v="gent"/></f><f t="ёжику"><g v="sing"/><g v="datv"/></f><f t="ёжика"><g v="sing"/><g v="accs"/></f><f t="ёжиком"><g v="sing"/><g v="ablt"/></f><f t="ёжике"><g v="sing"/><g v="loct"/></f><f t="ёжики"><g v="plur"/><g v="nomn"/></f><f t="ёжиков"><g v="plur"/><g v="gent"/></f><f t="ёжикам"><g v="plur"/><g v="datv"/></f><f t="ёжиков"><g v="plur"/><g v="accs"/></f><f t="ёжиками"><g v="plur"/><g v="ablt"/></f><f t="ёжиках"><g v="plur"/><g v="loct"/></f></lemma>
+    <lemma id="4" rev="4"><l t="ёжиком"><g v="ADVB"/></l><f t="ёжиком"></f></lemma>
+    <lemma id="5" rev="5"><l t="ёжистый"><g v="ADJF"/><g v="Qual"/></l><f t="ёжистый"><g v="masc"/><g v="sing"/><g v="nomn"/></f><f t="ёжистого"><g v="masc"/><g v="sing"/><g v="gent"/></f><f t="ёжистому"><g v="masc"/><g v="sing"/><g v="datv"/></f><f t="ёжистого"><g v="anim"/><g v="masc"/><g v="sing"/><g v="accs"/></f><f t="ёжистый"><g v="inan"/><g v="masc"/><g v="sing"/><g v="accs"/></f><f t="ёжистым"><g v="masc"/><g v="sing"/><g v="ablt"/></f><f t="ёжистом"><g v="masc"/><g v="sing"/><g v="loct"/></f><f t="ёжистая"><g v="femn"/><g v="sing"/><g v="nomn"/></f><f t="ёжистой"><g v="femn"/><g v="sing"/><g v="gent"/></f><f t="ёжистой"><g v="femn"/><g v="sing"/><g v="datv"/></f><f t="ёжистую"><g v="femn"/><g v="sing"/><g v="accs"/></f><f t="ёжистой"><g v="femn"/><g v="sing"/><g v="ablt"/></f><f t="ёжистою"><g v="femn"/><g v="sing"/><g v="ablt"/><g v="V-oy"/></f><f t="ёжистой"><g v="femn"/><g v="sing"/><g v="loct"/></f><f t="ёжистое"><g v="neut"/><g v="sing"/><g v="nomn"/></f><f t="ёжистого"><g v="neut"/><g v="sing"/><g v="gent"/></f><f t="ёжистому"><g v="neut"/><g v="sing"/><g v="datv"/></f><f t="ёжистое"><g v="neut"/><g v="sing"/><g v="accs"/></f><f t="ёжистым"><g v="neut"/><g v="sing"/><g v="ablt"/></f><f t="ёжистом"><g v="neut"/><g v="sing"/><g v="loct"/></f><f t="ёжистые"><g v="plur"/><g v="nomn"/></f><f t="ёжистых"><g v="plur"/><g v="gent"/></f><f t="ёжистым"><g v="plur"/><g v="datv"/></f><f t="ёжистых"><g v="anim"/><g v="plur"/><g v="accs"/></f><f t="ёжистые"><g v="inan"/><g v="plur"/><g v="accs"/></f><f t="ёжистыми"><g v="plur"/><g v="ablt"/></f><f t="ёжистых"><g v="plur"/><g v="loct"/></f></lemma>
+    <lemma id="6" rev="6"><l t="ёжист"><g v="ADJS"/><g v="Qual"/></l><f t="ёжист"><g v="masc"/><g v="sing"/></f><f t="ёжиста"><g v="femn"/><g v="sing"/></f><f t="ёжисто"><g v="neut"/><g v="sing"/></f><f t="ёжисты"><g v="plur"/></f></lemma>
+    <lemma id="7" rev="7"><l t="ёжистее"><g v="COMP"/><g v="Qual"/></l><f t="ёжистее"></f><f t="ёжистей"><g v="V-ej"/></f><f t="поёжистее"><g v="Cmp2"/></f><f t="поёжистей"><g v="Cmp2"/><g v="V-ej"/></f></lemma>
+    <lemma id="8" rev="8"><l t="ёжу"><g v="VERB"/><g v="impf"/><g v="tran"/></l><f t="ёжу"><g v="sing"/><g v="1per"/><g v="pres"/><g v="indc"/></f><f t="ёжим"><g v="plur"/><g v="1per"/><g v="pres"/><g v="indc"/></f><f t="ёжишь"><g v="sing"/><g v="2per"/><g v="pres"/><g v="indc"/></f><f t="ёжите"><g v="plur"/><g v="2per"/><g v="pres"/><g v="indc"/></f><f t="ёжит"><g v="sing"/><g v="3per"/><g v="pres"/><g v="indc"/></f><f t="ёжат"><g v="plur"/><g v="3per"/><g v="pres"/><g v="indc"/></f><f t="ёжил"><g v="masc"/><g v="sing"/><g v="past"/><g v="indc"/></f><f t="ёжила"><g v="femn"/><g v="sing"/><g v="past"/><g v="indc"/></f><f t="ёжило"><g v="neut"/><g v="sing"/><g v="past"/><g v="indc"/></f><f t="ёжили"><g v="plur"/><g v="past"/><g v="indc"/></f><f t="ёжь"><g v="sing"/><g v="impr"/><g v="excl"/></f><f t="ёжьте"><g v="plur"/><g v="impr"/><g v="excl"/></f></lemma>
+    <lemma id="9" rev="9"><l t="ёжить"><g v="INFN"/><g v="impf"/><g v="tran"/></l><f t="ёжить"></f></lemma>
+    <lemma id="10" rev="10"><l t="ёжимый"><g v="PRTF"/><g v="impf"/><g v="tran"/><g v="pres"/><g v="pssv"/></l><f t="ёжимый"><g v="masc"/><g v="sing"/><g v="nomn"/></f><f t="ёжимого"><g v="masc"/><g v="sing"/><g v="gent"/></f><f t="ёжимому"><g v="masc"/><g v="sing"/><g v="datv"/></f><f t="ёжимого"><g v="anim"/><g v="masc"/><g v="sing"/><g v="accs"/></f><f t="ёжимый"><g v="inan"/><g v="masc"/><g v="sing"/><g v="accs"/></f><f t="ёжимым"><g v="masc"/><g v="sing"/><g v="ablt"/></f><f t="ёжимом"><g v="masc"/><g v="sing"/><g v="loct"/></f><f t="ёжимая"><g v="femn"/><g v="sing"/><g v="nomn"/></f><f t="ёжимой"><g v="femn"/><g v="sing"/><g v="gent"/></f><f t="ёжимой"><g v="femn"/><g v="sing"/><g v="datv"/></f><f t="ёжимую"><g v="femn"/><g v="sing"/><g v="accs"/></f><f t="ёжимой"><g v="femn"/><g v="sing"/><g v="ablt"/></f><f t="ёжимою"><g v="femn"/><g v="sing"/><g v="ablt"/><g v="V-oy"/></f><f t="ёжимой"><g v="femn"/><g v="sing"/><g v="loct"/></f><f t="ёжимое"><g v="neut"/><g v="sing"/><g v="nomn"/></f><f t="ёжимого"><g v="neut"/><g v="sing"/><g v="gent"/></f><f t="ёжимому"><g v="neut"/><g v="sing"/><g v="datv"/></f><f t="ёжимое"><g v="neut"/><g v="sing"/><g v="accs"/></f><f t="ёжимым"><g v="neut"/><g v="sing"/><g v="ablt"/></f><f t="ёжимом"><g v="neut"/><g v="sing"/><g v="loct"/></f><f t="ёжимые"><g v="plur"/><g v="nomn"/></f><f t="ёжимых"><g v="plur"/><g v="gent"/></f><f t="ёжимым"><g v="plur"/><g v="datv"/></f><f t="ёжимых"><g v="anim"/><g v="plur"/><g v="accs"/></f><f t="ёжимые"><g v="inan"/><g v="plur"/><g v="accs"/></f><f t="ёжимыми"><g v="plur"/><g v="ablt"/></f><f t="ёжимых"><g v="plur"/><g v="loct"/></f></lemma>
+    <lemma id="11" rev="11"><l t="ёжим"><g v="PRTS"/><g v="impf"/><g v="pres"/><g v="pssv"/></l><f t="ёжим"><g v="masc"/><g v="sing"/></f><f t="ёжима"><g v="femn"/><g v="sing"/></f><f t="ёжимо"><g v="neut"/><g v="sing"/></f><f t="ёжимы"><g v="plur"/></f></lemma>
+    <lemma id="12" rev="12"><l t="ёжа"><g v="GRND"/><g v="impf"/><g v="tran"/></l><f t="ёжа"><g v="pres"/></f><f t="ёжив"><g v="past"/></f><f t="ёживши"><g v="past"/><g v="V-sh"/></f></lemma>
+    <lemma id="13" rev="13"><l t="ёжусь"><g v="VERB"/><g v="impf"/><g v="intr"/></l><f t="ёжусь"><g v="sing"/><g v="1per"/><g v="pres"/><g v="indc"/></f><f t="ёжимся"><g v="plur"/><g v="1per"/><g v="pres"/><g v="indc"/></f><f t="ёжишься"><g v="sing"/><g v="2per"/><g v="pres"/><g v="indc"/></f><f t="ёжитесь"><g v="plur"/><g v="2per"/><g v="pres"/><g v="indc"/></f><f t="ёжится"><g v="sing"/><g v="3per"/><g v="pres"/><g v="indc"/></f><f t="ёжатся"><g v="plur"/><g v="3per"/><g v="pres"/><g v="indc"/></f><f t="ёжился"><g v="masc"/><g v="sing"/><g v="past"/><g v="indc"/></f><f t="ёжилась"><g v="femn"/><g v="sing"/><g v="past"/><g v="indc"/></f><f t="ёжилось"><g v="neut"/><g v="sing"/><g v="past"/><g v="indc"/></f><f t="ёжились"><g v="plur"/><g v="past"/><g v="indc"/></f><f t="ёжься"><g v="sing"/><g v="impr"/><g v="excl"/></f><f t="ёжьтесь"><g v="plur"/><g v="impr"/><g v="excl"/></f></lemma>
+    <lemma id="14" rev="14"><l t="ёжиться"><g v="INFN"/><g v="impf"/><g v="intr"/></l><f t="ёжиться"></f></lemma>
+    <lemma id="18" rev="18"><l t="ёкнул"><g v="VERB"/><g v="perf"/><g v="intr"/></l><f t="ёкнул"><g v="masc"/><g v="sing"/><g v="past"/><g v="indc"/></f><f t="ёкнула"><g v="femn"/><g v="sing"/><g v="past"/><g v="indc"/></f><f t="ёкнуло"><g v="neut"/><g v="sing"/><g v="past"/><g v="indc"/></f><f t="ёкнули"><g v="plur"/><g v="past"/><g v="indc"/></f><f t="ёкну"><g v="sing"/><g v="1per"/><g v="futr"/><g v="indc"/></f><f t="ёкнем"><g v="plur"/><g v="1per"/><g v="futr"/><g v="indc"/></f><f t="ёкнешь"><g v="sing"/><g v="2per"/><g v="futr"/><g v="indc"/></f><f t="ёкнете"><g v="plur"/><g v="2per"/><g v="futr"/><g v="indc"/></f><f t="ёкнет"><g v="sing"/><g v="3per"/><g v="futr"/><g v="indc"/></f><f t="ёкнут"><g v="plur"/><g v="3per"/><g v="futr"/><g v="indc"/></f><f t="ёкнем"><g v="sing"/><g v="impr"/><g v="incl"/></f><f t="ёкнемте"><g v="plur"/><g v="impr"/><g v="incl"/></f><f t="ёкни"><g v="sing"/><g v="impr"/><g v="excl"/></f><f t="ёкните"><g v="plur"/><g v="impr"/><g v="excl"/></f></lemma>
+    <lemma id="19" rev="19"><l t="ёкнуть"><g v="INFN"/><g v="perf"/><g v="intr"/></l><f t="ёкнуть"></f></lemma>
+    <lemma id="20" rev="20"><l t="ёкнувший"><g v="PRTF"/><g v="perf"/><g v="intr"/><g v="past"/><g v="actv"/></l><f t="ёкнувший"><g v="masc"/><g v="sing"/><g v="nomn"/></f><f t="ёкнувшего"><g v="masc"/><g v="sing"/><g v="gent"/></f><f t="ёкнувшему"><g v="masc"/><g v="sing"/><g v="datv"/></f><f t="ёкнувшего"><g v="anim"/><g v="masc"/><g v="sing"/><g v="accs"/></f><f t="ёкнувший"><g v="inan"/><g v="masc"/><g v="sing"/><g v="accs"/></f><f t="ёкнувшим"><g v="masc"/><g v="sing"/><g v="ablt"/></f><f t="ёкнувшем"><g v="masc"/><g v="sing"/><g v="loct"/></f><f t="ёкнувшая"><g v="femn"/><g v="sing"/><g v="nomn"/></f><f t="ёкнувшей"><g v="femn"/><g v="sing"/><g v="gent"/></f><f t="ёкнувшей"><g v="femn"/><g v="sing"/><g v="datv"/></f><f t="ёкнувшую"><g v="femn"/><g v="sing"/><g v="accs"/></f><f t="ёкнувшей"><g v="femn"/><g v="sing"/><g v="ablt"/></f><f t="ёкнувшею"><g v="femn"/><g v="sing"/><g v="ablt"/><g v="V-ey"/></f><f t="ёкнувшей"><g v="femn"/><g v="sing"/><g v="loct"/></f><f t="ёкнувшее"><g v="neut"/><g v="sing"/><g v="nomn"/></f><f t="ёкнувшего"><g v="neut"/><g v="sing"/><g v="gent"/></f><f t="ёкнувшему"><g v="neut"/><g v="sing"/><g v="datv"/></f><f t="ёкнувшее"><g v="neut"/><g v="sing"/><g v="accs"/></f><f t="ёкнувшим"><g v="neut"/><g v="sing"/><g v="ablt"/></f><f t="ёкнувшем"><g v="neut"/><g v="sing"/><g v="loct"/></f><f t="ёкнувшие"><g v="plur"/><g v="nomn"/></f><f t="ёкнувших"><g v="plur"/><g v="gent"/></f><f t="ёкнувшим"><g v="plur"/><g v="datv"/></f><f t="ёкнувших"><g v="anim"/><g v="plur"/><g v="accs"/></f><f t="ёкнувшие"><g v="inan"/><g v="plur"/><g v="accs"/></f><f t="ёкнувшими"><g v="plur"/><g v="ablt"/></f><f t="ёкнувших"><g v="plur"/><g v="loct"/></f></lemma>
+    <lemma id="21" rev="21"><l t="ёкнув"><g v="GRND"/><g v="perf"/><g v="intr"/></l><f t="ёкнув"><g v="past"/></f><f t="ёкнувши"><g v="past"/><g v="V-sh"/></f></lemma>
+    <lemma id="22" rev="22"><l t="ёлка"><g v="NOUN"/><g v="inan"/><g v="femn"/></l><f t="ёлка"><g v="sing"/><g v="nomn"/></f><f t="ёлки"><g v="sing"/><g v="gent"/></f><f t="ёлке"><g v="sing"/><g v="datv"/></f><f t="ёлку"><g v="sing"/><g v="accs"/></f><f t="ёлкой"><g v="sing"/><g v="ablt"/></f><f t="ёлкою"><g v="sing"/><g v="ablt"/><g v="V-oy"/></f><f t="ёлке"><g v="sing"/><g v="loct"/></f><f t="ёлки"><g v="plur"/><g v="nomn"/></f><f t="ёлок"><g v="plur"/><g v="gent"/></f><f t="ёлкам"><g v="plur"/><g v="datv"/></f><f t="ёлки"><g v="plur"/><g v="accs"/></f><f t="ёлками"><g v="plur"/><g v="ablt"/></f><f t="ёлках"><g v="plur"/><g v="loct"/></f></lemma>
+    <lemma id="23" rev="23"><l t="ёлочка"><g v="NOUN"/><g v="inan"/><g v="femn"/></l><f t="ёлочка"><g v="sing"/><g v="nomn"/></f><f t="ёлочки"><g v="sing"/><g v="gent"/></f><f t="ёлочке"><g v="sing"/><g v="datv"/></f><f t="ёлочку"><g v="sing"/><g v="accs"/></f><f t="ёлочкой"><g v="sing"/><g v="ablt"/></f><f t="ёлочкою"><g v="sing"/><g v="ablt"/><g v="V-oy"/></f><f t="ёлочке"><g v="sing"/><g v="loct"/></f><f t="ёлочки"><g v="plur"/><g v="nomn"/></f><f t="ёлочек"><g v="plur"/><g v="gent"/></f><f t="ёлочкам"><g v="plur"/><g v="datv"/></f><f t="ёлочки"><g v="plur"/><g v="accs"/></f><f t="ёлочками"><g v="plur"/><g v="ablt"/></f><f t="ёлочках"><g v="plur"/><g v="loct"/></f></lemma>
+    <lemma id="1928" rev="1928"><l t="абсурдно"><g v="ADVB"/></l><f t="абсурдно"></f></lemma>
+    <lemma id="1929" rev="1929"><l t="абсурдность"><g v="NOUN"/><g v="inan"/><g v="femn"/></l><f t="абсурдность"><g v="sing"/><g v="nomn"/></f><f t="абсурдности"><g v="sing"/><g v="gent"/></f><f t="абсурдности"><g v="sing"/><g v="datv"/></f><f t="абсурдность"><g v="sing"/><g v="accs"/></f><f t="абсурдностью"><g v="sing"/><g v="ablt"/></f><f t="абсурдности"><g v="sing"/><g v="loct"/></f><f t="абсурдности"><g v="plur"/><g v="nomn"/></f><f t="абсурдностей"><g v="plur"/><g v="gent"/></f><f t="абсурдностям"><g v="plur"/><g v="datv"/></f><f t="абсурдности"><g v="plur"/><g v="accs"/></f><f t="абсурдностями"><g v="plur"/><g v="ablt"/></f><f t="абсурдностях"><g v="plur"/><g v="loct"/></f></lemma>
+    <lemma id="1930" rev="1930"><l t="абсурдный"><g v="ADJF"/><g v="Qual"/></l><f t="абсурдный"><g v="masc"/><g v="sing"/><g v="nomn"/></f><f t="абсурдного"><g v="masc"/><g v="sing"/><g v="gent"/></f><f t="абсурдному"><g v="masc"/><g v="sing"/><g v="datv"/></f><f t="абсурдного"><g v="anim"/><g v="masc"/><g v="sing"/><g v="accs"/></f><f t="абсурдный"><g v="inan"/><g v="masc"/><g v="sing"/><g v="accs"/></f><f t="абсурдным"><g v="masc"/><g v="sing"/><g v="ablt"/></f><f t="абсурдном"><g v="masc"/><g v="sing"/><g v="loct"/></f><f t="абсурдная"><g v="femn"/><g v="sing"/><g v="nomn"/></f><f t="абсурдной"><g v="femn"/><g v="sing"/><g v="gent"/></f><f t="абсурдной"><g v="femn"/><g v="sing"/><g v="datv"/></f><f t="абсурдную"><g v="femn"/><g v="sing"/><g v="accs"/></f><f t="абсурдной"><g v="femn"/><g v="sing"/><g v="ablt"/></f><f t="абсурдною"><g v="femn"/><g v="sing"/><g v="ablt"/><g v="V-oy"/></f><f t="абсурдной"><g v="femn"/><g v="sing"/><g v="loct"/></f><f t="абсурдное"><g v="neut"/><g v="sing"/><g v="nomn"/></f><f t="абсурдного"><g v="neut"/><g v="sing"/><g v="gent"/></f><f t="абсурдному"><g v="neut"/><g v="sing"/><g v="datv"/></f><f t="абсурдное"><g v="neut"/><g v="sing"/><g v="accs"/></f><f t="абсурдным"><g v="neut"/><g v="sing"/><g v="ablt"/></f><f t="абсурдном"><g v="neut"/><g v="sing"/><g v="loct"/></f><f t="абсурдные"><g v="plur"/><g v="nomn"/></f><f t="абсурдных"><g v="plur"/><g v="gent"/></f><f t="абсурдным"><g v="plur"/><g v="datv"/></f><f t="абсурдных"><g v="anim"/><g v="plur"/><g v="accs"/></f><f t="абсурдные"><g v="inan"/><g v="plur"/><g v="accs"/></f><f t="абсурдными"><g v="plur"/><g v="ablt"/></f><f t="абсурдных"><g v="plur"/><g v="loct"/></f></lemma>
+    <lemma id="1931" rev="1931"><l t="абсурден"><g v="ADJS"/><g v="Qual"/></l><f t="абсурден"><g v="masc"/><g v="sing"/></f><f t="абсурдна"><g v="femn"/><g v="sing"/></f><f t="абсурдно"><g v="neut"/><g v="sing"/></f><f t="абсурдны"><g v="plur"/></f></lemma>
+    <lemma id="1932" rev="1932"><l t="абсурднее"><g v="COMP"/><g v="Qual"/></l><f t="абсурднее"></f><f t="абсурдней"><g v="V-ej"/></f><f t="поабсурднее"><g v="Cmp2"/></f><f t="поабсурдней"><g v="Cmp2"/><g v="V-ej"/></f></lemma>
+</lemmata>
+<link_types>
+<type id="1">ADJF-ADJS</type>
+<type id="2">ADJF-COMP</type>
+<type id="3">INFN-VERB</type>
+<type id="4">INFN-PRTF</type>
+<type id="5">INFN-GRND</type>
+<type id="6">PRTF-PRTS</type>
+<type id="7">NAME-PATR</type>
+<type id="8">PATR_MASC-PATR_FEMN</type>
+<type id="9">SURN_MASC-SURN_FEMN</type>
+<type id="10">SURN_MASC-SURN_PLUR</type>
+<type id="11">PERF-IMPF</type>
+<type id="12">ADJF-SUPR_ejsh</type>
+<type id="13">PATR_MASC_FORM-PATR_MASC_INFR</type>
+<type id="14">PATR_FEMN_FORM-PATR_FEMN_INFR</type>
+<type id="15">ADJF_eish-SUPR_nai_eish</type>
+<type id="16">ADJF-SUPR_ajsh</type>
+<type id="17">ADJF_aish-SUPR_nai_aish</type>
+<type id="18">ADJF-SUPR_suppl</type>
+<type id="19">ADJF-SUPR_nai</type>
+<type id="20">ADJF-SUPR_slng</type>
+</link_types>
+<links>
+    <link id="1" from="5" to="6" type="1"/>
+    <link id="2" from="5" to="7" type="2"/>
+    <link id="3" from="9" to="8" type="3"/>
+    <link id="4" from="9" to="10" type="4"/>
+    <link id="5" from="9" to="12" type="5"/>
+    <link id="6" from="10" to="11" type="6"/>
+    <link id="7" from="14" to="13" type="3"/>
+    <link id="11" from="19" to="18" type="3"/>
+    <link id="12" from="19" to="20" type="4"/>
+    <link id="13" from="19" to="21" type="5"/>
+    <link id="1742" from="1930" to="1931" type="1"/>
+    <link id="1743" from="1930" to="1932" type="2"/>
+</links>
+</dictionary>

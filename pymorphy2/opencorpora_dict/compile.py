@@ -254,11 +254,11 @@ def _suffixes_prediction_data(words, paradigm_popularity, gramtab, paradigms, su
 
     # [form_prefix_id]["suffix"]["POS"][(para_id, idx)] => number or occurrences
     # this is for selecting most popular parses
-    endings = collections.defaultdict(
-        lambda: collections.defaultdict(
-            lambda: collections.defaultdict(
-                lambda: collections.defaultdict(int)))
-    )
+    endings = {}
+    for form_prefix_id in range(len(PARADIGM_PREFIXES)):
+        endings[form_prefix_id] = collections.defaultdict(
+                                    lambda: collections.defaultdict(
+                                        lambda: collections.defaultdict(int)))
 
     logger.debug('calculating prediction data: checking word endings..')
     for word, (para_id, idx) in words:

@@ -57,6 +57,9 @@ def load_dict(path, gramtab_format='opencorpora-int'):
     prediction_suffixes_dawgs = []
     for prefix_id in range(len(paradigm_prefixes)):
         fn = _f('prediction-suffixes-%s.dawg' % prefix_id)
+
+        assert os.path.exists(fn)
+
         prediction_suffixes_dawgs.append(dawg.PredictionSuffixesDAWG().load(fn))
 
     return LoadedDictionary(meta, gramtab, suffixes, paradigms, words,
