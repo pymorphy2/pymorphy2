@@ -231,13 +231,13 @@ class OpencorporaTag(object):
     # Helper attributes for inflection/declension routines
     # ----------------------------------------------------
     _NON_PRODUCTIVE_GRAMMEMES = set(['NUMR', 'NPRO', 'PRED', 'PREP',
-                                   'CONJ', 'PRCL', 'INTJ', 'Apro'])
+                                     'CONJ', 'PRCL', 'INTJ', 'Apro'])
     _EXTRA_INCOMPATIBLE = { # XXX: is it a good idea to have these rules?
         'plur': set(['GNdr']),
         # XXX: how to use rules from OpenCorpora?
         # (they have "lexeme/form" separation)
     }
-    _GRAMMEME_INDICES = collections.defaultdict(lambda: 0)
+    _GRAMMEME_INDICES = collections.defaultdict(int)
     _GRAMMEME_INCOMPATIBLE = collections.defaultdict(set)
     KNOWN_GRAMMEMES = set()
 
@@ -439,7 +439,7 @@ class CyrillicOpencorporaTag(OpencorporaTag):
         cls._init_alias_map(dict_grammemes)
         super(CyrillicOpencorporaTag, cls)._init_grammemes(dict_grammemes)
 
-        GRAMMEME_INDICES = collections.defaultdict(lambda: 0)
+        GRAMMEME_INDICES = collections.defaultdict(int)
         for name, idx in cls._GRAMMEME_INDICES.items():
             GRAMMEME_INDICES[cls._from_internal_grammeme(name)] = idx
         cls._GRAMMEME_INDICES = GRAMMEME_INDICES
