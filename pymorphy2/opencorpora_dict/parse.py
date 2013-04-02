@@ -41,7 +41,15 @@ def parse_opencorpora_xml(filename):
     version, revision = None, None
     _lexemes_len = 0
 
-    for ev, elem in iterparse(filename):
+    for ev, elem in iterparse(filename, events=(str('start'), str('end'))):
+
+        if ev == 'start':
+            if elem.tag == 'dictionary':
+                version = elem.get('version')
+                revision = elem.get('revision')
+                logger.info("dictionary v%s, rev%s", version, revision)
+                _clear(elem)
+            continue
 
         if elem.tag == 'grammeme':
             name = elem.find('name').text
@@ -53,10 +61,6 @@ def parse_opencorpora_xml(filename):
             grammemes.append(grameme)
             _clear(elem)
 
-        if elem.tag == 'dictionary':
-            version = elem.get('version')
-            revision = elem.get('revision')
-            _clear(elem)
 
         if elem.tag == 'lemma':
             if not lexemes:
