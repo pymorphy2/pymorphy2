@@ -45,7 +45,9 @@ def load_dict(path, gramtab_format='opencorpora-int'):
     _assert_format_is_compatible(meta, path)
 
     Tag = _load_tag_class(gramtab_format, _f('grammemes.json'))
-    gramtab = [Tag(tag_str) for tag_str in _load_gramtab(meta, gramtab_format, path)]
+
+    str_gramtab = _load_gramtab(meta, gramtab_format, path)
+    gramtab = [Tag(tag_str) for tag_str in str_gramtab]
 
     suffixes = json_read(_f('suffixes.json'))
     paradigm_prefixes = json_read(_f('paradigm-prefixes.json'))
@@ -157,11 +159,12 @@ def _load_tag_class(gramtab_format, grammemes_filename):
 
     grammemes = json_read(grammemes_filename)
 
-    # clone the class
-    OriginalTag = tagset.registry[gramtab_format]
-    Tag = type(OriginalTag.__name__, (OriginalTag,), {
-        'KNOWN_GRAMMEMES': OriginalTag.KNOWN_GRAMMEMES.copy(),
-    })
+    Tag = tagset.registry[gramtab_format]
+
+    # FIXME: clone the class
+    # Tag = type(Tag.__name__, (Tag,), {
+    #     'KNOWN_GRAMMEMES': Tag.KNOWN_GRAMMEMES.copy(),
+    # })
 
     Tag._init_grammemes(grammemes)
 

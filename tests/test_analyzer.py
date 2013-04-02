@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, unicode_literals
+import pickle
 import pytest
 import pymorphy2
 from pymorphy2.units.by_analogy import UnknownPrefixAnalyzer, KnownPrefixAnalyzer
@@ -93,6 +94,12 @@ NON_PRODUCTIVE_BUGS_DATA = [
     ('псевдоякобы', 'PRCL'),
     ('псевдоякобы', 'CONJ'),
 ]
+
+
+def test_pickling():
+    data = pickle.dumps(morph, pickle.HIGHEST_PROTOCOL)
+    morph2 = pickle.loads(data)
+    assert morph2.tag('слово') == morph.tag('слово')
 
 
 def with_test_data(data, second_param_name='parse_result'):

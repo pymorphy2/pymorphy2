@@ -119,10 +119,13 @@ class MorphAnalyzer(object):
         else:
             self._result_type = None
 
+        self._result_type_orig = result_type
+
         # initialize units
         if units is None:
             units = self.DEFAULT_UNITS
 
+        self._unit_classes = units
         self._units = [cls(self) for cls in units]
 
 
@@ -264,4 +267,12 @@ class MorphAnalyzer(object):
 
     @property
     def TagClass(self):
+        """
+        :rtype: pymorphy2.tagset.OpencorporaTag
+        """
         return self.dictionary.Tag
+
+
+    def __reduce__(self):
+        args = (self.dictionary.path, self._result_type_orig, self._unit_classes)
+        return self.__class__, args, None

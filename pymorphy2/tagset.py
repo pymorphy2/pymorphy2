@@ -256,6 +256,7 @@ class OpencorporaTag(object):
         grammemes_tuple = tuple([intern(str(g)) for g in grammemes])
 
         self._assert_grammemes_are_known(set(grammemes_tuple))
+
         self._grammemes_tuple = grammemes_tuple
         self._POS = self._grammemes_tuple[0]
         self._grammemes_cache = None
@@ -325,6 +326,9 @@ class OpencorporaTag(object):
     def __len__(self):
         return len(self._grammemes_tuple)
 
+    def __reduce__(self):
+        return self.__class__, (self._str,), None
+
 
     def is_productive(self):
         return not self.grammemes & self._NON_PRODUCTIVE_GRAMMEMES
@@ -334,17 +338,22 @@ class OpencorporaTag(object):
 
     @classmethod
     def grammeme_is_known(cls, grammeme):
-        if not cls.KNOWN_GRAMMEMES:
-            msg = "The class was not properly initialized."
-            raise RuntimeError(msg)
+        cls._assert_grammemes_initialized()
         return grammeme in cls.KNOWN_GRAMMEMES
 
     @classmethod
     def _assert_grammemes_are_known(cls, grammemes):
         if not grammemes <= cls.KNOWN_GRAMMEMES:
+            cls._assert_grammemes_initialized()
             unknown = grammemes - cls.KNOWN_GRAMMEMES
             unknown_repr = ", ".join(["'%s'" % g for g in sorted(unknown)])
             raise ValueError("Grammemes are unknown: {%s}" % unknown_repr)
+
+    @classmethod
+    def _assert_grammemes_initialized(cls):
+        if not cls.KNOWN_GRAMMEMES:
+            msg = "The class was not properly initialized."
+            raise RuntimeError(msg)
 
     def updated_grammemes(self, required):
         """
