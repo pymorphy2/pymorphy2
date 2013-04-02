@@ -26,8 +26,10 @@ def test_hashing():
 def test_cls(tag, cls):
     assert Tag(tag).POS == cls
 
+
 def test_repr():
     assert repr(Tag('NOUN anim,plur')) == "OpencorporaTag('NOUN anim,plur')"
+
 
 def test_extra_grammemes():
     m = pymorphy2.MorphAnalyzer()
@@ -46,6 +48,13 @@ def test_extra_grammemes():
     assert 'new_grammeme' in m.TagClass.KNOWN_GRAMMEMES
     assert 'new_grammeme' not in OpencorporaTag.KNOWN_GRAMMEMES
     assert 'new_grammeme' not in Tag.KNOWN_GRAMMEMES
+
+
+def test_len():
+    assert len(Tag('NOUN')) == 1
+    assert len(Tag('NOUN plur')) == 2
+    assert len(Tag('NOUN plur,masc')) == 3
+    assert len(Tag('NOUN,plur,masc')) == 3
 
 
 class TestUpdated:

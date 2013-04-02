@@ -322,6 +322,9 @@ class OpencorporaTag(object):
     def __hash__(self):
         return hash(self._grammemes_tuple)
 
+    def __len__(self):
+        return len(self._grammemes_tuple)
+
 
     def is_productive(self):
         return not self.grammemes & self._NON_PRODUCTIVE_GRAMMEMES
