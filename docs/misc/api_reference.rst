@@ -43,6 +43,9 @@ Utilities for OpenCorpora Dictionaries
 Various Utilities
 -----------------
 
+.. automodule:: pymorphy2.tokenizers
+    :members:
+
 .. automodule:: pymorphy2.shapes
     :members:
 
