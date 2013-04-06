@@ -3,7 +3,11 @@ from __future__ import absolute_import, unicode_literals, division
 
 
 def add_parse_if_not_seen(parse, result_list, seen_parses):
-    para_id = parse[4][0][2]
+    try:
+        para_id = parse[4][0][2]
+    except IndexError:
+        para_id = None
+
     word = parse[0]
     tag = parse[1]
 

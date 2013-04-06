@@ -62,6 +62,11 @@ pdf-документов          pdf-документ        NOUN,inan,masc plu
 по-театральному     по-театральному     ADVB
 по-воробьиному      по-воробьиному      ADVB
 
+# ========= hyphenated words with non-cyrillic parts
+# this used to raise an exception
+
+Ретро-FM    ретро-fm    LATN
+
 # ====================== non-words
 .       .       PNCT
 ,       ,       PNCT
@@ -123,6 +128,8 @@ SYSTEMATIC_ERRORS = _to_test_data("""
 2001-й      2001-й  ADJF,Anum masc,sing,nomn
 8-му        8-й     ADJF,Anum masc,sing,datv
 3-х         3       NUMR,gent
+
+уловка-22   уловка-22   NOUN,inan,femn sing,nomn
 
 """)
 
