@@ -42,6 +42,7 @@ class DictionaryAnalyzer(BaseAnalyzerUnit):
 
                 res.append((fixed_word, tag, normal_form, 1.0, method))
 
+        # res.sort(key=lambda p: len(p[1]))  #  prefer simple parses
         return res
 
     def tag(self, word, word_lower, seen_tags):

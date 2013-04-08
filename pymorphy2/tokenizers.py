@@ -2,7 +2,7 @@
 import re
 GROUPING_SPACE_REGEX = re.compile('([^\w_-]|[+])', re.U)
 
-def word_tokenize(text):
+def simple_word_tokenize(text):
     """
     Split text into tokens. Don't split by hyphen.
     """
