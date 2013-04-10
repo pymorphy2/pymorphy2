@@ -99,7 +99,7 @@ class NumberAnalyzer(_SingleShapeAnalyzer):
 
 
 class RomanNumberAnalyzer(_SingleShapeAnalyzer):
-    TAG_STR = 'NUMB,Romn'
+    TAG_STR = 'ROMN'
     terminal = False  # give LatinAnalyzer a chance
 
     def check_shape(self, word, word_lower):

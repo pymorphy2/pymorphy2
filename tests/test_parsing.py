@@ -77,9 +77,9 @@ pdf-документов          pdf-документ        NOUN,inan,masc plu
 
 123         123         NUMB
 0           0           NUMB
-I           i           NUMB,Romn
-MCMLXXXIX   mcmlxxxix   NUMB,Romn
-XVIII       xviii       NUMB,Romn
+I           i           ROMN
+MCMLXXXIX   mcmlxxxix   ROMN
+XVIII       xviii       ROMN
 
 # ========= LATN
 Foo     foo     LATN
