@@ -27,6 +27,25 @@ class Parse(_Parse):
         res = self._morph._inflect(self, required_grammemes)
         return None if not res else res[0]
 
+    def pluralize(self, num):
+        form_info = {
+            'NOUN': [('sing', 'nomn'), ('sing', 'gent'), ('plur', 'gent')],
+            'ADJF': [('sing', 'nomn'), ('plur', 'gent'), ('plur', 'gent')],
+            'PRTF': [('sing', 'nomn'), ('plur', 'gent'), ('plur', 'gent')],
+            'Anum': [('sing', 'nomn'), ('plur', 'gent'), ('plur', 'gent')],
+        }
+
+        if (num % 10 == 1) and (num % 100 != 11):
+            index = 0
+        elif (num % 10 >= 2) and (num % 10 <= 4) and (num % 100 < 10 or num % 100 >= 20):
+            index = 1
+        else:
+            index = 2
+
+        inflect_rules = form_info.get(self.tag.POS, form_info['NOUN'])
+        grammemes = set(inflect_rules[index])
+        return self.inflect(grammemes)
+
     @property
     def lexeme(self):
         """ A lexeme this form belongs to. """
