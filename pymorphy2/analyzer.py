@@ -23,18 +23,18 @@ class Parse(_Parse):
     _dict = None
     """ :type _dict: pymorphy2.opencorpora_dict.Dictionary """
 
+    _plural_forms = (
+        set(['sing', 'nomn']),
+        set(['sing', 'gent']),
+        set(['plur', 'nomn']),
+        set(['plur', 'gent']),
+    )
+
     def inflect(self, required_grammemes):
         res = self._morph._inflect(self, required_grammemes)
         return None if not res else res[0]
 
     def pluralize(self, num):
-        form_info = {
-            'NOUN': [('sing', 'nomn'), ('sing', 'gent'), ('plur', 'gent')],
-            'ADJF': [('sing', 'nomn'), ('plur', 'gent'), ('plur', 'gent')],
-            'PRTF': [('sing', 'nomn'), ('plur', 'gent'), ('plur', 'gent')],
-            'Anum': [('sing', 'nomn'), ('plur', 'gent'), ('plur', 'gent')],
-        }
-
         if (num % 10 == 1) and (num % 100 != 11):
             index = 0
         elif (num % 10 >= 2) and (num % 10 <= 4) and (num % 100 < 10 or num % 100 >= 20):
@@ -42,8 +42,21 @@ class Parse(_Parse):
         else:
             index = 2
 
-        inflect_rules = form_info.get(self.tag.POS, form_info['NOUN'])
-        grammemes = set(inflect_rules[index])
+        if self.tag.POS == 'NOUN' and self.tag.case != 'nomn':
+            if index == 0:
+                grammemes = set(['sing', self.tag.case])
+            elif self.tag.case == 'accs' and index == 2:
+                grammemes = self._plural_forms[3]
+            else:
+                grammemes = set(['plur', self.tag.case])
+        elif index == 0:
+            grammemes = self._plural_forms[0]
+        elif self.tag.POS == 'NOUN' and index == 1:
+            grammemes = self._plural_forms[1]
+        elif self.tag.POS in ('ADJF', 'PRTF') and self.tag.gender == 'femn' and index == 1:
+            grammemes = self._plural_forms[2]
+        else:
+            grammemes = self._plural_forms[3]
         return self.inflect(grammemes)
 
     @property
