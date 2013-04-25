@@ -24,18 +24,18 @@ class DictionaryAnalyzer(BaseAnalyzerUnit):
         Parse a word using this dictionary.
         """
         res = []
-        para_normal_forms = {}
+        normal_forms_cache = {}
         para_data = self.dict.words.similar_items(word_lower, self.dict.ee)
 
         for fixed_word, parses in para_data:
             # `fixed_word` is a word with proper ё letters
 
             for para_id, idx in parses:
-                if para_id not in para_normal_forms:
+                if para_id not in normal_forms_cache:
                     normal_form = self.dict.build_normal_form(para_id, idx, fixed_word)
-                    para_normal_forms[para_id] = normal_form
+                    normal_forms_cache[para_id] = normal_form
                 else:
-                    normal_form = para_normal_forms[para_id]
+                    normal_form = normal_forms_cache[para_id]
 
                 tag = self.dict.build_tag_info(para_id, idx)
                 method = ((self, fixed_word, para_id, idx),)
@@ -79,7 +79,7 @@ class DictionaryAnalyzer(BaseAnalyzerUnit):
         stem = self.dict.build_stem(_para, idx, fixed_word)
 
         result = []
-        paradigm = self.dict.build_paradigm_info(para_id) # XXX: reuse _para?
+        paradigm = self.dict.build_paradigm_info(para_id)  # XXX: reuse _para?
 
         for index, (_prefix, _tag, _suffix) in enumerate(paradigm):
             word = _prefix + stem + _suffix
