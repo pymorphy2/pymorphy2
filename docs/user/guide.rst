@@ -208,3 +208,18 @@ pymorphy2 умеет склонять (ставить в какую-то дру�
      Parse(word='бутявки', tag=OpencorporaTag('NOUN,inan,femn plur,accs'), normal_form='бутявка', estimate=0.5, methods_stack=((<DictionaryAnalyzer>, 'явки', 8, 10), (<UnknownPrefixAnalyzer>, 'бут'))),
      Parse(word='бутявками', tag=OpencorporaTag('NOUN,inan,femn plur,ablt'), normal_form='бутявка', estimate=0.5, methods_stack=((<DictionaryAnalyzer>, 'явками', 8, 11), (<UnknownPrefixAnalyzer>, 'бут'))),
      Parse(word='бутявках', tag=OpencorporaTag('NOUN,inan,femn plur,loct'), normal_form='бутявка', estimate=0.5, methods_stack=((<DictionaryAnalyzer>, 'явках', 8, 12), (<UnknownPrefixAnalyzer>, 'бут')))]
+
+Согласование слов с числительными
+---------------------------------
+
+Слово нужно ставить в разные формы в зависимости от числительного, к которому оно относится. Например: "1 бутявка", "2 бутявки", "5 бутявок"
+
+Для этих целей используйте метод :meth:`Parse.pluralize`::
+
+    >>> butyavka = morph.parse('бутявка')[0]
+    >>> butyavka.pluralize(1).word
+    'бутявка'
+    >>> butyavka.pluralize(2).word
+    'бутявки'
+    >>> butyavka.pluralize(5).word
+    'бутявок'
