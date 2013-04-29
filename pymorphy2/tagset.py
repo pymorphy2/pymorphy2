@@ -430,6 +430,9 @@ class OpencorporaTag(object):
         else:
             index = 2
 
+        if self.POS not in ('NOUN', 'ADJF', 'PRTF'):
+            return set([])
+
         if self.POS == 'NOUN' and self.case != 'nomn':
             if index == 0:
                 grammemes = set(['sing', self.case])
