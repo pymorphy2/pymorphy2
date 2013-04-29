@@ -246,6 +246,8 @@ class OpencorporaTag(object):
         set(['sing', 'gent']),
         set(['plur', 'nomn']),
         set(['plur', 'gent']),
+        set(['sing']),
+        set(['plur']),
     )
 
     def __init__(self, tag):
@@ -430,10 +432,15 @@ class OpencorporaTag(object):
         else:
             index = 2
 
-        if self.POS not in ('NOUN', 'ADJF', 'PRTF'):
+        if self.POS not in ('NOUN', 'ADJF', 'PRTF', 'VERB'):
             return set([])
 
-        if self.POS == 'NOUN' and self.case != 'nomn':
+        if self.POS == 'VERB':
+            if index == 0:
+                return self._NUMERAL_AGREEMENT_GRAMMEMES[4]
+            else:
+                return self._NUMERAL_AGREEMENT_GRAMMEMES[5]
+        elif self.POS == 'NOUN' and self.case != 'nomn':
             if index == 0:
                 grammemes = set(['sing', self.case])
             elif self.case == 'accs' and index == 2:
