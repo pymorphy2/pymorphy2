@@ -21,12 +21,15 @@ from .utils import morph
     # причастия
     ("летящий", ["летящий", "летящих", "летящих"]),
     ("летящая", ["летящая", "летящие", "летящих"]),
+
+    # остальное части речи мы никак не согласовываем с числами
+    ("играет", ["играет", "играет", "играет"])
 ])
 def test_plural_forms(word, result):
     parsed = morph.parse(word)
     assert len(parsed)
     for plural, num in zip(result, [1, 2, 5]):
-        assert parsed[0].pluralize(num).word == plural
+        assert parsed[0].make_agree_with_number(num).word == plural
 
 
 @pytest.mark.parametrize(('word', 'case', 'result'), [
@@ -40,7 +43,7 @@ def test_plural_inflected(word, case, result):
     parsed = [p for p in morph.parse(word) if p.tag.case == case]
     assert len(parsed)
     for plural, num in zip(result, [1, 2, 5]):
-        assert parsed[0].pluralize(num).word == plural
+        assert parsed[0].make_agree_with_number(num).word == plural
 
 
 @pytest.mark.parametrize(('word', 'num', 'result'), [
@@ -71,4 +74,4 @@ def test_plural_inflected(word, case, result):
 def test_plural_num(word, num, result):
     parsed = morph.parse(word)
     assert len(parsed)
-    assert parsed[0].pluralize(num).word == result
+    assert parsed[0].make_agree_with_number(num).word == result
