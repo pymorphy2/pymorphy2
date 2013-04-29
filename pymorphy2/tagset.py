@@ -241,6 +241,13 @@ class OpencorporaTag(object):
     _GRAMMEME_INCOMPATIBLE = collections.defaultdict(set)
     KNOWN_GRAMMEMES = set()
 
+    _NUMERAL_AGREEMENT_GRAMMEMES = (
+        set(['sing', 'nomn']),
+        set(['sing', 'gent']),
+        set(['plur', 'nomn']),
+        set(['plur', 'gent']),
+    )
+
     def __init__(self, tag):
         self._str = tag
 
@@ -415,6 +422,30 @@ class OpencorporaTag(object):
     def _from_internal_grammeme(cls, grammeme):
         return grammeme
 
+    def numeral_agreement_grammemes(self, num):
+        if (num % 10 == 1) and (num % 100 != 11):
+            index = 0
+        elif (num % 10 >= 2) and (num % 10 <= 4) and (num % 100 < 10 or num % 100 >= 20):
+            index = 1
+        else:
+            index = 2
+
+        if self.POS == 'NOUN' and self.case != 'nomn':
+            if index == 0:
+                grammemes = set(['sing', self.case])
+            elif self.case == 'accs' and index == 2:
+                grammemes = self._NUMERAL_AGREEMENT_GRAMMEMES[3]
+            else:
+                grammemes = set(['plur', self.case])
+        elif index == 0:
+            grammemes = self._NUMERAL_AGREEMENT_GRAMMEMES[0]
+        elif self.POS == 'NOUN' and index == 1:
+            grammemes = self._NUMERAL_AGREEMENT_GRAMMEMES[1]
+        elif self.POS in ('ADJF', 'PRTF') and self.gender == 'femn' and index == 1:
+            grammemes = self._NUMERAL_AGREEMENT_GRAMMEMES[2]
+        else:
+            grammemes = self._NUMERAL_AGREEMENT_GRAMMEMES[3]
+        return grammemes
 
 
 class CyrillicOpencorporaTag(OpencorporaTag):
