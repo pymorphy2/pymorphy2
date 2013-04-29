@@ -28,6 +28,9 @@ class Parse(_Parse):
         return None if not res else res[0]
 
     def make_agree_with_number(self, num):
+        """
+        Inflects the word so that it agrees with ``num``
+        """
         return self.inflect(self.tag.numeral_agreement_grammemes(num))
 
     @property
