@@ -7,6 +7,7 @@ import os
 import itertools
 import codecs
 import json
+import heapq
 
 try:
     from urllib.request import urlopen
@@ -93,18 +94,22 @@ def json_read(filename, **json_options):
         return json.load(f, **json_options)
 
 
-def largest_group(iterable, key):
+def largest_elements(iterable, key, n=1):
     """
-    Find a group of largest elements (according to ``key``).
+    Return a list of largest elements (according to ``key``).
 
     >>> s = [-4, 3, 5, 7, 4, -7]
-    >>> largest_group(s, abs)
+    >>> largest_elements(s, abs, 1)
     [7, -7]
+    >>> largest_elements(s, abs, 2)
+    [5, 7, -7]
+    >>> largest_elements(s, abs, 3)
+    [-4, 5, 7, 4, -7]
 
     """
     it1, it2 = itertools.tee(iterable)
-    max_key = max(map(key, it1))
-    return [el for el in it2 if key(el) == max_key]
+    top_keys = set(heapq.nlargest(n, set(map(key, it1))))
+    return [el for el in it2 if key(el) in top_keys]
 
 
 def word_splits(word, min_reminder=3, max_prefix_length=5):

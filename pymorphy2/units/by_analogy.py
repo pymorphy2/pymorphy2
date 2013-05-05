@@ -177,7 +177,7 @@ class KnownSuffixAnalyzer(AnalogyAnalizerUnit):
         # or maybe use a proper discounting?
         total_counts = [1] * len(self._paradigm_prefixes)
 
-        for prefix_id, prefix, suffixes_dawg in self._possible_prefixes(word_lower):
+        for prefix_id, prefix, suffixes_dawg in self._possible_prefixes(word, word_lower):
 
             for i in self._prediction_splits:
 
@@ -193,6 +193,7 @@ class KnownSuffixAnalyzer(AnalogyAnalizerUnit):
                         tag = self.dict.build_tag_info(para_id, idx)
 
                         # skip non-productive tags
+                        # XXX: move this check to dictionary compilation step?
                         if not tag.is_productive():
                             continue
                         total_counts[prefix_id] += cnt
@@ -228,7 +229,7 @@ class KnownSuffixAnalyzer(AnalogyAnalizerUnit):
         # ``self.parse(...)``.
 
         result = []
-        for prefix_id, prefix, suffixes_dawg in self._possible_prefixes(word_lower):
+        for prefix_id, prefix, suffixes_dawg in self._possible_prefixes(word, word_lower):
 
             for i in self._prediction_splits:
 
@@ -240,9 +241,9 @@ class KnownSuffixAnalyzer(AnalogyAnalizerUnit):
 
                 for fixed_suffix, parses in para_data:
                     for cnt, para_id, idx in parses:
-
                         tag = self.dict.build_tag_info(para_id, idx)
 
+                        # XXX: move this check to dictionary compilation step?
                         if not tag.is_productive():
                             continue
 
@@ -258,10 +259,50 @@ class KnownSuffixAnalyzer(AnalogyAnalizerUnit):
         result.sort(reverse=True)
         return [tag for cnt, tag in result]
 
-    def _possible_prefixes(self, word):
+    def _possible_prefixes(self, word, word_lower):
         for prefix_id, prefix in self._paradigm_prefixes:
-            if not word.startswith(prefix):
+            if not word_lower.startswith(prefix):
                 continue
 
             suffixes_dawg = self.dict.prediction_suffixes_dawgs[prefix_id]
             yield prefix_id, prefix, suffixes_dawg
+
+
+
+class _SpecialKnownSuffixAnalyzer(KnownSuffixAnalyzer):
+    """
+    Parse the word by checking how the words with similar suffixes
+    are parsed, assuming the word has some predefined GRAMMEME
+    (which should be set in subclasses).
+
+    This class allows to create specialized predictors for given grammemes
+    (e.g. for surnames or geographical location names).
+
+    Prediction data for the grammeme must be available in dictionary.
+    """
+    GRAMMEME = None
+    ESTIMATE_DECAY = 0.6
+
+    def _possible_prefixes(self, word, word_lower):
+        if not word or not word[0].isupper():
+            # only run for title-cased words
+            return []
+
+        suffixes_dawg = self.dict.extra_prediction_dawgs[self.GRAMMEME][0]
+        return [(0, '', suffixes_dawg)]
+
+
+class NameAnalyzer(_SpecialKnownSuffixAnalyzer):
+    GRAMMEME = 'Name'
+
+class SurnameAnalyzer(_SpecialKnownSuffixAnalyzer):
+    GRAMMEME = 'Surn'
+
+class PatronymicAnalyzer(_SpecialKnownSuffixAnalyzer):
+    GRAMMEME = 'Patr'
+
+class GeoAnalyzer(_SpecialKnownSuffixAnalyzer):
+    GRAMMEME = 'Geox'
+
+class OrganizationAnalyzer(_SpecialKnownSuffixAnalyzer):
+    GRAMMEME = 'Orgn'

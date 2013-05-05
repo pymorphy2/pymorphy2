@@ -3,8 +3,10 @@ from __future__ import absolute_import
 
 from .by_lookup import DictionaryAnalyzer
 
-from .by_analogy import (KnownPrefixAnalyzer, KnownSuffixAnalyzer,
-                         UnknownPrefixAnalyzer)
+from .by_analogy import (
+    KnownPrefixAnalyzer, KnownSuffixAnalyzer, UnknownPrefixAnalyzer,
+    NameAnalyzer, SurnameAnalyzer, PatronymicAnalyzer,
+    OrganizationAnalyzer, GeoAnalyzer)
 
 from .by_hyphen import (HyphenatedWordsAnalyzer, HyphenAdverbAnalyzer,
                         HyphenSeparatedParticleAnalyzer)

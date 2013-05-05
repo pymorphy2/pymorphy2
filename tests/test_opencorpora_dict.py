@@ -2,14 +2,13 @@
 from __future__ import absolute_import, unicode_literals
 
 import os
+import pytest
+
 import pymorphy2
-from pymorphy2.opencorpora_dict.compile import (_to_paradigm,
-                                                convert_to_pymorphy2)
+from pymorphy2.opencorpora_dict.compile import (_to_paradigm, convert_to_pymorphy2)
 from pymorphy2.opencorpora_dict.parse import parse_opencorpora_xml
 from pymorphy2.dawg import assert_can_create
 from pymorphy2.test_suite_generator import make_test_suite
-
-import pytest
 
 
 class TestToyDictionary:
@@ -58,6 +57,8 @@ class TestToyDictionary:
         # use it
         morph = pymorphy2.MorphAnalyzer(out_path)
         assert morph.tag('ёжиться') == [morph.TagClass('INFN,impf,intr')]
+        assert morph.tag('корёжиться') == [morph.TagClass('INFN,impf,intr')]
+        assert morph.tag('коржиться') == [morph.TagClass('INFN,impf,intr')]
 
     def test_test_suite_generator(self, tmpdir):
         # just make sure it doesn't raise an exception

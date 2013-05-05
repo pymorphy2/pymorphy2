@@ -105,6 +105,13 @@ class MorphAnalyzer(object):
         units.HyphenatedWordsAnalyzer,
         units.KnownPrefixAnalyzer,
         units.UnknownPrefixAnalyzer,
+
+        units.NameAnalyzer,
+        units.SurnameAnalyzer,
+        units.PatronymicAnalyzer,
+        units.GeoAnalyzer,
+        units.OrganizationAnalyzer,
+
         units.KnownSuffixAnalyzer,
     ]
 

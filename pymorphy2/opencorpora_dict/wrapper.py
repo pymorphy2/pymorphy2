@@ -27,6 +27,7 @@ class Dictionary(object):
         self.words = self._data.words
         self.prediction_prefixes = self._data.prediction_prefixes
         self.prediction_suffixes_dawgs = self._data.prediction_suffixes_dawgs
+        self.extra_prediction_dawgs = self._data.extra_prediction_dawgs
         self.meta = self._data.meta
         self.Tag = self._data.Tag
 

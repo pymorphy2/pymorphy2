@@ -25,11 +25,11 @@ from pymorphy2.utils import json_write, json_read
 
 logger = logging.getLogger(__name__)
 
-CURRENT_FORMAT_VERSION = '2.1'
+CURRENT_FORMAT_VERSION = '2.2'
 
 LoadedDictionary = collections.namedtuple(
     'LoadedDictionary',
-    'meta, gramtab, suffixes, paradigms, words, prediction_prefixes, prediction_suffixes_dawgs, Tag, paradigm_prefixes'
+    'meta, gramtab, suffixes, paradigms, words, prediction_prefixes, prediction_suffixes_dawgs, extra_prediction_dawgs, Tag, paradigm_prefixes'
 )
 
 
@@ -59,14 +59,22 @@ def load_dict(path, gramtab_format='opencorpora-int'):
     prediction_suffixes_dawgs = []
     for prefix_id in range(len(paradigm_prefixes)):
         fn = _f('prediction-suffixes-%s.dawg' % prefix_id)
-
         assert os.path.exists(fn)
-
         prediction_suffixes_dawgs.append(dawg.PredictionSuffixesDAWG().load(fn))
+
+    extra_prediction_dawgs = {}
+    for grammeme in meta.get('extra_prediction_dawg_lengths', []):
+        extra_prediction_dawgs[grammeme] = []
+        for prefix_id in range(len(paradigm_prefixes)):
+            fn = _f('%s-prediction-suffixes-%s.dawg' % (grammeme, prefix_id))
+            assert os.path.exists(fn)
+            d = dawg.PredictionSuffixesDAWG().load(fn)
+            extra_prediction_dawgs[grammeme].append(d)
+
 
     return LoadedDictionary(meta, gramtab, suffixes, paradigms, words,
                             prediction_prefixes, prediction_suffixes_dawgs,
-                            Tag, paradigm_prefixes)
+                            extra_prediction_dawgs, Tag, paradigm_prefixes)
 
 
 def save_compiled_dict(compiled_dict, out_path):
@@ -80,12 +88,12 @@ def save_compiled_dict(compiled_dict, out_path):
     json_write(_f('grammemes.json'), compiled_dict.parsed_dict.grammemes)
 
     gramtab_formats = {}
-    for format, Tag in tagset.registry.items():
+    for format_, Tag in tagset.registry.items():
         Tag._init_grammemes(compiled_dict.parsed_dict.grammemes)
         new_gramtab = [Tag._from_internal_tag(tag) for tag in compiled_dict.gramtab]
 
-        gramtab_name = "gramtab-%s.json" % format
-        gramtab_formats[format] = gramtab_name
+        gramtab_name = "gramtab-%s.json" % format_
+        gramtab_formats[format_] = gramtab_name
 
         json_write(_f(gramtab_name), new_gramtab)
 
@@ -100,6 +108,11 @@ def save_compiled_dict(compiled_dict, out_path):
 
     for prefix_id, prediction_suffixes_dawg in enumerate(compiled_dict.prediction_suffixes_dawgs):
         prediction_suffixes_dawg.save(_f('prediction-suffixes-%s.dawg' % prefix_id))
+
+    for grammeme, dawgs in compiled_dict.extra_prediction_dawgs.items():
+        for prefix_id, prediction_suffixes_dawg in enumerate(dawgs):
+            fname = '%s-prediction-suffixes-%s.dawg' % (grammeme.lower(), prefix_id)
+            prediction_suffixes_dawg.save(_f(fname))
 
 
     dawg.DAWG(PREDICTION_PREFIXES).save(_f('prediction-prefixes.dawg'))
@@ -117,6 +130,12 @@ def save_compiled_dict(compiled_dict, out_path):
     prediction_suffixes_dawg_lenghts = []
     for prediction_suffixes_dawg in compiled_dict.prediction_suffixes_dawgs:
         prediction_suffixes_dawg_lenghts.append(_dawg_len(prediction_suffixes_dawg))
+
+    logger.debug('  extra_prediction_dawg_lengths')
+    extra_dawg_lengths = dict(
+        (grammeme, _dawg_len(d[0]))
+        for grammeme, d in compiled_dict.extra_prediction_dawgs.items()
+    )
 
     meta = [
         ['format_version', CURRENT_FORMAT_VERSION],
@@ -139,6 +158,7 @@ def save_compiled_dict(compiled_dict, out_path):
         ['prediction_suffixes_dawg_lengths', prediction_suffixes_dawg_lenghts],
         ['prediction_prefixes_dawg_length', len(PREDICTION_PREFIXES)],
         ['paradigm_prefixes_length', len(PARADIGM_PREFIXES)],
+        ['extra_prediction_dawg_lengths', extra_dawg_lengths],
     ]
 
     json_write(_f('meta.json'), meta, indent=4)
@@ -161,7 +181,7 @@ def _load_tag_class(gramtab_format, grammemes_filename):
 
     Tag = tagset.registry[gramtab_format]
 
-    # FIXME: clone the class
+    # FIXME: clone the class?
     # Tag = type(Tag.__name__, (Tag,), {
     #     'KNOWN_GRAMMEMES': Tag.KNOWN_GRAMMEMES.copy(),
     # })
