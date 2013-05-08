@@ -1,0 +1,11 @@
+
+*.pyc
+*.*~
+*.swp
+Thumbs.db
+
+.idea/
+.rope*
+PYSMELLTAGS
+reports
+
