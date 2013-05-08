@@ -9,3 +9,5 @@ Thumbs.db
 PYSMELLTAGS
 reports
 
+.tox
+MANIFEST
