@@ -38,6 +38,10 @@ def test_plural_forms(word, result):
     ("книгу", 'accs', ["книгу", "книги", "книг"]),
     ("книгой", 'ablt', ["книгой", "книгами", "книгами"]),
     ("книге", 'loct', ["книге", "книгах", "книгах"]),
+
+    # ("час", "accs", ["час", "часа", "часов"]), https://github.com/kmike/pymorphy2/issues/32
+    ("день", "accs", ["день", "дня", "дней"]),
+    ("минуту", "accs", ["минуту", "минуты", "минут"]),
 ])
 def test_plural_inflected(word, case, result):
     parsed = [p for p in morph.parse(word) if p.tag.case == case]

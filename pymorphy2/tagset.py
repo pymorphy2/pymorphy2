@@ -243,6 +243,7 @@ class OpencorporaTag(object):
 
     _NUMERAL_AGREEMENT_GRAMMEMES = (
         set(['sing', 'nomn']),
+        set(['sing', 'accs']),
         set(['sing', 'gent']),
         set(['plur', 'nomn']),
         set(['plur', 'gent']),
@@ -433,21 +434,22 @@ class OpencorporaTag(object):
         if self.POS not in ('NOUN', 'ADJF', 'PRTF'):
             return set([])
 
-        if self.POS == 'NOUN' and self.case != 'nomn':
+        if self.POS == 'NOUN' and self.case not in ('nomn', 'accs'):
             if index == 0:
                 grammemes = set(['sing', self.case])
-            elif self.case == 'accs' and index == 2:
-                grammemes = self._NUMERAL_AGREEMENT_GRAMMEMES[3]
             else:
                 grammemes = set(['plur', self.case])
         elif index == 0:
-            grammemes = self._NUMERAL_AGREEMENT_GRAMMEMES[0]
+            if self.case == 'nomn':
+                grammemes = self._NUMERAL_AGREEMENT_GRAMMEMES[0]
+            else:
+                grammemes = self._NUMERAL_AGREEMENT_GRAMMEMES[1]
         elif self.POS == 'NOUN' and index == 1:
-            grammemes = self._NUMERAL_AGREEMENT_GRAMMEMES[1]
-        elif self.POS in ('ADJF', 'PRTF') and self.gender == 'femn' and index == 1:
             grammemes = self._NUMERAL_AGREEMENT_GRAMMEMES[2]
-        else:
+        elif self.POS in ('ADJF', 'PRTF') and self.gender == 'femn' and index == 1:
             grammemes = self._NUMERAL_AGREEMENT_GRAMMEMES[3]
+        else:
+            grammemes = self._NUMERAL_AGREEMENT_GRAMMEMES[4]
         return grammemes
 
 
