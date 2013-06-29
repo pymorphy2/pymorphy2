@@ -3,6 +3,7 @@ from __future__ import absolute_import, unicode_literals
 import pytest
 
 from .utils import morph
+from pymorphy2.shapes import restore_word_case
 
 def with_test_data(data):
     return pytest.mark.parametrize(
@@ -17,7 +18,7 @@ def assert_first_inflected_variant(word, grammemes, result):
     assert len(inflected_variants)
 
     inflected = inflected_variants[0]
-    assert inflected.word == result
+    assert restore_word_case(inflected.word, word) == result
 
 
 @with_test_data([
@@ -69,19 +70,35 @@ def test_orel():
     assert_first_inflected_variant('орел', ['gent'], 'орла')
 
 
+@with_test_data([
+    ('снег', ['gent'], 'снега'),
+    ('снег', ['gen2'], 'снегу'),
+    ('Боря', ['voct'], 'Борь'),
+])
+def test_second_cases(word, grammemes, result):
+    assert_first_inflected_variant(word, grammemes, result)
+
+
 # TODO: see https://github.com/kmike/pymorphy2/issues/8
+@pytest.mark.xfail
+@with_test_data([
+    ('валенок', ['gent'], 'валенка'),
+    ('валенок', ['gen2'], 'валенка'),  # there is no gen2
+    ('велосипед', ['loct'], 'велосипеде'), # о велосипеде
+    ('велосипед', ['loc2'], 'велосипеде'), # а тут второго предложного нет, в велосипеде
+    ('хомяк', ['voct'], 'хомяк'),        # there is not voct, nomn should be used
+    ('Геннадий', ['voct'], 'Геннадий'),  # there is not voct, nomn should be used
+])
+def test_case_substitution(word, grammemes, result):
+    assert_first_inflected_variant(word, grammemes, result)
+
+
 @pytest.mark.xfail
 @with_test_data([
     # доп. падежи, fixme
     ('лес', ['loct'], 'лесе'),   # о лесе
     ('лес', ['loc2'], 'лесу'),   # в лесу
-    ('велосипед', ['loct'], 'велосипеде'), # о велосипеде
-    ('велосипед', ['loc2'], 'велосипеде'), # а тут второго предложного нет, в велосипеде
+    ('острова', ['datv'], 'островам'),
 ])
-def test_loc2(word, grammemes, result):
+def test_best_guess(word, grammemes, result):
     assert_first_inflected_variant(word, grammemes, result)
-
-
-@pytest.mark.xfail
-def test_best_guess():
-    assert_first_inflected_variant('острова', ['datv'], 'островам')
