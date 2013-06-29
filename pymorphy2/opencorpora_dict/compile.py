@@ -143,7 +143,6 @@ def compile_parsed_dict(parsed_dict, prediction_options=None):
 
     del words
 
-
     prediction_suffixes_dawgs = []
     for prefix_id, dawg_data in enumerate(suffixes_dawgs_data):
         logger.debug('building prediction_suffixes DAWGs #%d..' % prefix_id)
@@ -279,7 +278,7 @@ def _suffixes_prediction_data(words, paradigm_popularity, gramtab, paradigms, su
         assert word.startswith(form_prefix), word
         assert word.endswith(form_suffix), word
 
-        if len(word) == len(form_prefix)+len(form_suffix):
+        if len(word) == len(form_prefix) + len(form_suffix):
             # pseudo-paradigm
             continue
 
@@ -294,14 +293,11 @@ def _suffixes_prediction_data(words, paradigm_popularity, gramtab, paradigms, su
     dawgs_data = []
 
     for form_prefix_id in sorted(endings.keys()):
-
         logger.debug('calculating prediction data: preparing DAWGs data #%d..' % form_prefix_id)
-
         counted_suffixes_dawg_data = []
-
         endings_with_prefix = endings[form_prefix_id]
-        for suff in endings_with_prefix:
 
+        for suff in endings_with_prefix:
             if ending_counts[suff] < min_ending_freq:
                 continue
 
