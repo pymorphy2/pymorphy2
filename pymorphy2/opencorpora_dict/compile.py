@@ -279,7 +279,7 @@ def _suffixes_prediction_data(words, paradigm_popularity, gramtab, paradigms, su
         assert word.endswith(form_suffix), word
 
         if len(word) == len(form_prefix) + len(form_suffix):
-            # pseudo-paradigm
+            # pseudo-paradigms are useless for prediction
             continue
 
         POS = tuple(tag.replace(' ', ',', 1).split(','))[0]
