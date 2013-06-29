@@ -363,7 +363,7 @@ def _iter_words_info(words, paradigms, gramtab, suffixes):
         assert word.startswith(form_prefix), word
         assert word.endswith(form_suffix), word
 
-        if len(word) == len(form_prefix)+len(form_suffix):
+        if len(word) == len(form_prefix) + len(form_suffix):
             # pseudo-paradigms are useless for prediction
             continue
 
