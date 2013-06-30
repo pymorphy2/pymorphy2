@@ -79,8 +79,6 @@ def test_second_cases(word, grammemes, result):
     assert_first_inflected_variant(word, grammemes, result)
 
 
-# TODO: see https://github.com/kmike/pymorphy2/issues/8
-@pytest.mark.xfail
 @with_test_data([
     ('валенок', ['gent'], 'валенка'),
     ('валенок', ['gen2'], 'валенка'),  # there is no gen2
