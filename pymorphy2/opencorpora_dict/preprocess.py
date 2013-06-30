@@ -45,7 +45,7 @@ def _get_tag_spellings(parsed_dict):
     return spellings
 
 
-def _get_duplicate_tag_replaces(spellings, skip_space_ambiguity=True):
+def _get_duplicate_tag_replaces(spellings, skip_space_ambiguity):
     replaces = {}
     for grammemes in spellings:
         tags = spellings[grammemes]
