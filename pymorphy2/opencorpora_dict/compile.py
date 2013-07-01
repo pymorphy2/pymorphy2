@@ -276,7 +276,7 @@ def _suffixes_prediction_data(words, paradigm_popularity, gramtab, paradigms, su
                 continue
             yield word, (para_id, idx)
 
-    logger.debug('collecting statistics for word suffixes..')
+    logger.debug('collecting word suffixes statistics..')
     words_info = _iter_words_info(iter_words(), paradigms, gramtab, suffixes)
     ending_counts, endings = _ending_stats(words_info, max_suffix_length, grammemes)
 
@@ -409,7 +409,7 @@ def _iter_prediction_suffixes(word, form_suffix, max_suffix_length):
 def _show_progress(iterator, print_every):
     """ Print "NUM done" message every ``print_every`` iteration. """
     for index, el in enumerate(iterator):
-        if not (index % int(print_every)):
+        if index and not (index % int(print_every)):
             logger.debug("%d done", index)
         yield el
 
