@@ -284,9 +284,12 @@ class _SpecialKnownSuffixAnalyzer(KnownSuffixAnalyzer):
     ESTIMATE_DECAY = 0.6
 
     def _possible_prefixes(self, word, word_lower):
-        if not word or not word[0].isupper():
-            # only run for title-cased words
+        if not word:
             return []
+
+        #if not word[0].isupper():
+        #    # only run for title-cased words
+        #    return []
 
         suffixes_dawg = self.dict.extra_prediction_dawgs[self.GRAMMEME][0]
         return [(0, '', suffixes_dawg)]

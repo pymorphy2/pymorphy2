@@ -7,6 +7,7 @@ import logging
 
 from pymorphy2 import opencorpora_dict
 from pymorphy2 import units
+from pymorphy2.utils import cached_property
 
 logger = logging.getLogger(__name__)
 
@@ -80,7 +81,7 @@ class MorphAnalyzer(object):
     with a path to dictionaries, or pass ``path`` argument
     to :class:`pymorphy2.MorphAnalyzer` constructor::
 
-        >>> morph = pymorphy2.MorphAnalyzer('/path/to/dictionaries') # doctest: +SKIP
+        >>> morph = pymorphy2.MorphAnalyzer('/path/to/dictionaries')  # doctest: +SKIP
 
     By default, methods of this class return parsing results
     as namedtuples :class:`Parse`. This has performance implications
@@ -105,20 +106,19 @@ class MorphAnalyzer(object):
         units.HyphenatedWordsAnalyzer,
         units.KnownPrefixAnalyzer,
         units.UnknownPrefixAnalyzer,
-
-        units.NameAnalyzer,
-        units.SurnameAnalyzer,
-        units.PatronymicAnalyzer,
-        units.GeoAnalyzer,
-        units.OrganizationAnalyzer,
-
         units.KnownSuffixAnalyzer,
     ]
 
-    def __init__(self, path=None, result_type=Parse, units=None):
+    GEO_UNITS = [units.GeoAnalyzer]
+    SURNAME_UNITS = [units.SurnameAnalyzer]
 
-        path = self.choose_dictionary_path(path)
-        self.dictionary = opencorpora_dict.Dictionary(path)
+    def __init__(self, path=None, result_type=Parse, units=None, dictionary=None):
+
+        if dictionary:
+            self.dictionary = dictionary
+        else:
+            path = self.choose_dictionary_path(path)
+            self.dictionary = opencorpora_dict.Dictionary(path)
 
         if result_type is not None:
             # create a subclass with the same name,
@@ -160,6 +160,27 @@ class MorphAnalyzer(object):
                    "or set %s environment variable.") % cls.ENV_VARIABLE
             raise ValueError(msg)
 
+    @cached_property
+    def geo(self):
+        """
+        MorphAnalyzer instance that should be used for working with
+        geographical names.
+        """
+        return self.__class__(
+            dictionary = self.dictionary,
+            units = self.GEO_UNITS
+        )
+
+    @cached_property
+    def surnames(self):
+        """
+        MorphAnalyzer instance that should be used for working with
+        surnames (mostly Russian).
+        """
+        return self.__class__(
+            dictionary = self.dictionary,
+            units = self.SURNAME_UNITS
+        )
 
     def parse(self, word):
         """
@@ -170,11 +191,14 @@ class MorphAnalyzer(object):
 
         (or plain tuples if ``result_type=None`` was used in constructor).
         """
+        return self._parse(word, self._units)
+
+    def _parse(self, word, units):
         res = []
         seen = set()
         word_lower = word.lower()
 
-        for analyzer in self._units:
+        for analyzer in units:
             res.extend(analyzer.parse(word, word_lower, seen))
 
             if res and analyzer.terminal:
@@ -184,7 +208,6 @@ class MorphAnalyzer(object):
             return res
 
         return [self._result_type(*p) for p in res]
-
 
     def tag(self, word):
         res = []

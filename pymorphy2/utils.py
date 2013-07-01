@@ -120,3 +120,19 @@ def word_splits(word, min_reminder=3, max_prefix_length=5):
     max_split = min(max_prefix_length, len(word)-min_reminder)
     split_indexes = range(1, 1+max_split)
     return [(word[:i], word[i:]) for i in split_indexes]
+
+
+# from bottle.py
+class cached_property(object):
+    ''' A property that is only computed once per instance and then replaces
+        itself with an ordinary attribute. Deleting the attribute resets the
+        property. '''
+
+    def __init__(self, func):
+        self.__doc__ = getattr(func, '__doc__')
+        self.func = func
+
+    def __get__(self, obj, cls):
+        if obj is None: return self
+        value = obj.__dict__[self.func.__name__] = self.func(obj)
+        return value
