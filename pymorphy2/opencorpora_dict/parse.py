@@ -62,7 +62,6 @@ def parse_opencorpora_xml(filename):
             grammemes.append(grammeme)
             xml_clear_elem(elem)
 
-
         if elem.tag == 'lemma':
             if not lexemes:
                 logger.info('parsing xml:lemmas...')
@@ -90,13 +89,13 @@ def parse_opencorpora_xml(filename):
     return ParsedDictionary(lexemes, links, grammemes, version, revision)
 
 
-def _tags_from_elem(elem):
+def _grammemes_from_elem(elem):
     return ",".join(g.get('v') for g in elem.findall('g'))
 
 
 def _word_forms_from_xml_elem(elem):
     """
-    Return a list of (word, tags) pairs given "lemma" XML element.
+    Return a list of (word, tag) pairs given "lemma" XML element.
     """
     lexeme = []
     lex_id = elem.get('id')
@@ -107,13 +106,13 @@ def _word_forms_from_xml_elem(elem):
     base_info = elem.findall('l')
 
     assert len(base_info) == 1
-    base_tags = _tags_from_elem(base_info[0])
+    base_grammemes = _grammemes_from_elem(base_info[0])
 
     for form_elem in elem.findall('f'):
-        tags = _tags_from_elem(form_elem)
+        grammemes = _grammemes_from_elem(form_elem)
         form = form_elem.get('t').lower()
         lexeme.append(
-            (form, " ".join([base_tags, tags]).strip())
+            (form, " ".join([base_grammemes, grammemes]).strip())
         )
 
     return lex_id, lexeme

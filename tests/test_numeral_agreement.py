@@ -39,7 +39,7 @@ def test_plural_forms(word, result):
     ("книгой", 'ablt', ["книгой", "книгами", "книгами"]),
     ("книге", 'loct', ["книге", "книгах", "книгах"]),
 
-    # ("час", "accs", ["час", "часа", "часов"]), # https://github.com/kmike/pymorphy2/issues/32
+    ("час", "accs", ["час", "часа", "часов"]), # see https://github.com/kmike/pymorphy2/issues/32
     ("день", "accs", ["день", "дня", "дней"]),
     ("минуту", "accs", ["минуту", "минуты", "минут"]),
 ])

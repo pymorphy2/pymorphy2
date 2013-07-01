@@ -230,11 +230,15 @@ class MorphAnalyzer(object):
 
 
     def _inflect(self, form, required_grammemes):
-        grammemes = form[1].updated_grammemes(required_grammemes)
-
         possible_results = [f for f in self.get_lexeme(form)
                             if required_grammemes <= f[1].grammemes]
 
+        if not possible_results:
+            required_grammemes = self.TagClass.fix_rare_cases(required_grammemes)
+            possible_results = [f for f in self.get_lexeme(form)
+                                if required_grammemes <= f[1].grammemes]
+
+        grammemes = form[1].updated_grammemes(required_grammemes)
         def similarity(frm):
             tag = frm[1]
             return len(grammemes & tag.grammemes)

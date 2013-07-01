@@ -40,6 +40,7 @@ def convert_to_pymorphy2(opencorpora_dict_path, out_path, overwrite=False,
     ``out_path`` should be a name of folder where to put dictionaries.
     """
     from .parse import parse_opencorpora_xml
+    from .preprocess import simplify_tags
     from .storage import save_compiled_dict
 
     dawg.assert_can_create()
@@ -47,8 +48,8 @@ def convert_to_pymorphy2(opencorpora_dict_path, out_path, overwrite=False,
         return
 
     parsed_dict = parse_opencorpora_xml(opencorpora_dict_path)
+    simplify_tags(parsed_dict)
     compiled_dict = compile_parsed_dict(parsed_dict, prediction_options)
-
     save_compiled_dict(compiled_dict, out_path)
 
 
@@ -75,7 +76,7 @@ def compile_parsed_dict(parsed_dict, prediction_options=None):
     lexemes = _join_lexemes(parsed_dict.lexemes, parsed_dict.links)
 
     logger.info('building paradigms...')
-    logger.debug("%20s %15s %15s %15s", "stem", "len(gramtab)", "len(words)", "len(paradigms)")
+    logger.debug("%20s %15s %15s %15s", "word", "len(gramtab)", "len(words)", "len(paradigms)")
 
     paradigm_popularity = collections.defaultdict(int)
 

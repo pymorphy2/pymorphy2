@@ -249,9 +249,15 @@ class OpencorporaTag(object):
         set(['plur', 'gent']),
     )
 
+    RARE_CASES = {
+        'gen2': 'gent',
+        'acc2': 'accs',
+        'loc2': 'loct',
+        'voct': 'nomn'
+    }
+
     def __init__(self, tag):
         self._str = tag
-
         # XXX: we loose information about which grammemes
         # belongs to lexeme and which belongs to form
         # (but this information seems useless for pymorphy2).
@@ -374,6 +380,13 @@ class OpencorporaTag(object):
                 raise ValueError("Unknown grammeme: %s" % grammeme)
             new_grammemes -= self._GRAMMEME_INCOMPATIBLE[grammeme]
         return new_grammemes
+
+    @classmethod
+    def fix_rare_cases(cls, grammemes):
+        """
+        Replace rare cases (loc2/voct/...) with common ones (loct/nomn/...).
+        """
+        return frozenset(cls.RARE_CASES.get(g,g) for g in grammemes)
 
     @classmethod
     def _init_grammemes(cls, dict_grammemes):
