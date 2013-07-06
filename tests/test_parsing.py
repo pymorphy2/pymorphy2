@@ -103,8 +103,8 @@ SYSTEMATIC_ERRORS = _to_test_data("""
 # should normal forms be expanded?
 
 руб     руб     NOUN,inan,masc plur,gent
-млн     млн     NOUN,inan,masc plur,gent'
-тыс     тыс     NOUN,inan,femn plur,gent'
+млн     млн     NOUN,inan,masc plur,gent
+тыс     тыс     NOUN,inan,femn plur,gent
 г       г       NOUN,inan,masc sing,loc2
 п       п       NOUN,inan,masc sing,accs
 ст      ст      NOUN,inan,femn sing,accs
