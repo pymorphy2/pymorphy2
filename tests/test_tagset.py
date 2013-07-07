@@ -172,3 +172,22 @@ class TestContains:
 
         with pytest.raises(ValueError):
             assert set(['VERB', 'pref']) in tag
+
+
+class TestCyrillic:
+    def test_cyr(self):
+        tag = Tag('VERB,perf,tran plur,impr,excl')
+        assert tag.cyr == 'ГЛ,сов,перех мн,повел,выкл'
+
+    def test_cyr_grammeme(self):
+        tag = Tag('VERB,perf,tran plur,impr,excl')
+        assert tag.POS.cyr == 'ГЛ'
+
+    def test_grammemes_cyr(self):
+        tag = Tag('VERB,perf,tran plur,impr,excl')
+        assert tag.grammemes_cyr == frozenset(['ГЛ','сов','перех', 'мн','повел','выкл'])
+
+    def test_cyr_extra_grammemes(self):
+        tag = Tag('ROMN')
+        assert tag.cyr == 'РИМ'
+

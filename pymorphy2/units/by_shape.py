@@ -14,10 +14,13 @@ class _ShapeAnalyzer(BaseAnalyzerUnit):
     terminal = True
     ESTIMATE = 0.9
     EXTRA_GRAMMEMES = []
+    EXTRA_GRAMMEMES_CYR = []
 
     def __init__(self, morph):
         super(_ShapeAnalyzer, self).__init__(morph)
         self.morph.TagClass.KNOWN_GRAMMEMES.update(self.EXTRA_GRAMMEMES)
+        aliases = dict(zip(self.EXTRA_GRAMMEMES, self.EXTRA_GRAMMEMES_CYR))
+        self.morph.TagClass.LAT2CYR.update(aliases)
 
     def parse(self, word, word_lower, seen_parses):
         shape = self.check_shape(word, word_lower)
@@ -49,10 +52,13 @@ class _ShapeAnalyzer(BaseAnalyzerUnit):
 
 class _SingleShapeAnalyzer(_ShapeAnalyzer):
     TAG_STR = None
+    TAG_STR_CYR = None
 
     def __init__(self, morph):
         assert self.TAG_STR is not None
+        assert self.TAG_STR_CYR is not None
         self.EXTRA_GRAMMEMES = self.TAG_STR.split(',')
+        self.EXTRA_GRAMMEMES_CYR = self.TAG_STR_CYR.split(',')
         super(_SingleShapeAnalyzer, self).__init__(morph)
         self._tag = self.morph.TagClass(self.TAG_STR)
 
@@ -66,6 +72,7 @@ class PunctuationAnalyzer(_SingleShapeAnalyzer):
     Example: "," -> PNCT
     """
     TAG_STR = 'PNCT'
+    TAG_STR_CYR = 'ЗПР'
 
     def check_shape(self, word, word_lower):
         return is_punctuation(word)
@@ -77,6 +84,7 @@ class LatinAnalyzer(_SingleShapeAnalyzer):
     Example: "pdf" -> LATN
     """
     TAG_STR = 'LATN'
+    TAG_STR_CYR = 'ЛАТ'
 
     def check_shape(self, word, word_lower):
         return is_latin(word)
@@ -93,6 +101,7 @@ class NumberAnalyzer(_SingleShapeAnalyzer):
 
     """
     TAG_STR = 'NUMB'
+    TAG_STR_CYR = 'НОМ'
 
     def check_shape(self, word, word_lower):
         return word.isdigit()
@@ -100,6 +109,7 @@ class NumberAnalyzer(_SingleShapeAnalyzer):
 
 class RomanNumberAnalyzer(_SingleShapeAnalyzer):
     TAG_STR = 'ROMN'
+    TAG_STR_CYR = 'РИМ'
     terminal = False  # give LatinAnalyzer a chance
 
     def check_shape(self, word, word_lower):

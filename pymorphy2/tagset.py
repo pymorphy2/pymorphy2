@@ -17,7 +17,7 @@ class _select_grammeme_from(object):
     Descriptor object for accessing grammemes of certain classes
     (e.g. number or voice).
     """
-    def __init__(self, grammeme_set):
+    def __init__(self, grammeme_set, lat2cyr):
         self.grammeme_set = grammeme_set
 
         # ... are descriptors not magical enough?
@@ -40,6 +40,11 @@ class _select_grammeme_from(object):
 
             def __hash__(self):
                 return _str.__hash__(self)
+
+            @property
+            def cyr(self):
+                """ Cyrillic representation of this grammeme """
+                return lat2cyr[self]
 
         self.TypedGrammeme = TypedGrammeme
 
@@ -122,8 +127,6 @@ class OpencorporaTag(object):
         ValueError: 'plur' is not a valid grammeme for this attribute.
 
     """
-
-    __slots__ = ['_grammemes_tuple', '_grammemes_cache', '_str', '_POS']
 
     # Grammeme categories
     # (see http://opencorpora.org/dict.php?act=gram for a full set)
@@ -239,6 +242,7 @@ class OpencorporaTag(object):
     }
     _GRAMMEME_INDICES = collections.defaultdict(int)
     _GRAMMEME_INCOMPATIBLE = collections.defaultdict(set)
+    LAT2CYR = dict()
     KNOWN_GRAMMEMES = set()
 
     _NUMERAL_AGREEMENT_GRAMMEMES = (
@@ -255,6 +259,9 @@ class OpencorporaTag(object):
         'loc2': 'loct',
         'voct': 'nomn'
     }
+
+    __slots__ = ['_grammemes_tuple', '_grammemes_cache', '_str', '_POS',
+                 '_cyr', '_cyr_grammemes_cache']
 
     def __init__(self, tag):
         self._str = tag
@@ -274,6 +281,8 @@ class OpencorporaTag(object):
         self._grammemes_tuple = grammemes_tuple
         self._POS = self._grammemes_tuple[0]
         self._grammemes_cache = None
+        self._cyr_grammemes_cache = None
+        self._cyr = None
 
     @property
     def grammemes(self):
@@ -282,19 +291,40 @@ class OpencorporaTag(object):
             self._grammemes_cache = frozenset(self._grammemes_tuple)
         return self._grammemes_cache
 
+    @property
+    def grammemes_cyr(self):
+        """ A frozenset with Cyrillic grammemes for this tag. """
+        if self._cyr_grammemes_cache is None:
+            cyr_grammemes = [self.LAT2CYR[g] for g in self._grammemes_tuple]
+            self._cyr_grammemes_cache = frozenset(cyr_grammemes)
+        return self._cyr_grammemes_cache
+
+    @property
+    def cyr(self):
+        """ Cyrillic version representation of this tag """
+        if self._cyr is None:
+            #cyr = CyrillicOpencorporaTag._from_internal_tag(self._str)
+            cyr = self._str
+            for name, alias in self.LAT2CYR.items():
+                if alias:
+                    cyr = cyr.replace(name, alias)
+            self._cyr = cyr
+        return self._cyr
+
+
     # attributes for grammeme categories
-    POS = _select_grammeme_from(PARTS_OF_SPEECH)
-    animacy = _select_grammeme_from(ANIMACY)
-    aspect = _select_grammeme_from(ASPECTS)
-    case = _select_grammeme_from(CASES)
-    gender = _select_grammeme_from(GENDERS)
-    involvement = _select_grammeme_from(INVOLVEMENT)
-    mood = _select_grammeme_from(MOODS)
-    number = _select_grammeme_from(NUMBERS)
-    person = _select_grammeme_from(PERSONS)
-    tense = _select_grammeme_from(TENSES)
-    transitivity = _select_grammeme_from(TRANSITIVITY)
-    voice = _select_grammeme_from(VOICES)
+    POS = _select_grammeme_from(PARTS_OF_SPEECH, LAT2CYR)
+    animacy = _select_grammeme_from(ANIMACY, LAT2CYR)
+    aspect = _select_grammeme_from(ASPECTS, LAT2CYR)
+    case = _select_grammeme_from(CASES, LAT2CYR)
+    gender = _select_grammeme_from(GENDERS, LAT2CYR)
+    involvement = _select_grammeme_from(INVOLVEMENT, LAT2CYR)
+    mood = _select_grammeme_from(MOODS, LAT2CYR)
+    number = _select_grammeme_from(NUMBERS, LAT2CYR)
+    person = _select_grammeme_from(PERSONS, LAT2CYR)
+    tense = _select_grammeme_from(TENSES, LAT2CYR)
+    transitivity = _select_grammeme_from(TRANSITIVITY, LAT2CYR)
+    voice = _select_grammeme_from(VOICES, LAT2CYR)
 
     def __contains__(self, grammeme):
 
@@ -402,6 +432,9 @@ class OpencorporaTag(object):
             ]
 
         """
+        for name, parent, alias, description in dict_grammemes:
+            cls.LAT2CYR[name] = alias
+
         gr = dict((name, parent) for (name, parent, alias, description) in dict_grammemes)
         cls.KNOWN_GRAMMEMES = set(gr.keys())
 
