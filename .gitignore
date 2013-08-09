@@ -4,6 +4,10 @@
 *.swp
 Thumbs.db
 
+build/
+docs/_build
+dist/
+
 .idea/
 .rope*
 PYSMELLTAGS
