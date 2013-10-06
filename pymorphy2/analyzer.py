@@ -4,6 +4,7 @@ import os
 import heapq
 import collections
 import logging
+import threading
 
 from pymorphy2 import opencorpora_dict
 from pymorphy2 import units
@@ -109,30 +110,30 @@ class MorphAnalyzer(object):
     ]
 
     def __init__(self, path=None, result_type=Parse, units=None):
-
         path = self.choose_dictionary_path(path)
-        self.dictionary = opencorpora_dict.Dictionary(path)
+        with threading.RLock():
+            self.dictionary = opencorpora_dict.Dictionary(path)
 
-        if result_type is not None:
-            # create a subclass with the same name,
-            # but with _morph attribute bound to self
-            res_type = type(
-                result_type.__name__,
-                (result_type,),
-                {'_morph': self, '_dict': self.dictionary}
-            )
-            self._result_type = res_type
-        else:
-            self._result_type = None
+            if result_type is not None:
+                # create a subclass with the same name,
+                # but with _morph attribute bound to self
+                res_type = type(
+                    result_type.__name__,
+                    (result_type,),
+                    {'_morph': self, '_dict': self.dictionary}
+                )
+                self._result_type = res_type
+            else:
+                self._result_type = None
 
-        self._result_type_orig = result_type
+            self._result_type_orig = result_type
 
-        # initialize units
-        if units is None:
-            units = self.DEFAULT_UNITS
+            # initialize units
+            if units is None:
+                units = self.DEFAULT_UNITS
 
-        self._unit_classes = units
-        self._units = [cls(self) for cls in units]
+            self._unit_classes = units
+            self._units = [cls(self) for cls in units]
 
 
     @classmethod
