@@ -11,6 +11,7 @@ import collections
 import itertools
 import array
 import struct
+import threading
 
 try:
     izip = itertools.izip

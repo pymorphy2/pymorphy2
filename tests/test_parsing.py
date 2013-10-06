@@ -1,6 +1,9 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, unicode_literals
+import concurrent.futures
+import random
 import pytest
+import pymorphy2
 from .utils import morph
 
 def _to_test_data(text):
@@ -137,19 +140,24 @@ SYSTEMATIC_ERRORS = _to_test_data("""
 def run_for_all(parses):
     return pytest.mark.parametrize(("word", "normal_form", "tag"), parses)
 
+
+def assert_parse_is_correct(parse, word, normal_form, tag):
+    """
+    Check if one of the word parses has normal form ``normal_form``
+    and tag ``tag``.
+    """
+    for p in parse:
+        if p.normal_form == normal_form and str(p.tag) == tag:
+            return
+    assert False, parse
+
+
 # ====== Tests:
 def _test_has_parse(parses):
     @run_for_all(parses)
     def test_case(word, normal_form, tag):
-        """
-        Check if one of the word parses has normal form ``normal_form``
-        and tag ``tag``.
-        """
-        for p in morph.parse(word):
-            if p.normal_form == normal_form and str(p.tag) == tag:
-                return
-
-        assert False, morph.parse(word)
+        parse = morph.parse(word)
+        assert_parse_is_correct(parse, word, normal_form, tag)
 
     return test_case
 
@@ -173,3 +181,34 @@ def _test_tag(parses):
 test_tag = _test_tag(PARSES)
 test_tag_title = _test_tag(PARSES_TITLE)
 test_tag_upper = _test_tag(PARSES_UPPER)
+
+
+def _check_analyzer(morph, parses):
+    for word, normal_form, tag in parses:
+        parse = morph.parse(word)
+        assert_parse_is_correct(parse, word, normal_form, tag)
+
+def _check_new_analyzer(parses):
+    morph = pymorphy2.MorphAnalyzer()
+    for word, normal_form, tag in parses:
+        parse = morph.parse(word)
+        assert_parse_is_correct(parse, word, normal_form, tag)
+
+def _create_morph_analyzer(i):
+    morph = pymorphy2.MorphAnalyzer()
+    word, normal_form, tag = random.choice(PARSES)
+    parse = morph.parse(word)
+    assert_parse_is_correct(parse, word, normal_form, tag)
+
+
+def test_threading_single_morph_analyzer():
+    with concurrent.futures.ThreadPoolExecutor(3) as executor:
+        res = list(executor.map(_check_analyzer, [morph]*10, [PARSES]*10))
+
+def test_threading_multiple_morph_analyzers():
+    with concurrent.futures.ThreadPoolExecutor(3) as executor:
+        res = list(executor.map(_check_new_analyzer, [PARSES]*20))
+
+def test_threading_create_analyzer():
+    with concurrent.futures.ThreadPoolExecutor(3) as executor:
+        res = list(executor.map(_create_morph_analyzer, range(10)))
