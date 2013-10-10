@@ -30,7 +30,7 @@ class Parse(_Parse):
 
     def make_agree_with_number(self, num):
         """
-        Inflects the word so that it agrees with ``num``
+        Inflect the word so that it agrees with ``num``
         """
         return self.inflect(self.tag.numeral_agreement_grammemes(num))
 
