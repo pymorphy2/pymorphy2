@@ -207,7 +207,7 @@ def test_threading_single_morph_analyzer():
 
 def test_threading_multiple_morph_analyzers():
     with concurrent.futures.ThreadPoolExecutor(3) as executor:
-        res = list(executor.map(_check_new_analyzer, [PARSES]*20))
+        res = list(executor.map(_check_new_analyzer, [PARSES]*10))
 
 def test_threading_create_analyzer():
     with concurrent.futures.ThreadPoolExecutor(3) as executor:

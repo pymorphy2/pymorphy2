@@ -67,6 +67,15 @@ def test_pickle():
     assert tag == tag_unpickled
 
 
+def test_pickle_custom():
+    m = pymorphy2.MorphAnalyzer()
+    m.TagClass.KNOWN_GRAMMEMES.add('new_grammeme')
+    tag = m.TagClass('new_grammeme')
+    data = pickle.dumps(tag, pickle.HIGHEST_PROTOCOL)
+    tag_unpickled = pickle.loads(data)
+    assert tag == tag_unpickled
+
+
 class TestUpdated:
 
     def test_number(self):

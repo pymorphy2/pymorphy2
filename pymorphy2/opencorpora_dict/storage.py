@@ -158,15 +158,10 @@ def _load_tag_class(gramtab_format, grammemes_filename):
     if gramtab_format not in tagset.registry:
         raise ValueError("This gramtab format ('%s') is unsupported." % gramtab_format)
 
-    grammemes = json_read(grammemes_filename)
-
-    Tag = tagset.registry[gramtab_format]
-
     # FIXME: clone the class
-    # Tag = type(Tag.__name__, (Tag,), {
-    #     'KNOWN_GRAMMEMES': Tag.KNOWN_GRAMMEMES.copy(),
-    # })
+    Tag = tagset.registry[gramtab_format] #._clone_class()
 
+    grammemes = json_read(grammemes_filename)
     Tag._init_grammemes(grammemes)
 
     return Tag

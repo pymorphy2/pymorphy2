@@ -468,6 +468,15 @@ class OpencorporaTag(object):
             grammemes = self._NUMERAL_AGREEMENT_GRAMMEMES[4]
         return grammemes
 
+    #@classmethod
+    #def _clone_class(cls):
+    #    Tag = type(cls.__name__, (cls,), {
+    #         'KNOWN_GRAMMEMES': cls.KNOWN_GRAMMEMES.copy(),
+    #    })
+    #    # copyreg.pickle(Tag, pickle_tag)
+    #    return Tag
+
+
 
 class CyrillicOpencorporaTag(OpencorporaTag):
     """
@@ -523,7 +532,6 @@ class CyrillicOpencorporaTag(OpencorporaTag):
     def _init_alias_map(cls, dict_grammemes):
         for name, parent, alias, description in dict_grammemes:
             cls._GRAMMEME_ALIAS_MAP[name] = alias
-
 
 registry = dict()
 
