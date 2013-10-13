@@ -8,6 +8,7 @@ packages for probability estimation and resulting file creation.
 """
 from __future__ import absolute_import
 from pymorphy2.opencorpora_dict.preprocess import tag2grammemes
+from pymorphy2.dawg import ConditionalProbDistDAWG
 
 
 def estimate_conditional_tag_probability(morph, corpus_filename):
@@ -48,15 +49,13 @@ def estimate_conditional_tag_probability(morph, corpus_filename):
     return cpd, cfd
 
 
-def build_cpd_dawg(morph, cpd, min_frequency, completion=False):
+def build_cpd_dawg(morph, cpd, min_frequency):
     """
     Return conditional tag probability information encoded as DAWG.
 
     For each "interesting" word and tag the resulting DAWG
     stores ``"word:tag"`` key with ``probability*1000000`` integer value.
     """
-    import dawg
-
     words = [word for (word, fd) in cpd.items()
              if fd.freqdist().N() >= min_frequency]
 
@@ -65,12 +64,11 @@ def build_cpd_dawg(morph, cpd, min_frequency, completion=False):
         ((word, _tag_probabilities(morph, word, cpd)) for word in words)
     )
     dawg_data = (
-        ("%s:%s" % (word, tag), int(prob*1000000))
+        ((word, tag), prob)
         for word, probs in prob_data
         for tag, prob in probs.items()
     )
-    cls = dawg.IntDAWG if not completion else dawg.IntCompletionDAWG
-    return cls(dawg_data)
+    return ConditionalProbDistDAWG(dawg_data)
 
 
 def _disambiguated_words(reader):
