@@ -34,6 +34,20 @@ def simplify_tags(parsed_dict, skip_space_ambiguity=True):
         parsed_dict.lexemes[lex_id] = new_lexeme
 
 
+def tag2grammemes(tag_str):
+    """ Given tag string, return tag grammemes """
+    return _split_grammemes(replace_redundant_grammemes(tag_str))
+
+
+def replace_redundant_grammemes(tag_str):
+    """ Replace 'loc1', 'gen1' and 'acc1' grammemes in ``tag_str`` """
+    return tag_str.replace('loc1', 'loct').replace('gen1', 'gent').replace('acc1', 'accs')
+
+
+def _split_grammemes(tag_str):
+    return frozenset(tag_str.replace(' ', ',', 1).split(','))
+
+
 def _get_tag_spellings(parsed_dict):
     """
     Return a dict where keys are sets of grammemes found in dictionary
@@ -41,7 +55,7 @@ def _get_tag_spellings(parsed_dict):
     """
     spellings = collections.defaultdict(lambda: collections.defaultdict(int))
     for tag in _itertags(parsed_dict):
-        spellings[_get_grammemes(tag)][tag] += 1
+        spellings[tag2grammemes(tag)][tag] += 1
     return spellings
 
 
@@ -84,19 +98,11 @@ def _is_ambiguous(tags, skip_space_ambiguity=True):
 
 
 def _simplify_tag(tag, tag_replaces):
-    tag = _replace_grammemes(tag)
+    tag = replace_redundant_grammemes(tag)
     return tag_replaces.get(tag, tag)
-
-
-def _replace_grammemes(tag):
-    return tag.replace('loc1', 'loct').replace('gen1', 'gent').replace('acc1', 'accs')
-
-
-def _get_grammemes(tag):
-    return frozenset(tag.replace(' ', ',', 1).split(','))
 
 
 def _itertags(parsed_dict):
     for lex_id in parsed_dict.lexemes:
         for word, tag in parsed_dict.lexemes[lex_id]:
-            yield _replace_grammemes(tag)
+            yield tag

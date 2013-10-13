@@ -26,11 +26,12 @@ from pymorphy2.utils import json_write, json_read
 
 logger = logging.getLogger(__name__)
 
-CURRENT_FORMAT_VERSION = '2.2'
+CURRENT_FORMAT_VERSION = '2.3'
 
-LoadedDictionary = collections.namedtuple(
-    'LoadedDictionary',
-    'meta, gramtab, suffixes, paradigms, words, prediction_prefixes, prediction_suffixes_dawgs, Tag, paradigm_prefixes'
+LoadedDictionary = collections.namedtuple('LoadedDictionary', [
+    'meta', 'gramtab', 'suffixes', 'paradigms', 'words',
+    'prediction_prefixes', 'prediction_suffixes_dawgs',
+    'Tag', 'paradigm_prefixes']
 )
 
 
@@ -169,7 +170,6 @@ def _load_tag_class(gramtab_format, grammemes_filename):
 
 def _load_gramtab(meta, gramtab_format, path):
     """ Load gramtab (a list of tags) """
-
     gramtab_formats = meta.get('gramtab_formats', {})
     if gramtab_format not in gramtab_formats:
         raise ValueError("This gramtab format (%s) is unavailable; available formats: %s" % (gramtab_format, gramtab_formats.keys()))

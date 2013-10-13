@@ -1,2 +1,2 @@
-dawg-python >= 0.5
+dawg-python >= 0.7
 pymorphy2-dicts >= 2.2, < 3.0
