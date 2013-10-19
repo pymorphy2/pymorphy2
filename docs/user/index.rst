@@ -9,5 +9,5 @@
    :maxdepth: 2
 
    guide
-   contributing
    grammemes
+   contributing
