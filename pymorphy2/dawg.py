@@ -2,11 +2,11 @@
 from __future__ import absolute_import, division
 
 try:
-    from dawg import DAWG, RecordDAWG, IntDAWG
+    from dawg import DAWG, RecordDAWG, IntCompletionDAWG
     CAN_CREATE = True
 
 except ImportError:
-    from dawg_python import DAWG, RecordDAWG, IntDAWG
+    from dawg_python import DAWG, RecordDAWG, IntCompletionDAWG
     CAN_CREATE = False
 
 def assert_can_create():
@@ -44,7 +44,7 @@ class PredictionSuffixesDAWG(WordsDawg):
     DATA_FORMAT = str(">HHH")
 
 
-class ConditionalProbDistDAWG(IntDAWG):
+class ConditionalProbDistDAWG(IntCompletionDAWG):
 
     MULTIPLIER = 1000000
 

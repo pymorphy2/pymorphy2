@@ -107,7 +107,7 @@ def download_corpus_xml(out_filename):
 
 def estimate_tag_cpd(corpus_filename, out_path, min_word_freq, update_meta=True):
     from pymorphy2.opencorpora_dict.probability import (estimate_conditional_tag_probability, build_cpd_dawg)
-    m = pymorphy2.MorphAnalyzer(out_path)
+    m = pymorphy2.MorphAnalyzer(out_path, probability_estimator_cls=None)
 
     logger.info("Estimating P(t|w) from %s" % (corpus_filename))
     cpd, cfd = estimate_conditional_tag_probability(m, corpus_filename)

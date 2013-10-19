@@ -80,8 +80,8 @@ def test_second_cases(word, grammemes, result):
 
 
 @with_test_data([
-    ('валенок', ['gent'], 'валенка'),
-    ('валенок', ['gen2'], 'валенка'),  # there is no gen2
+    ('валенок', ['gent', 'sing'], 'валенка'),
+    ('валенок', ['gen2', 'sing'], 'валенка'),  # there is no gen2
     ('велосипед', ['loct'], 'велосипеде'), # о велосипеде
     ('велосипед', ['loc2'], 'велосипеде'), # а тут второго предложного нет, в велосипеде
     ('хомяк', ['voct'], 'хомяк'),        # there is not voct, nomn should be used

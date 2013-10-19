@@ -18,7 +18,7 @@ from pymorphy2.units.utils import (add_parse_if_not_seen, add_tag_if_not_seen,
                                    without_fixed_prefix, with_prefix)
 from pymorphy2.utils import word_splits
 
-
+_cnt_getter = operator.itemgetter(3)
 
 class _PrefixAnalyzer(AnalogyAnalizerUnit):
 
@@ -219,7 +219,7 @@ class KnownSuffixAnalyzer(AnalogyAnalizerUnit):
             (fixed_word, tag, normal_form, cnt/total_counts[prefix_id] * self.ESTIMATE_DECAY, methods_stack)
             for (cnt, fixed_word, tag, normal_form, prefix_id, methods_stack) in result
         ]
-        result.sort(key=operator.itemgetter(3), reverse=True)
+        result.sort(key=_cnt_getter, reverse=True)
         return result
 
 

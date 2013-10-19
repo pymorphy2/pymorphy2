@@ -11,7 +11,6 @@ import collections
 import itertools
 import array
 import struct
-import threading
 
 try:
     izip = itertools.izip
@@ -26,7 +25,7 @@ from pymorphy2.utils import json_write, json_read
 
 logger = logging.getLogger(__name__)
 
-CURRENT_FORMAT_VERSION = '2.3'
+CURRENT_FORMAT_VERSION = '2.4'
 
 LoadedDictionary = collections.namedtuple('LoadedDictionary', [
     'meta', 'gramtab', 'suffixes', 'paradigms', 'words',
@@ -61,9 +60,7 @@ def load_dict(path, gramtab_format='opencorpora-int'):
     prediction_suffixes_dawgs = []
     for prefix_id in range(len(paradigm_prefixes)):
         fn = _f('prediction-suffixes-%s.dawg' % prefix_id)
-
         assert os.path.exists(fn)
-
         prediction_suffixes_dawgs.append(dawg.PredictionSuffixesDAWG().load(fn))
 
     return LoadedDictionary(meta, gramtab, suffixes, paradigms, words,

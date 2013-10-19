@@ -11,7 +11,6 @@ from pymorphy2.units.base import BaseAnalyzerUnit
 logger = logging.getLogger(__name__)
 
 
-
 class DictionaryAnalyzer(BaseAnalyzerUnit):
     """
     Analyzer unit that analyzes word using dictionary.
@@ -39,7 +38,6 @@ class DictionaryAnalyzer(BaseAnalyzerUnit):
 
                 tag = self.dict.build_tag_info(para_id, idx)
                 method = ((self, fixed_word, para_id, idx),)
-
                 res.append((fixed_word, tag, normal_form, 1.0, method))
 
         # res.sort(key=lambda p: len(p[1]))  #  prefer simple parses
@@ -72,7 +70,7 @@ class DictionaryAnalyzer(BaseAnalyzerUnit):
         """
         Return a lexeme (given a parsed word).
         """
-        fixed_word, tag, normal_form, estimate, methods_stack = form
+        fixed_word, tag, normal_form, score, methods_stack = form
         _, para_id, idx = self._extract_para_info(methods_stack)
 
         _para = self.dict.paradigms[para_id]
@@ -84,13 +82,13 @@ class DictionaryAnalyzer(BaseAnalyzerUnit):
         for index, (_prefix, _tag, _suffix) in enumerate(paradigm):
             word = _prefix + stem + _suffix
             new_methods_stack = self._fix_stack(methods_stack, word, para_id, index)
-            parse = (word, _tag, normal_form, estimate, new_methods_stack)
+            parse = (word, _tag, normal_form, 1.0, new_methods_stack)
             result.append(parse)
 
         return result
 
     def normalized(self, form):
-        fixed_word, tag, normal_form, estimate, methods_stack = form
+        fixed_word, tag, normal_form, score, methods_stack = form
         original_word, para_id, idx = self._extract_para_info(methods_stack)
 
         if idx == 0:
@@ -99,7 +97,7 @@ class DictionaryAnalyzer(BaseAnalyzerUnit):
         tag = self.dict.build_tag_info(para_id, 0)
         new_methods_stack = self._fix_stack(methods_stack, normal_form, para_id, 0)
 
-        return (normal_form, tag, normal_form, estimate, new_methods_stack)
+        return (normal_form, tag, normal_form, 1.0, new_methods_stack)
 
     def _extract_para_info(self, methods_stack):
         # This method assumes that DictionaryAnalyzer is the first

@@ -43,7 +43,6 @@ class Dictionary(object):
         tag_id = paradigm[tag_info_offset + idx]
         return self.gramtab[tag_id]
 
-
     def build_paradigm_info(self, para_id):
         """
         Return a list of
@@ -67,7 +66,6 @@ class Dictionary(object):
             )
         return res
 
-
     def build_normal_form(self, para_id, idx, fixed_word):
         """
         Build a normal form.
@@ -89,7 +87,6 @@ class Dictionary(object):
 
         return normal_prefix + stem + normal_suffix
 
-
     def build_stem(self, paradigm, idx, fixed_word):
         """
         Return word stem (given a word, paradigm and the word index).
@@ -106,7 +103,6 @@ class Dictionary(object):
             return fixed_word[len(prefix):-len(suffix)]
         else:
             return fixed_word[len(prefix):]
-
 
     def word_is_known(self, word, strict_ee=False):
         """
@@ -126,7 +122,6 @@ class Dictionary(object):
             return word in self.words
         else:
             return bool(self.words.similar_keys(word, self.ee))
-
 
     def iter_known_words(self, prefix=""):
         """
