@@ -41,12 +41,12 @@ class HyphenSeparatedParticleAnalyzer(AnalogyAnalizerUnit):
         for unsuffixed_word, particle in self.possible_splits(word_lower):
             method = (self, particle)
 
-            for fixed_word, tag, normal_form, estimate, methods_stack in self.morph.parse(unsuffixed_word):
+            for fixed_word, tag, normal_form, score, methods_stack in self.morph.parse(unsuffixed_word):
                 parse = (
                     fixed_word+particle,
                     tag,
                     normal_form+particle,
-                    estimate*self.ESTIMATE_DECAY,
+                    score*self.ESTIMATE_DECAY,
                     methods_stack+(method,)
                 )
                 add_parse_if_not_seen(parse, result, seen_parses)
@@ -191,7 +191,7 @@ class HyphenatedWordsAnalyzer(BaseAnalyzerUnit):
         """
         result = []
 
-        for fixed_word, tag, normal_form, estimate, right_methods in right_parses:
+        for fixed_word, tag, normal_form, score, right_methods in right_parses:
 
             if tag._is_unknown():
                 continue
@@ -202,7 +202,7 @@ class HyphenatedWordsAnalyzer(BaseAnalyzerUnit):
                 '-'.join((left, fixed_word)),
                 tag,
                 '-'.join((left, normal_form)),
-                estimate * self.ESTIMATE_DECAY,
+                score * self.ESTIMATE_DECAY,
                 new_methods_stack
             )
             result.append(parse)
@@ -344,10 +344,10 @@ class HyphenatedWordsAnalyzer(BaseAnalyzerUnit):
             word = '-'.join((left[0], right[0]))
             tag = left[1]
             normal_form = '-'.join((left[2], right[2]))
-            estimate = (left[3] + right[3]) / 2
+            score = (left[3] + right[3]) / 2
             method_stack = ((self, left[4], right[4]), )
 
-            yield (word, tag, normal_form, estimate, method_stack)
+            yield (word, tag, normal_form, score, method_stack)
 
     def _align_lexeme_forms(self, left_lexeme, right_lexeme):
         # FIXME: quadratic algorithm
@@ -366,15 +366,15 @@ class HyphenatedWordsAnalyzer(BaseAnalyzerUnit):
 
     @classmethod
     def _without_right_part(cls, form):
-        word, tag, normal_form, estimate, methods_stack = form
+        word, tag, normal_form, score, methods_stack = form
         return (word[:word.index('-')], tag, normal_form[:normal_form.index('-')],
-                estimate, methods_stack)
+                score, methods_stack)
 
     @classmethod
     def _without_left_part(cls, form):
-        word, tag, normal_form, estimate, methods_stack = form
+        word, tag, normal_form, score, methods_stack = form
         return (word[word.index('-')+1:], tag, normal_form[normal_form.index('-')+1:],
-                estimate, methods_stack)
+                score, methods_stack)
 
     @classmethod
     def _fixed_left_method_was_used(cls, left_methods):

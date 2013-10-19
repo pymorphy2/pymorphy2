@@ -51,7 +51,7 @@ class KnownPrefixAnalyzer(_PrefixAnalyzer):
             method = (self, prefix)
 
             parses = self.morph.parse(unprefixed_word)
-            for fixed_word, tag, normal_form, estimate, methods_stack in parses:
+            for fixed_word, tag, normal_form, score, methods_stack in parses:
 
                 if not tag.is_productive():
                     continue
@@ -60,7 +60,7 @@ class KnownPrefixAnalyzer(_PrefixAnalyzer):
                     prefix + fixed_word,
                     tag,
                     prefix + normal_form,
-                    estimate * self.ESTIMATE_DECAY,
+                    score * self.ESTIMATE_DECAY,
                     methods_stack + (method,)
                 )
 
@@ -112,7 +112,7 @@ class UnknownPrefixAnalyzer(_PrefixAnalyzer):
             method = (self, prefix)
 
             parses = self.dict_analyzer.parse(unprefixed_word, unprefixed_word, seen_parses)
-            for fixed_word, tag, normal_form, estimate, methods_stack in parses:
+            for fixed_word, tag, normal_form, score, methods_stack in parses:
 
                 if not tag.is_productive():
                     continue
@@ -121,7 +121,7 @@ class UnknownPrefixAnalyzer(_PrefixAnalyzer):
                     prefix+fixed_word,
                     tag,
                     prefix+normal_form,
-                    estimate*self.ESTIMATE_DECAY,
+                    score*self.ESTIMATE_DECAY,
                     methods_stack+(method,)
                 )
                 add_parse_if_not_seen(parse, result, seen_parses)
