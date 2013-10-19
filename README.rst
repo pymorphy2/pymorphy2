@@ -10,6 +10,7 @@ for Russian language. License is MIT.
     :target: https://coveralls.io/r/kmike/pymorphy2
 
 * docs: https://pymorphy2.readthedocs.org
+* changelog: https://github.com/kmike/pymorphy2/blob/master/CHANGES.rst
 * source code: github_, bitbucket_.
 * bug tracker: https://github.com/kmike/pymorphy2/issues
 * support: https://groups.google.com/forum/?fromgroups#!forum/pymorphy
