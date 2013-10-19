@@ -29,6 +29,8 @@ Tagset
 .. automodule:: pymorphy2.tagset
     :members: OpencorporaTag
 
+.. _cli:
+
 Command-Line Interface
 ----------------------
 
