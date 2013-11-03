@@ -20,7 +20,7 @@ def is_latin_char(uchr):
 def is_latin(token):
     """
     Return True if all token letters are latin and there is at
-    least one latin letter in the token::
+    least one latin letter in the token:
 
         >>> is_latin('foo')
         True
@@ -43,7 +43,7 @@ def is_latin(token):
 def is_punctuation(token):
     """
     Return True if a word contains only spaces and punctuation marks
-    and there is at least one punctuation mark::
+    and there is at least one punctuation mark:
 
         >>> is_punctuation(', ')
         True
@@ -57,7 +57,7 @@ def is_punctuation(token):
         False
 
     """
-    if isinstance(token, bytes): # python 2.x ascii str
+    if isinstance(token, bytes):  # python 2.x ascii str
         token = token.decode('ascii')
 
     return (
@@ -81,7 +81,7 @@ ROMAN_NUMBERS_RE = re.compile("""
 
 def is_roman_number(token):
     """
-    Return True if token looks like a Roman number::
+    Return True if token looks like a Roman number:
 
         >>> is_roman_number('II')
         True
@@ -100,7 +100,7 @@ def is_roman_number(token):
 
 def restore_word_case(word, example):
     """
-    Make the ``word`` be the same case as an ``example``::
+    Make the ``word`` be the same case as an ``example``:
 
         >>> restore_word_case('bye', 'Hello')
         'Bye'
@@ -115,7 +115,7 @@ def restore_word_case(word, example):
         >>> restore_word_case('123--do', 'anti--IEEE')
         '123--DO'
 
-    In the alignment fails, the reminder is lower-cased::
+    In the alignment fails, the reminder is lower-cased:
 
         >>> restore_word_case('foo-BAR-BAZ', 'Baz-Baz')
         'Foo-Bar-baz'

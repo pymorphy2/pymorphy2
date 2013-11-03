@@ -12,7 +12,7 @@ from pymorphy2.shapes import is_latin, is_punctuation, is_roman_number
 class _ShapeAnalyzer(BaseAnalyzerUnit):
 
     terminal = True
-    ESTIMATE = 0.9
+    SCORE = 0.9
     EXTRA_GRAMMEMES = []
     EXTRA_GRAMMEMES_CYR = []
 
@@ -28,7 +28,7 @@ class _ShapeAnalyzer(BaseAnalyzerUnit):
             return []
 
         methods = ((self, word),)
-        return [(word_lower, self.get_tag(word, shape), word_lower, self.ESTIMATE, methods)]
+        return [(word_lower, self.get_tag(word, shape), word_lower, self.SCORE, methods)]
 
     def tag(self, word, word_lower, seen_tags):
         shape = self.check_shape(word, word_lower)

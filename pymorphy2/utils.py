@@ -39,7 +39,7 @@ def get_mem_usage():
 
 def combinations_of_all_lengths(it):
     """
-    Return an iterable with all possible combinations of items from ``it``::
+    Return an iterable with all possible combinations of items from ``it``:
 
         >>> for comb in combinations_of_all_lengths('ABC'):
         ...     print("".join(comb))
@@ -59,7 +59,7 @@ def combinations_of_all_lengths(it):
 
 def longest_common_substring(data):
     """
-    Return a longest common substring of a list of strings::
+    Return a longest common substring of a list of strings:
 
         >>> longest_common_substring(["apricot", "rice", "cricket"])
         'ric'

@@ -5,11 +5,12 @@ import logging
 import time
 import sys
 import codecs
+import os
 
 import pymorphy2
 from pymorphy2 import opencorpora_dict, test_suite_generator
 from pymorphy2.vendor.docopt import docopt
-from pymorphy2.utils import download_bz2, get_mem_usage
+from pymorphy2.utils import download_bz2, get_mem_usage, json_read, json_write
 
 logger = logging.getLogger('pymorphy2')
 logger.addHandler(logging.StreamHandler())
@@ -63,17 +64,13 @@ def show_dict_meta(dict_path=None):
 
 
 def make_test_suite(dict_filename, out_filename, word_limit=100):
-    """
-    Make a test suite from (unparsed) OpenCorpora dictionary.
-    """
+    """ Make a test suite from (unparsed) OpenCorpora dictionary. """
     return test_suite_generator.make_test_suite(
         dict_filename, out_filename, word_limit=int(word_limit))
 
 
-def download_xml(out_filename, verbose):
-    """
-    Download an updated XML from OpenCorpora
-    """
+def download_dict_xml(out_filename, verbose):
+    """ Download an updated dictionary XML from OpenCorpora """
     def on_chunk():
         if verbose:
             sys.stdout.write('.')
@@ -87,9 +84,7 @@ def download_xml(out_filename, verbose):
 
 
 def _parse(dict_path, in_filename, out_filename):
-
     morph = pymorphy2.MorphAnalyzer(dict_path)
-
     with codecs.open(in_filename, 'r', 'utf8') as in_file:
         with codecs.open(out_filename, 'w', 'utf8') as out_file:
             for line in in_file:
@@ -97,6 +92,44 @@ def _parse(dict_path, in_filename, out_filename):
                 parses = morph.parse(word)
                 parse_str = "|".join([p[1] for p in parses])
                 out_file.write(word + ": " +parse_str + "\n")
+
+
+def download_corpus_xml(out_filename):
+    from opencorpora.cli import _download, FULL_CORPORA_URL_BZ2
+    return _download(
+        out_file=out_filename,
+        decompress=True,
+        disambig=False,
+        url=FULL_CORPORA_URL_BZ2,
+        verbose=True
+    )
+
+
+def estimate_tag_cpd(corpus_filename, out_path, min_word_freq, update_meta=True):
+    from pymorphy2.opencorpora_dict.probability import (estimate_conditional_tag_probability, build_cpd_dawg)
+    m = pymorphy2.MorphAnalyzer(out_path, probability_estimator_cls=None)
+
+    logger.info("Estimating P(t|w) from %s" % (corpus_filename))
+    cpd, cfd = estimate_conditional_tag_probability(m, corpus_filename)
+
+    logger.info("Encoding P(t|w) as DAWG")
+    d = build_cpd_dawg(m, cpd, int(min_word_freq))
+    dawg_filename = os.path.join(out_path, 'p_t_given_w.intdawg')
+    d.save(dawg_filename)
+
+    if update_meta:
+        logger.info("Updating meta information")
+        meta_filename = os.path.join(out_path, 'meta.json')
+        meta = json_read(meta_filename)
+        meta.extend([
+            ('P(t|w)', True),
+            ('P(t|w)_unique_words', len(cpd.conditions())),
+            ('P(t|w)_outcomes', cfd.N()),
+            ('P(t|w)_min_word_freq', int(min_word_freq)),
+        ])
+        json_write(meta_filename, meta)
+
+    logger.info('\nDone.')
 
 
 # =============================================================================
@@ -111,11 +144,13 @@ Pymorphy2 is a morphological analyzer / inflection engine for Russian language.
 __doc__ ="""
 Usage::
 
-    pymorphy dict compile <XML_FILE> [--out <PATH>] [--force] [--verbose] [--min_ending_freq <NUM>] [--min_paradigm_popularity <NUM>] [--max_suffix_length <NUM>]
+    pymorphy dict compile <DICT_XML> [--out <PATH>] [--force] [--verbose] [--min_ending_freq <NUM>] [--min_paradigm_popularity <NUM>] [--max_suffix_length <NUM>]
     pymorphy dict download_xml <OUT_FILE> [--verbose]
     pymorphy dict mem_usage [--dict <PATH>] [--verbose]
     pymorphy dict make_test_suite <XML_FILE> <OUT_FILE> [--limit <NUM>] [--verbose]
     pymorphy dict meta [--dict <PATH>]
+    pymorphy prob download_xml <OUT_FILE> [--verbose]
+    pymorphy prob estimate_cpd <CORPUS_XML> [--out <PATH>] [--min_word_freq <NUM>]
     pymorphy _parse <IN_FILE> <OUT_FILE> [--dict <PATH>] [--verbose]
     pymorphy -h | --help
     pymorphy --version
@@ -129,6 +164,7 @@ Options::
     --min_ending_freq <NUM>             Prediction: min. number of suffix occurances [default: 2]
     --min_paradigm_popularity <NUM>     Prediction: min. number of lexemes for the paradigm [default: 3]
     --max_suffix_length <NUM>           Prediction: max. length of prediction suffixes [default: 5]
+    --min_word_freq <NUM>               P(t|w) estimation: min. word count in source corpus [default: 1]
     --dict <PATH>                       Dictionary folder path
 
 """
@@ -157,7 +193,7 @@ def main():
                 (key, int(args['--'+key]))
                 for key in ('min_ending_freq', 'min_paradigm_popularity', 'max_suffix_length')
             )
-            return compile_dict(args['<XML_FILE>'], args['--out'], args['--force'], prediction_options)
+            return compile_dict(args['<DICT_XML>'], args['--out'], args['--force'], prediction_options)
         elif args['mem_usage']:
             return show_dict_mem_usage(args['--dict'], args['--verbose'])
         elif args['meta']:
@@ -165,5 +201,11 @@ def main():
         elif args['make_test_suite']:
             return make_test_suite(args['<XML_FILE>'], args['<OUT_FILE>'], int(args['--limit']))
         elif args['download_xml']:
-            return download_xml(args['<OUT_FILE>'], args['--verbose'])
+            return download_dict_xml(args['<OUT_FILE>'], args['--verbose'])
+
+    elif args['prob']:
+        if args['download_xml']:
+            return download_corpus_xml(args['<OUT_FILE>'])
+        elif args['estimate_cpd']:
+            return estimate_tag_cpd(args['<CORPUS_XML>'], args['--out'], args['--min_word_freq'])
 

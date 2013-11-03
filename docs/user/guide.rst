@@ -11,7 +11,7 @@
 
     pip install pymorphy2
     pip install pymorphy2-dicts
-    pip install DAWG-Python
+    pip install 'DAWG-Python >= 0.7'
 
 `pymorphy2-dicts <http://pypi.python.org/pypi/pymorphy2-dicts>`_ - это
 пакет со словарями OpenCorpora_, скомпилированными в формат pymorphy2.
@@ -20,7 +20,7 @@
 то вместо `DAWG-Python`_ можно установить библиотеку DAWG_, которая
 позволит pymorphy2 работать быстрее::
 
-    pip install DAWG
+    pip install 'DAWG >= 0.7'
 
 .. _DAWG: https://github.com/kmike/DAWG
 .. _DAWG-Python: https://github.com/kmike/DAWG-Python
@@ -52,12 +52,12 @@
 С помощью метода :meth:`MorphAnalyzer.parse` можно разобрать слово::
 
     >>> morph.parse('стали')
-    [Parse(word='стали', tag=OpencorporaTag('VERB,perf,intr plur,past,indc'), normal_form='стать', estimate=1.0, methods_stack=((<DictionaryAnalyzer>, 'стали', 883, 4),)),
-     Parse(word='стали', tag=OpencorporaTag('NOUN,inan,femn sing,gent'), normal_form='сталь', estimate=1.0, methods_stack=((<DictionaryAnalyzer>, 'стали', 12, 1),)),
-     Parse(word='стали', tag=OpencorporaTag('NOUN,inan,femn sing,datv'), normal_form='сталь', estimate=1.0, methods_stack=((<DictionaryAnalyzer>, 'стали', 12, 2),)),
-     Parse(word='стали', tag=OpencorporaTag('NOUN,inan,femn sing,loct'), normal_form='сталь', estimate=1.0, methods_stack=((<DictionaryAnalyzer>, 'стали', 12, 5),)),
-     Parse(word='стали', tag=OpencorporaTag('NOUN,inan,femn plur,nomn'), normal_form='сталь', estimate=1.0, methods_stack=((<DictionaryAnalyzer>, 'стали', 12, 6),)),
-     Parse(word='стали', tag=OpencorporaTag('NOUN,inan,femn plur,accs'), normal_form='сталь', estimate=1.0, methods_stack=((<DictionaryAnalyzer>, 'стали', 12, 9),))]
+    [Parse(word='стали', tag=OpencorporaTag('VERB,perf,intr plur,past,indc'), normal_form='стать', score=0.983766, methods_stack=((<DictionaryAnalyzer>, 'стали', 884, 4),)),
+     Parse(word='стали', tag=OpencorporaTag('NOUN,inan,femn sing,gent'), normal_form='сталь', score=0.003246, methods_stack=((<DictionaryAnalyzer>, 'стали', 12, 1),)),
+     Parse(word='стали', tag=OpencorporaTag('NOUN,inan,femn sing,datv'), normal_form='сталь', score=0.003246, methods_stack=((<DictionaryAnalyzer>, 'стали', 12, 2),)),
+     Parse(word='стали', tag=OpencorporaTag('NOUN,inan,femn sing,loct'), normal_form='сталь', score=0.003246, methods_stack=((<DictionaryAnalyzer>, 'стали', 12, 5),)),
+     Parse(word='стали', tag=OpencorporaTag('NOUN,inan,femn plur,nomn'), normal_form='сталь', score=0.003246, methods_stack=((<DictionaryAnalyzer>, 'стали', 12, 6),)),
+     Parse(word='стали', tag=OpencorporaTag('NOUN,inan,femn plur,accs'), normal_form='сталь', score=0.003246, methods_stack=((<DictionaryAnalyzer>, 'стали', 12, 9),))]
 
 .. note::
 
@@ -78,7 +78,7 @@
     >>> p.normal_form
     'стать'
     >>> p.normalized
-    Parse(word='стать', tag=OpencorporaTag('INFN,perf,intr'), normal_form='стать', estimate=1.0, methods_stack=((<DictionaryAnalyzer>, 'стать', 883, 0),))
+    Parse(word='стать', tag=OpencorporaTag('INFN,perf,intr'), normal_form='стать', score=1.0, methods_stack=((<DictionaryAnalyzer>, 'стать', 884, 0),))
 
 .. note::
 
@@ -104,7 +104,7 @@ pymorphy2 умеет разбирать не только словарные с�
 "бутявковед", и что "бутявковед" - одушевленный и мужского рода::
 
     >>> morph.parse('бутявковедами')
-    [Parse(word='бутявковедами', tag=OpencorporaTag('NOUN,anim,masc plur,ablt'), normal_form='бутявковед', estimate=0.49528301886792453, methods_stack=((<FakeDictionary>, 'бутявковедами', 51, 10), (<KnownSuffixAnalyzer>, 'едами')))]
+    [Parse(word='бутявковедами', tag=OpencorporaTag('NOUN,anim,masc plur,ablt'), normal_form='бутявковед', score=1.0, methods_stack=((<FakeDictionary>, 'бутявковедами', 51, 10), (<KnownSuffixAnalyzer>, 'едами')))]
 
 
 Работа с тегами
@@ -113,10 +113,12 @@ pymorphy2 умеет разбирать не только словарные с�
 Для того, чтоб проверить, есть ли в данном теге отдельная граммема
 (или все граммемы из указанного множества), используйте оператор in::
 
+    >>> 'NOUN' in p.tag  # то же самое, что и {'NOUN'} in p.tag
+    False
     >>> 'VERB' in p.tag
     True
-    >>> 'NOUN' in p.tag
-    False
+    >>> {'VERB'} in p.tag
+    True
     >>> {'plur', 'past'} in p.tag
     True
     >>> {'NOUN', 'plur'} in p.tag
@@ -124,8 +126,9 @@ pymorphy2 умеет разбирать не только словарные с�
 
 .. note::
 
-    Если у вас Python 2.6, то, например, вместо ``{'NOUN', 'plur'}`` нужно
-    писать ``set(['NOUN', 'plur'])``.
+    В Python 2.6 не поддерживается ``{'NOUN', 'plur'}`` синтаксис для
+    задания множеств. Если у вас Python 2.6, то тут и дальше в примерах
+    используйте форму записи ``set(['NOUN', 'plur'])``.
 
 
 Кроме того, у каждого тега есть атрибуты, через которые можно получить
@@ -187,31 +190,32 @@ pymorphy2 умеет склонять (ставить в какую-то дру�
 
     >>> butyavka = morph.parse('бутявка')[0]
     >>> butyavka
-    Parse(word='бутявка', tag=OpencorporaTag('NOUN,inan,femn sing,nomn'), normal_form='бутявка', estimate=0.5, methods_stack=((<DictionaryAnalyzer>, 'явка', 8, 0), (<UnknownPrefixAnalyzer>, 'бут')))
+    Parse(word='бутявка', tag=OpencorporaTag('NOUN,inan,femn sing,nomn'), normal_form='бутявка', score=1.0, methods_stack=((<DictionaryAnalyzer>, 'явка', 8, 0), (<UnknownPrefixAnalyzer>, 'бут')))
 
 Для склонения используйте метод :meth:`Parse.inflect`::
 
     >>> butyavka.inflect({'gent'})  # нет кого? (родительный падеж)
-    Parse(word='бутявки', tag=OpencorporaTag('NOUN,inan,femn sing,gent'), normal_form='бутявка', estimate=0.5, methods_stack=((<DictionaryAnalyzer>, 'явки', 8, 1), (<UnknownPrefixAnalyzer>, 'бут')))
+    Out[13]:
+    Parse(word='бутявки', tag=OpencorporaTag('NOUN,inan,femn sing,gent'), normal_form='бутявка', score=1.0, methods_stack=((<DictionaryAnalyzer>, 'явки', 8, 1), (<UnknownPrefixAnalyzer>, 'бут')))
     >>> butyavka.inflect({'plur', 'gent'})  # кого много?
-    Parse(word='бутявок', tag=OpencorporaTag('NOUN,inan,femn plur,gent'), normal_form='бутявка', estimate=0.5, methods_stack=((<DictionaryAnalyzer>, 'явок', 8, 8), (<UnknownPrefixAnalyzer>, 'бут')))
+    Parse(word='бутявок', tag=OpencorporaTag('NOUN,inan,femn plur,gent'), normal_form='бутявка', score=1.0, methods_stack=((<DictionaryAnalyzer>, 'явок', 8, 8), (<UnknownPrefixAnalyzer>, 'бут')))
 
 С помощью атрибута :attr:`Parse.lexeme` можно получить лексему слова::
 
     >>> butyavka.lexeme
-    [Parse(word='бутявка', tag=OpencorporaTag('NOUN,inan,femn sing,nomn'), normal_form='бутявка', estimate=0.5, methods_stack=((<DictionaryAnalyzer>, 'явка', 8, 0), (<UnknownPrefixAnalyzer>, 'бут'))),
-     Parse(word='бутявки', tag=OpencorporaTag('NOUN,inan,femn sing,gent'), normal_form='бутявка', estimate=0.5, methods_stack=((<DictionaryAnalyzer>, 'явки', 8, 1), (<UnknownPrefixAnalyzer>, 'бут'))),
-     Parse(word='бутявке', tag=OpencorporaTag('NOUN,inan,femn sing,datv'), normal_form='бутявка', estimate=0.5, methods_stack=((<DictionaryAnalyzer>, 'явке', 8, 2), (<UnknownPrefixAnalyzer>, 'бут'))),
-     Parse(word='бутявку', tag=OpencorporaTag('NOUN,inan,femn sing,accs'), normal_form='бутявка', estimate=0.5, methods_stack=((<DictionaryAnalyzer>, 'явку', 8, 3), (<UnknownPrefixAnalyzer>, 'бут'))),
-     Parse(word='бутявкой', tag=OpencorporaTag('NOUN,inan,femn sing,ablt'), normal_form='бутявка', estimate=0.5, methods_stack=((<DictionaryAnalyzer>, 'явкой', 8, 4), (<UnknownPrefixAnalyzer>, 'бут'))),
-     Parse(word='бутявкою', tag=OpencorporaTag('NOUN,inan,femn sing,ablt,V-oy'), normal_form='бутявка', estimate=0.5, methods_stack=((<DictionaryAnalyzer>, 'явкою', 8, 5), (<UnknownPrefixAnalyzer>, 'бут'))),
-     Parse(word='бутявке', tag=OpencorporaTag('NOUN,inan,femn sing,loct'), normal_form='бутявка', estimate=0.5, methods_stack=((<DictionaryAnalyzer>, 'явке', 8, 6), (<UnknownPrefixAnalyzer>, 'бут'))),
-     Parse(word='бутявки', tag=OpencorporaTag('NOUN,inan,femn plur,nomn'), normal_form='бутявка', estimate=0.5, methods_stack=((<DictionaryAnalyzer>, 'явки', 8, 7), (<UnknownPrefixAnalyzer>, 'бут'))),
-     Parse(word='бутявок', tag=OpencorporaTag('NOUN,inan,femn plur,gent'), normal_form='бутявка', estimate=0.5, methods_stack=((<DictionaryAnalyzer>, 'явок', 8, 8), (<UnknownPrefixAnalyzer>, 'бут'))),
-     Parse(word='бутявкам', tag=OpencorporaTag('NOUN,inan,femn plur,datv'), normal_form='бутявка', estimate=0.5, methods_stack=((<DictionaryAnalyzer>, 'явкам', 8, 9), (<UnknownPrefixAnalyzer>, 'бут'))),
-     Parse(word='бутявки', tag=OpencorporaTag('NOUN,inan,femn plur,accs'), normal_form='бутявка', estimate=0.5, methods_stack=((<DictionaryAnalyzer>, 'явки', 8, 10), (<UnknownPrefixAnalyzer>, 'бут'))),
-     Parse(word='бутявками', tag=OpencorporaTag('NOUN,inan,femn plur,ablt'), normal_form='бутявка', estimate=0.5, methods_stack=((<DictionaryAnalyzer>, 'явками', 8, 11), (<UnknownPrefixAnalyzer>, 'бут'))),
-     Parse(word='бутявках', tag=OpencorporaTag('NOUN,inan,femn plur,loct'), normal_form='бутявка', estimate=0.5, methods_stack=((<DictionaryAnalyzer>, 'явках', 8, 12), (<UnknownPrefixAnalyzer>, 'бут')))]
+    [Parse(word='бутявка', tag=OpencorporaTag('NOUN,inan,femn sing,nomn'), normal_form='бутявка', score=1.0, methods_stack=((<DictionaryAnalyzer>, 'явка', 8, 0), (<UnknownPrefixAnalyzer>, 'бут'))),
+     Parse(word='бутявки', tag=OpencorporaTag('NOUN,inan,femn sing,gent'), normal_form='бутявка', score=1.0, methods_stack=((<DictionaryAnalyzer>, 'явки', 8, 1), (<UnknownPrefixAnalyzer>, 'бут'))),
+     Parse(word='бутявке', tag=OpencorporaTag('NOUN,inan,femn sing,datv'), normal_form='бутявка', score=1.0, methods_stack=((<DictionaryAnalyzer>, 'явке', 8, 2), (<UnknownPrefixAnalyzer>, 'бут'))),
+     Parse(word='бутявку', tag=OpencorporaTag('NOUN,inan,femn sing,accs'), normal_form='бутявка', score=1.0, methods_stack=((<DictionaryAnalyzer>, 'явку', 8, 3), (<UnknownPrefixAnalyzer>, 'бут'))),
+     Parse(word='бутявкой', tag=OpencorporaTag('NOUN,inan,femn sing,ablt'), normal_form='бутявка', score=1.0, methods_stack=((<DictionaryAnalyzer>, 'явкой', 8, 4), (<UnknownPrefixAnalyzer>, 'бут'))),
+     Parse(word='бутявкою', tag=OpencorporaTag('NOUN,inan,femn sing,ablt,V-oy'), normal_form='бутявка', score=1.0, methods_stack=((<DictionaryAnalyzer>, 'явкою', 8, 5), (<UnknownPrefixAnalyzer>, 'бут'))),
+     Parse(word='бутявке', tag=OpencorporaTag('NOUN,inan,femn sing,loct'), normal_form='бутявка', score=1.0, methods_stack=((<DictionaryAnalyzer>, 'явке', 8, 6), (<UnknownPrefixAnalyzer>, 'бут'))),
+     Parse(word='бутявки', tag=OpencorporaTag('NOUN,inan,femn plur,nomn'), normal_form='бутявка', score=1.0, methods_stack=((<DictionaryAnalyzer>, 'явки', 8, 7), (<UnknownPrefixAnalyzer>, 'бут'))),
+     Parse(word='бутявок', tag=OpencorporaTag('NOUN,inan,femn plur,gent'), normal_form='бутявка', score=1.0, methods_stack=((<DictionaryAnalyzer>, 'явок', 8, 8), (<UnknownPrefixAnalyzer>, 'бут'))),
+     Parse(word='бутявкам', tag=OpencorporaTag('NOUN,inan,femn plur,datv'), normal_form='бутявка', score=1.0, methods_stack=((<DictionaryAnalyzer>, 'явкам', 8, 9), (<UnknownPrefixAnalyzer>, 'бут'))),
+     Parse(word='бутявки', tag=OpencorporaTag('NOUN,inan,femn plur,accs'), normal_form='бутявка', score=1.0, methods_stack=((<DictionaryAnalyzer>, 'явки', 8, 10), (<UnknownPrefixAnalyzer>, 'бут'))),
+     Parse(word='бутявками', tag=OpencorporaTag('NOUN,inan,femn plur,ablt'), normal_form='бутявка', score=1.0, methods_stack=((<DictionaryAnalyzer>, 'явками', 8, 11), (<UnknownPrefixAnalyzer>, 'бут'))),
+     Parse(word='бутявках', tag=OpencorporaTag('NOUN,inan,femn plur,loct'), normal_form='бутявка', score=1.0, methods_stack=((<DictionaryAnalyzer>, 'явках', 8, 12), (<UnknownPrefixAnalyzer>, 'бут')))]
 
 .. _normalization:
 
@@ -257,3 +261,63 @@ pymorphy2 сейчас использует алгоритм нахождени�
     >>> butyavka.make_agree_with_number(5).word
     'бутявок'
 
+Выбор правильного разбора
+-------------------------
+
+pymorphy2 возвращает все допустимые варианты разбора, но на практике
+обычно нужен только один вариант, правильный.
+
+У каждого разбора есть параметр score::
+
+    >>> m.parse('на')
+    [Parse(word='на', tag=OpencorporaTag('PREP'), normal_form='на', score=0.999628, methods_stack=((<DictionaryAnalyzer>, 'на', 23, 0),)),
+     Parse(word='на', tag=OpencorporaTag('INTJ'), normal_form='на', score=0.000318, methods_stack=((<DictionaryAnalyzer>, 'на', 20, 0),)),
+     Parse(word='на', tag=OpencorporaTag('PRCL'), normal_form='на', score=5.3e-05, methods_stack=((<DictionaryAnalyzer>, 'на', 21, 0),))]
+
+score - это оценка P(tag|word), оценка вероятности того, что данный
+разбор правильный.
+
+Условная вероятность P(tag|word) оценивается на основе корпуса OpenCorpora_:
+ищутся все неоднозначные слова со снятой неоднозначностью, для каждого слова
+считается, сколько раз ему был сопоставлен данный тег, и на основе этих частот
+вычисляется условная вероятность тега (с исползованием сглаживания Лапласа).
+
+На данный момент оценки P(tag|word) на основе OpenCorpora есть
+примерно для 15 тыс. слов (исходя из примерно 110тыс. наблюдений).
+Для тех слов, для которых такой оценки нет, вероятность P(tag|word) либо
+считается равномерной (для словарных слов), либо оценивается на основе
+эмпирических правил (для несловарных слов).
+
+На практике это означает, что первый разбор из тех, что возвращают методы
+:meth:`MorphAnalyzer.parse` и :meth:`MorphAnalyzer.tag`, более вероятен,
+чем остальные. Для слов (без учета пунктуации и т.д.) цифры такие:
+
+* случайно выбранный разбор (из допустимых) верен примерно в **66%** случаев;
+* первый по словарю разбор (pymorphy2 < 0.4) верен примерно в **72%** случаев;
+* разбор, который выдает pymorphy2 == 0.4, выбранный на основе
+  оценки P(tag|word), верен примерно в **79%** случаев.
+
+Разборы сортируются по убыванию score, поэтому везде в примерах берется
+первый вариант разбора из возможных (например, ``morph.parse('бутявка')[0]``).
+
+Оценки P(tag|word) помогают улучшить разбор, но их недостаточно для
+надежного снятия неоднозначности, как минимум по следующим причинам:
+
+* то, как нужно разбирать слово, зависит от соседних слов; pymorphy2 работает
+  только на уровне отдельных слов;
+* условная вероятность P(tag|word) оценена на основе сбалансированного
+  набора текстов; в специализированных текстах вероятности могут быть другими -
+  например, возможно, что в металлургических текстах
+  ``P(NOUN|стали) > P(VERB|стали)``;
+* в OpenCorpora у большинства слов неоднозначность пока не снята; выполняя
+  задания на сайте OpenCorpora_, можно непосредственно помочь улучшить
+  оценку P(tag|word) и, следовательно, качество работы pymorphy2.
+
+Если вы берете первый разбор из возможных (как в примерах), то стоит
+учитывать эту проблему.
+
+Иногда могут помочь какие-то особенности задачи. Например, если нужно
+просклонять слово, и известно, что на входе ожидается слово в именительном
+падеже, то лучше брать вариант разбора в именительном падеже, а не первый.
+В общем же случае для выбора точного разбора необходимо каким-то образом
+учитывать не только само слово, но и другие слова в предложении.

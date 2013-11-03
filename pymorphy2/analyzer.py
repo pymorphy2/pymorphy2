@@ -4,13 +4,18 @@ import os
 import heapq
 import collections
 import logging
+import threading
+import operator
 
 from pymorphy2 import opencorpora_dict
 from pymorphy2 import units
+from pymorphy2.dawg import ConditionalProbDistDAWG
 
 logger = logging.getLogger(__name__)
 
-_Parse = collections.namedtuple('Parse', 'word, tag, normal_form, estimate, methods_stack')
+_Parse = collections.namedtuple('Parse', 'word, tag, normal_form, score, methods_stack')
+
+_score_getter = operator.itemgetter(3)
 
 class Parse(_Parse):
     """
@@ -29,7 +34,7 @@ class Parse(_Parse):
 
     def make_agree_with_number(self, num):
         """
-        Inflects the word so that it agrees with ``num``
+        Inflect the word so that it agrees with ``num``
         """
         return self.inflect(self.tag.numeral_agreement_grammemes(num))
 
@@ -41,7 +46,6 @@ class Parse(_Parse):
     @property
     def is_known(self):
         """ True if this form is a known dictionary form. """
-        # return self.estimate == 1?
         return self._dict.word_is_known(self.word, strict_ee=True)
 
     @property
@@ -54,6 +58,52 @@ class Parse(_Parse):
     # def paradigm(self):
     #     return self._dict.build_paradigm_info(self.para_id)
 
+
+class SingleTagProbabilityEstimator(object):
+    def __init__(self, dict_path):
+        cpd_path = os.path.join(dict_path, 'p_t_given_w.intdawg')
+        self.p_t_given_w = ConditionalProbDistDAWG().load(cpd_path)
+
+    def apply_to_parses(self, word, word_lower, parses):
+        if not parses:
+            return parses
+
+        probs = [self.p_t_given_w.prob(word_lower, tag)
+                for (word, tag, normal_form, score, methods_stack) in parses]
+
+        if sum(probs) == 0:
+            # no P(t|w) information is available; return normalized estimate
+            k = 1.0 / sum(map(_score_getter, parses))
+            return [
+                (word, tag, normal_form, score*k, methods_stack)
+                for (word, tag, normal_form, score, methods_stack) in parses
+            ]
+
+        # replace score with P(t|w) probability
+        return sorted([
+            (word, tag, normal_form, prob, methods_stack)
+            for (word, tag, normal_form, score, methods_stack), prob
+            in zip(parses, probs)
+        ], key=_score_getter, reverse=True)
+
+    def apply_to_tags(self, word, word_lower, tags):
+        if not tags:
+            return tags
+        return sorted(tags,
+            key=lambda tag: self.p_t_given_w.prob(word_lower, tag),
+            reverse=True
+        )
+
+
+class DummySingleTagProbabilityEstimator(object):
+    def __init__(self, dict_path):
+        pass
+
+    def apply_to_parses(self, word, word_lower, parses):
+        return parses
+
+    def apply_to_tags(self, word, word_lower, tags):
+        return tags
 
 
 class MorphAnalyzer(object):
@@ -108,32 +158,35 @@ class MorphAnalyzer(object):
         units.KnownSuffixAnalyzer,
     ]
 
-    def __init__(self, path=None, result_type=Parse, units=None):
-
+    def __init__(self, path=None, result_type=Parse, units=None,
+                 probability_estimator_cls=SingleTagProbabilityEstimator):
         path = self.choose_dictionary_path(path)
-        self.dictionary = opencorpora_dict.Dictionary(path)
+        with threading.RLock():
+            self.dictionary = opencorpora_dict.Dictionary(path)
+            if probability_estimator_cls is None:
+                probability_estimator_cls = DummySingleTagProbabilityEstimator
+            self.prob_estimator = probability_estimator_cls(path)
 
-        if result_type is not None:
-            # create a subclass with the same name,
-            # but with _morph attribute bound to self
-            res_type = type(
-                result_type.__name__,
-                (result_type,),
-                {'_morph': self, '_dict': self.dictionary}
-            )
-            self._result_type = res_type
-        else:
-            self._result_type = None
+            if result_type is not None:
+                # create a subclass with the same name,
+                # but with _morph attribute bound to self
+                res_type = type(
+                    result_type.__name__,
+                    (result_type,),
+                    {'_morph': self, '_dict': self.dictionary}
+                )
+                self._result_type = res_type
+            else:
+                self._result_type = None
 
-        self._result_type_orig = result_type
+            self._result_type_orig = result_type
 
-        # initialize units
-        if units is None:
-            units = self.DEFAULT_UNITS
+            # initialize units
+            if units is None:
+                units = self.DEFAULT_UNITS
 
-        self._unit_classes = units
-        self._units = [cls(self) for cls in units]
-
+            self._unit_classes = units
+            self._units = [cls(self) for cls in units]
 
     @classmethod
     def choose_dictionary_path(cls, path=None):
@@ -153,13 +206,12 @@ class MorphAnalyzer(object):
                    "or set %s environment variable.") % cls.ENV_VARIABLE
             raise ValueError(msg)
 
-
     def parse(self, word):
         """
         Analyze the word and return a list of :class:`pymorphy2.analyzer.Parse`
         namedtuples:
 
-            Parse(word, tag, normal_form, para_id, idx, _estimate)
+            Parse(word, tag, normal_form, para_id, idx, _score)
 
         (or plain tuples if ``result_type=None`` was used in constructor).
         """
@@ -173,11 +225,12 @@ class MorphAnalyzer(object):
             if res and analyzer.terminal:
                 break
 
+        res = self.prob_estimator.apply_to_parses(word, word_lower, res)
+
         if self._result_type is None:
             return res
 
         return [self._result_type(*p) for p in res]
-
 
     def tag(self, word):
         res = []
@@ -190,8 +243,7 @@ class MorphAnalyzer(object):
             if res and analyzer.terminal:
                 break
 
-        return res
-
+        return self.prob_estimator.apply_to_tags(word, word_lower, res)
 
     def normal_forms(self, word):
         """
@@ -221,7 +273,6 @@ class MorphAnalyzer(object):
             return result
         return [self._result_type(*p) for p in result]
 
-
     def _inflect(self, form, required_grammemes):
         possible_results = [f for f in self.get_lexeme(form)
                             if required_grammemes <= f[1].grammemes]
@@ -237,7 +288,6 @@ class MorphAnalyzer(object):
             return len(grammemes & tag.grammemes)
 
         return heapq.nlargest(1, possible_results, key=similarity)
-
 
     # ====== misc =========
 
@@ -257,7 +307,6 @@ class MorphAnalyzer(object):
             else:
                 yield self._result_type(*parse)
 
-
     def word_is_known(self, word, strict_ee=False):
         """
         Check if a ``word`` is in the dictionary.
@@ -274,7 +323,6 @@ class MorphAnalyzer(object):
         """
         return self.dictionary.word_is_known(word.lower(), strict_ee)
 
-
     @property
     def TagClass(self):
         """
@@ -282,7 +330,8 @@ class MorphAnalyzer(object):
         """
         return self.dictionary.Tag
 
-
     def __reduce__(self):
         args = (self.dictionary.path, self._result_type_orig, self._unit_classes)
         return self.__class__, args, None
+
+

@@ -4,6 +4,7 @@ Utils for working with grammatical tags.
 """
 from __future__ import absolute_import, unicode_literals
 import collections
+import threading
 
 try:
     from sys import intern
@@ -436,7 +437,6 @@ class OpencorporaTag(object):
             cls.LAT2CYR[name] = alias
 
         gr = dict((name, parent) for (name, parent, alias, description) in dict_grammemes)
-        cls.KNOWN_GRAMMEMES = set(gr.keys())
 
         # figure out parents & children
         children = collections.defaultdict(set)
@@ -446,18 +446,21 @@ class OpencorporaTag(object):
             if gr.get(parent, None): # parent's parent
                 children[gr[parent]].add(name)
 
-        # expand EXTRA_INCOMPATIBLE
-        for grammeme, g_set in cls._EXTRA_INCOMPATIBLE.items():
-            for g in g_set.copy():
-                g_set.update(children[g])
+        with threading.RLock():
+            cls.KNOWN_GRAMMEMES = set(gr.keys())
 
-        # fill GRAMMEME_INDICES and GRAMMEME_INCOMPATIBLE
-        for index, (name, parent, alias, description) in enumerate(dict_grammemes):
-            cls._GRAMMEME_INDICES[name] = index
-            incompatible = cls._EXTRA_INCOMPATIBLE.get(name, set())
-            incompatible = (incompatible | children[parent]) - set([name])
+            # expand EXTRA_INCOMPATIBLE
+            for grammeme, g_set in cls._EXTRA_INCOMPATIBLE.items():
+                for g in g_set.copy():
+                    g_set.update(children[g])
 
-            cls._GRAMMEME_INCOMPATIBLE[name] = frozenset(incompatible)
+            # fill GRAMMEME_INDICES and GRAMMEME_INCOMPATIBLE
+            for index, (name, parent, alias, description) in enumerate(dict_grammemes):
+                cls._GRAMMEME_INDICES[name] = index
+                incompatible = cls._EXTRA_INCOMPATIBLE.get(name, set())
+                incompatible = (incompatible | children[parent]) - set([name])
+
+                cls._GRAMMEME_INCOMPATIBLE[name] = frozenset(incompatible)
 
     # XXX: do we still need these methods?
     @classmethod
@@ -497,6 +500,15 @@ class OpencorporaTag(object):
         else:
             grammemes = self._NUMERAL_AGREEMENT_GRAMMEMES[4]
         return grammemes
+
+    #@classmethod
+    #def _clone_class(cls):
+    #    Tag = type(cls.__name__, (cls,), {
+    #         'KNOWN_GRAMMEMES': cls.KNOWN_GRAMMEMES.copy(),
+    #    })
+    #    # copyreg.pickle(Tag, pickle_tag)
+    #    return Tag
+
 
 
 class CyrillicOpencorporaTag(OpencorporaTag):
@@ -553,7 +565,6 @@ class CyrillicOpencorporaTag(OpencorporaTag):
     def _init_alias_map(cls, dict_grammemes):
         for name, parent, alias, description in dict_grammemes:
             cls._GRAMMEME_ALIAS_MAP[name] = alias
-
 
 registry = dict()
 

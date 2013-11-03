@@ -28,28 +28,28 @@ def add_tag_if_not_seen(tag, result_list, seen_tags):
 
 def with_suffix(form, suffix):
     """ Return a new form with ``suffix`` attached """
-    word, tag, normal_form, estimate, methods_stack = form
-    return (word+suffix, tag, normal_form+suffix, estimate, methods_stack)
+    word, tag, normal_form, score, methods_stack = form
+    return (word+suffix, tag, normal_form+suffix, score, methods_stack)
 
 
 def without_fixed_suffix(form, suffix_length):
     """ Return a new form with ``suffix_length`` chars removed from right """
-    word, tag, normal_form, estimate, methods_stack = form
+    word, tag, normal_form, score, methods_stack = form
     return (word[:-suffix_length], tag, normal_form[:-suffix_length],
-            estimate, methods_stack)
+            score, methods_stack)
 
 
 def without_fixed_prefix(form, prefix_length):
     """ Return a new form with ``prefix_length`` chars removed from left """
-    word, tag, normal_form, estimate, methods_stack = form
+    word, tag, normal_form, score, methods_stack = form
     return (word[prefix_length:], tag, normal_form[prefix_length:],
-            estimate, methods_stack)
+            score, methods_stack)
 
 
 def with_prefix(form, prefix):
     """ Return a new form with ``prefix`` added """
-    word, tag, normal_form, estimate, methods_stack = form
-    return (prefix+word, tag, prefix+normal_form, estimate, methods_stack)
+    word, tag, normal_form, score, methods_stack = form
+    return (prefix+word, tag, prefix+normal_form, score, methods_stack)
 
 
 def replace_methods_stack(form, new_methods_stack):
