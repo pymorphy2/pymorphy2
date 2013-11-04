@@ -105,7 +105,7 @@ def compile_parsed_dict(parsed_dict, prediction_options=None):
             )
 
         if not (index % 10000):
-            word = paradigm[0][2]+stem+paradigm[0][0]
+            word = paradigm[0][2] + stem + paradigm[0][0]
             logger.debug("%20s %15s %15s %15s", word, len(gramtab), len(words), len(paradigms))
 
 
@@ -150,8 +150,8 @@ def compile_parsed_dict(parsed_dict, prediction_options=None):
         prediction_suffixes_dawgs.append(dawg.PredictionSuffixesDAWG(dawg_data))
 
     return CompiledDictionary(tuple(gramtab), suffixes, paradigms,
-                              words_dawg, prediction_suffixes_dawgs, parsed_dict,
-                              _prediction_options)
+                              words_dawg, prediction_suffixes_dawgs,
+                              parsed_dict, _prediction_options)
 
 
 def _join_lexemes(lexemes, links):
@@ -311,7 +311,7 @@ def _suffixes_prediction_data(words, paradigm_popularity, gramtab, paradigms, su
 
                 for form, cnt in common_endings:
                     counted_suffixes_dawg_data.append(
-                        (suff, (cnt,)+ form)
+                        (suff, (cnt,) + form)
                     )
 
         dawgs_data.append(counted_suffixes_dawg_data)

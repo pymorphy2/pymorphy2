@@ -153,6 +153,7 @@ class KnownSuffixAnalyzer(AnalogyAnalizerUnit):
     """
 
     terminal = False
+    min_word_length = 4
     ESTIMATE_DECAY = 0.5
 
     class FakeDictionary(DictionaryAnalyzer):
@@ -170,6 +171,8 @@ class KnownSuffixAnalyzer(AnalogyAnalizerUnit):
 
     def parse(self, word, word_lower, seen_parses):
         result = []
+        if len(word) < self.min_word_length:
+            return result
 
         # smoothing; XXX: isn't max_cnt better?
         # or maybe use a proper discounting?
@@ -226,6 +229,9 @@ class KnownSuffixAnalyzer(AnalogyAnalizerUnit):
         # ``self.parse(...)``.
 
         result = []
+        if len(word) < self.min_word_length:
+            return result
+
         for prefix_id, prefix, suffixes_dawg in self._possible_prefixes(word_lower):
 
             for i in self._prediction_splits:
