@@ -8,6 +8,7 @@ from pymorphy2.tagset import OpencorporaTag
 from .utils import morph
 Tag = morph.TagClass
 
+
 def test_hashing():
     tag1 = Tag('NOUN')
     tag2 = Tag('NOUN')
@@ -181,3 +182,27 @@ class TestContains:
 
         with pytest.raises(ValueError):
             assert set(['VERB', 'pref']) in tag
+
+
+class TestCyrillic:
+    def test_cyr_repr(self):
+        tag = Tag('VERB,perf,tran plur,impr,excl')
+        assert tag.cyr_repr == 'ГЛ,сов,перех мн,повел,выкл'
+
+    def test_grammemes_cyr(self):
+        tag = Tag('VERB,perf,tran plur,impr,excl')
+        assert tag.grammemes_cyr == frozenset(['ГЛ','сов','перех', 'мн','повел','выкл'])
+
+    def test_cyr_extra_grammemes(self):
+        tag = Tag('ROMN')
+        assert tag.cyr_repr == 'РИМ'
+
+    @pytest.mark.parametrize(('lat', 'cyr'), [
+        ('VERB,perf,tran plur,impr,excl', 'ГЛ,сов,перех мн,повел,выкл'),
+        ('ROMN', 'РИМ'),
+        ('ROMN,unknown_grammeme', 'РИМ,unknown_grammeme'),
+        ('plur', 'мн'),
+    ])
+    def test_lat2cyr(self, lat, cyr):
+        assert Tag.lat2cyr(lat) == cyr
+        assert Tag.cyr2lat(cyr) == lat

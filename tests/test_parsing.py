@@ -6,6 +6,7 @@ import pytest
 import pymorphy2
 from .utils import morph
 
+
 def _to_test_data(text):
     """
     Lines should be of this format: <word> <normal_form> <tag>.
@@ -188,11 +189,13 @@ def _check_analyzer(morph, parses):
         parse = morph.parse(word)
         assert_parse_is_correct(parse, word, normal_form, tag)
 
+
 def _check_new_analyzer(parses):
     morph = pymorphy2.MorphAnalyzer()
     for word, normal_form, tag in parses:
         parse = morph.parse(word)
         assert_parse_is_correct(parse, word, normal_form, tag)
+
 
 def _create_morph_analyzer(i):
     morph = pymorphy2.MorphAnalyzer()

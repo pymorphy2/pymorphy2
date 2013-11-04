@@ -330,6 +330,14 @@ class MorphAnalyzer(object):
         """
         return self.dictionary.Tag
 
+    def cyr2lat(self, tag_or_grammeme):
+        """ Return Latin representation for ``tag_or_grammeme`` string """
+        return self.TagClass.cyr2lat(tag_or_grammeme)
+
+    def lat2cyr(self, tag_or_grammeme):
+        """ Return Cyrillic representation for ``tag_or_grammeme`` string """
+        return self.TagClass.lat2cyr(tag_or_grammeme)
+
     def __reduce__(self):
         args = (self.dictionary.path, self._result_type_orig, self._unit_classes)
         return self.__class__, args, None
