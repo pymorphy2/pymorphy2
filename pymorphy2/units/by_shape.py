@@ -9,6 +9,7 @@ from __future__ import absolute_import, unicode_literals, division
 from pymorphy2.units.base import BaseAnalyzerUnit
 from pymorphy2.shapes import is_latin, is_punctuation, is_roman_number
 
+
 class _ShapeAnalyzer(BaseAnalyzerUnit):
 
     terminal = True
@@ -18,9 +19,9 @@ class _ShapeAnalyzer(BaseAnalyzerUnit):
 
     def __init__(self, morph):
         super(_ShapeAnalyzer, self).__init__(morph)
-        self.morph.TagClass.KNOWN_GRAMMEMES.update(self.EXTRA_GRAMMEMES)
-        aliases = dict(zip(self.EXTRA_GRAMMEMES, self.EXTRA_GRAMMEMES_CYR))
-        self.morph.TagClass.LAT2CYR.update(aliases)
+
+        for lat, cyr in zip(self.EXTRA_GRAMMEMES, self.EXTRA_GRAMMEMES_CYR):
+            self.morph.TagClass.add_grammemes_to_known(lat, cyr)
 
     def parse(self, word, word_lower, seen_parses):
         shape = self.check_shape(word, word_lower)
@@ -72,7 +73,7 @@ class PunctuationAnalyzer(_SingleShapeAnalyzer):
     Example: "," -> PNCT
     """
     TAG_STR = 'PNCT'
-    TAG_STR_CYR = 'ЗПР'
+    TAG_STR_CYR = 'ЗПР'  # aot.ru uses this name
 
     def check_shape(self, word, word_lower):
         return is_punctuation(word)

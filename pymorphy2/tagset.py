@@ -18,9 +18,8 @@ class _select_grammeme_from(object):
     Descriptor object for accessing grammemes of certain classes
     (e.g. number or voice).
     """
-    def __init__(self, grammeme_set, lat2cyr):
+    def __init__(self, grammeme_set):
         self.grammeme_set = grammeme_set
-
         # ... are descriptors not magical enough?
 
         # In order to fight typos, raise an exception
@@ -33,7 +32,8 @@ class _select_grammeme_from(object):
                 if other is None:
                     return False
                 if other not in grammeme_set:
-                    raise ValueError("'%s' is not a valid grammeme for this attribute." % other)
+                    known_grammemes = ", ".join(grammeme_set)
+                    raise ValueError("'%s' is not a valid grammeme for this attribute. Valid grammemes: %s" % (other, known_grammemes))
                 return _str.__eq__(self, other)
 
             def __ne__(self, other):
@@ -41,11 +41,6 @@ class _select_grammeme_from(object):
 
             def __hash__(self):
                 return _str.__hash__(self)
-
-            @property
-            def cyr(self):
-                """ Cyrillic representation of this grammeme """
-                return lat2cyr[self]
 
         self.TypedGrammeme = TypedGrammeme
 
@@ -78,7 +73,7 @@ class OpencorporaTag(object):
 
         >>> from pymorphy2 import MorphAnalyzer
         >>> morph = MorphAnalyzer()
-        >>> Tag = morph.TagClass # get an initialzed Tag class
+        >>> Tag = morph.TagClass  # get an initialzed Tag class
         >>> tag = Tag('VERB,perf,tran plur,impr,excl')
         >>> tag
         OpencorporaTag('VERB,perf,tran plur,impr,excl')
@@ -125,7 +120,7 @@ class OpencorporaTag(object):
         >>> tag.POS == 'plur'
         Traceback (most recent call last):
         ...
-        ValueError: 'plur' is not a valid grammeme for this attribute.
+        ValueError: 'plur' is not a valid grammeme for this attribute. Valid grammemes: ...
 
     """
 
@@ -243,7 +238,8 @@ class OpencorporaTag(object):
     }
     _GRAMMEME_INDICES = collections.defaultdict(int)
     _GRAMMEME_INCOMPATIBLE = collections.defaultdict(set)
-    LAT2CYR = dict()
+    _LAT2CYR = None
+    _CYR2LAT = None
     KNOWN_GRAMMEMES = set()
 
     _NUMERAL_AGREEMENT_GRAMMEMES = (
@@ -285,6 +281,20 @@ class OpencorporaTag(object):
         self._cyr_grammemes_cache = None
         self._cyr = None
 
+    # attributes for grammeme categories
+    POS = _select_grammeme_from(PARTS_OF_SPEECH)
+    animacy = _select_grammeme_from(ANIMACY)
+    aspect = _select_grammeme_from(ASPECTS)
+    case = _select_grammeme_from(CASES)
+    gender = _select_grammeme_from(GENDERS)
+    involvement = _select_grammeme_from(INVOLVEMENT)
+    mood = _select_grammeme_from(MOODS)
+    number = _select_grammeme_from(NUMBERS)
+    person = _select_grammeme_from(PERSONS)
+    tense = _select_grammeme_from(TENSES)
+    transitivity = _select_grammeme_from(TRANSITIVITY)
+    voice = _select_grammeme_from(VOICES)
+
     @property
     def grammemes(self):
         """ A frozenset with grammemes for this tag. """
@@ -296,36 +306,26 @@ class OpencorporaTag(object):
     def grammemes_cyr(self):
         """ A frozenset with Cyrillic grammemes for this tag. """
         if self._cyr_grammemes_cache is None:
-            cyr_grammemes = [self.LAT2CYR[g] for g in self._grammemes_tuple]
+            cyr_grammemes = [self._LAT2CYR[g] for g in self._grammemes_tuple]
             self._cyr_grammemes_cache = frozenset(cyr_grammemes)
         return self._cyr_grammemes_cache
 
     @property
-    def cyr(self):
-        """ Cyrillic version representation of this tag """
+    def cyr_repr(self):
+        """ Cyrillic representation of this tag """
         if self._cyr is None:
-            #cyr = CyrillicOpencorporaTag._from_internal_tag(self._str)
-            cyr = self._str
-            for name, alias in self.LAT2CYR.items():
-                if alias:
-                    cyr = cyr.replace(name, alias)
-            self._cyr = cyr
+            self._cyr = self.lat2cyr(self)
         return self._cyr
 
+    @classmethod
+    def cyr2lat(cls, tag_or_grammeme):
+        """ Return Latin representation for ``tag_or_grammeme`` string """
+        return _translate_tag(tag_or_grammeme, cls._CYR2LAT)
 
-    # attributes for grammeme categories
-    POS = _select_grammeme_from(PARTS_OF_SPEECH, LAT2CYR)
-    animacy = _select_grammeme_from(ANIMACY, LAT2CYR)
-    aspect = _select_grammeme_from(ASPECTS, LAT2CYR)
-    case = _select_grammeme_from(CASES, LAT2CYR)
-    gender = _select_grammeme_from(GENDERS, LAT2CYR)
-    involvement = _select_grammeme_from(INVOLVEMENT, LAT2CYR)
-    mood = _select_grammeme_from(MOODS, LAT2CYR)
-    number = _select_grammeme_from(NUMBERS, LAT2CYR)
-    person = _select_grammeme_from(PERSONS, LAT2CYR)
-    tense = _select_grammeme_from(TENSES, LAT2CYR)
-    transitivity = _select_grammeme_from(TRANSITIVITY, LAT2CYR)
-    voice = _select_grammeme_from(VOICES, LAT2CYR)
+    @classmethod
+    def lat2cyr(cls, tag_or_grammeme):
+        """ Return Cyrillic representation for ``tag_or_grammeme`` string """
+        return _translate_tag(tag_or_grammeme, cls._LAT2CYR)
 
     def __contains__(self, grammeme):
 
@@ -417,7 +417,13 @@ class OpencorporaTag(object):
         """
         Replace rare cases (loc2/voct/...) with common ones (loct/nomn/...).
         """
-        return frozenset(cls.RARE_CASES.get(g,g) for g in grammemes)
+        return frozenset(cls.RARE_CASES.get(g, g) for g in grammemes)
+
+    @classmethod
+    def add_grammemes_to_known(cls, lat, cyr):
+        cls.KNOWN_GRAMMEMES.add(lat)
+        cls._LAT2CYR[lat] = cyr
+        cls._CYR2LAT[cyr] = lat
 
     @classmethod
     def _init_grammemes(cls, dict_grammemes):
@@ -433,21 +439,22 @@ class OpencorporaTag(object):
             ]
 
         """
-        for name, parent, alias, description in dict_grammemes:
-            cls.LAT2CYR[name] = alias
-
-        gr = dict((name, parent) for (name, parent, alias, description) in dict_grammemes)
-
-        # figure out parents & children
-        children = collections.defaultdict(set)
-        for index, (name, parent, alias, description) in enumerate(dict_grammemes):
-            if parent:
-                children[parent].add(name)
-            if gr.get(parent, None): # parent's parent
-                children[gr[parent]].add(name)
-
         with threading.RLock():
-            cls.KNOWN_GRAMMEMES = set(gr.keys())
+            cls.KNOWN_GRAMMEMES = set()
+            cls._CYR2LAT = {}
+            cls._LAT2CYR = {}
+            for name, parent, alias, description in dict_grammemes:
+                cls.add_grammemes_to_known(name, alias)
+
+            gr = dict((name, parent) for (name, parent, alias, description) in dict_grammemes)
+
+            # figure out parents & children
+            children = collections.defaultdict(set)
+            for index, (name, parent, alias, description) in enumerate(dict_grammemes):
+                if parent:
+                    children[parent].add(name)
+                if gr.get(parent, None):  # parent's parent
+                    children[gr[parent]].add(name)
 
             # expand EXTRA_INCOMPATIBLE
             for grammeme, g_set in cls._EXTRA_INCOMPATIBLE.items():
@@ -565,6 +572,26 @@ class CyrillicOpencorporaTag(OpencorporaTag):
     def _init_alias_map(cls, dict_grammemes):
         for name, parent, alias, description in dict_grammemes:
             cls._GRAMMEME_ALIAS_MAP[name] = alias
+
+
+def _translate_tag(tag, mapping):
+    """
+    Translate ``tag`` string according to ``mapping``, assuming grammemes
+    are separated by commas or whitespaces. Commas/whitespaces positions
+    are preserved.
+    """
+    if isinstance(tag, OpencorporaTag):
+        tag = str(tag)
+    return " ".join([
+        _translate_comma_separated(whitespace_separated_part, mapping)
+        for whitespace_separated_part in tag.split()
+    ])
+
+
+def _translate_comma_separated(tag_part, mapping):
+    grammemes = [mapping.get(tok, tok) for tok in tag_part.split(',')]
+    return ",".join(grammemes)
+
 
 registry = dict()
 
