@@ -89,9 +89,9 @@ def bench_parse(morph, words, total_usages, repeats):
             for word, cnt in words:
                 morph.word_is_known(word)
 
-    def _run_cyr():
+    def _run_cyr_repr():
         for word, cnt in words:
-            [p.tag.cyr for p in morph.parse(word)]
+            [p.tag.cyr_repr for p in morph.parse(word)]
 
     def _run_grammemes_cyr():
         for word, cnt in words:
@@ -99,7 +99,7 @@ def bench_parse(morph, words, total_usages, repeats):
 
     def _run_POS_cyr():
         for word, cnt in words:
-            [p.tag.POS.cyr for p in morph.parse(word) if p.tag.POS]
+            [morph.lat2cyr(p.tag) for p in morph.parse(word)]
 
     def _run_lexeme():
         for word, cnt in words[::5]:
@@ -124,9 +124,9 @@ def bench_parse(morph, words, total_usages, repeats):
         show_info("[p.lexeme for p in morph.parse(w)]", _run_lexeme, count=len(words)/5)
         show_info("[{'NOUN'} in p.tag for p in morph.parse(w)]", _run_is_noun)
         show_info("[p.tag.POS == 'NOUN' for p in morph.parse(w)]", _run_is_noun2)
-        show_info("[p.tag.cyr for p in morph.parse(word)]", _run_cyr)
+        show_info("[p.tag.cyr_repr for p in morph.parse(word)]", _run_cyr_repr)
         show_info("[p.tag.grammemes_cyr for p in morph.parse(word)]", _run_grammemes_cyr)
-        show_info("[p.tag.POS.cyr for p in morph.parse(word) if p.tag.POS]", _run_POS_cyr)
+        show_info("[morph.lat2cyr(p.tag) for p in morph.parse(word)]", _run_POS_cyr)
 
     logger.info("")
 
