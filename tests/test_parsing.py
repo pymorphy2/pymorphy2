@@ -89,6 +89,12 @@ XVIII       xviii       ROMN
 Foo     foo     LATN
 I       i       LATN
 
+# ============== abbreviations 1
+# should normal forms be expanded?
+
+руб     руб     NOUN,inan,masc,Fixd,Abbr plur,gent
+млн     млн     NOUN,inan,masc,Fixd,Abbr plur,gent
+тыс     тыс     NOUN,inan,femn,Fixd,Abbr plur,gent
 """)
 
 PARSES_UPPER = [(w.upper(), norm, tag) for (w, norm, tag) in PARSES]
@@ -106,24 +112,21 @@ SYSTEMATIC_ERRORS = _to_test_data("""
 # ============== abbreviations 1
 # should normal forms be expanded?
 
-руб     руб     NOUN,inan,masc plur,gent
-млн     млн     NOUN,inan,masc plur,gent
-тыс     тыс     NOUN,inan,femn plur,gent
-г       г       NOUN,inan,masc sing,loc2
-п       п       NOUN,inan,masc sing,accs
-ст      ст      NOUN,inan,femn sing,accs
+г       г       NOUN,inan,masc,Fixd,Abbr sing,loc2
+п       п       NOUN,inan,masc,Fixd,Abbr sing,accs
+ст      ст      NOUN,inan,femn,Fixd,Abbr sing,accs
 
 # ============== abbreviations 2
 # it seems is not possible to properly guess gender and number
 
-ГКРФ        гкрф    NOUN,inan,masc,Sgtm,Fixd sing,nomn
-ПДД         пдд     NOUN,inan,neut,Pltm,Fixd plur,nomn
-ФП          фп      NOUN,inan,neut,Sgtm,Fixd sing,nomn
-ООП         ооп     NOUN,inan,neut,Sgtm,Fixd sing,nomn
-ПИН         пин     NOUN,inan,masc,Sgtm,Fixd sing,nomn
-УБРиР       убрир   NOUN,inan,masc sing,nomn
-УБРиРе      убрир   NOUN,inan,masc sing,ablt
-УБРиР-е     убрир   NOUN,inan,masc sing,ablt
+ГКРФ        гкрф    NOUN,inan,masc,Sgtm,Fixd,Abbr sing,nomn
+ПДД         пдд     NOUN,inan,neut,Pltm,Fixd,Abbr plur,nomn
+ФП          фп      NOUN,inan,neut,Sgtm,Fixd,Abbr sing,nomn
+ООП         ооп     NOUN,inan,neut,Sgtm,Fixd,Abbr sing,nomn
+ПИН         пин     NOUN,inan,masc,Sgtm,Fixd,Abbr sing,nomn
+УБРиР       убрир   NOUN,inan,masc,Abbr sing,nomn
+УБРиРе      убрир   NOUN,inan,masc,Abbr sing,ablt
+УБРиР-е     убрир   NOUN,inan,masc,Abbr sing,ablt
 
 # =============== numerals
 3-го        3-й     ADJF,Anum masc,sing,gent
