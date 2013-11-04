@@ -20,6 +20,7 @@ from pymorphy2.utils import word_splits
 
 _cnt_getter = operator.itemgetter(3)
 
+
 class _PrefixAnalyzer(AnalogyAnalizerUnit):
 
     def normalizer(self, form, this_method):
@@ -104,7 +105,6 @@ class UnknownPrefixAnalyzer(_PrefixAnalyzer):
         super(AnalogyAnalizerUnit, self).__init__(morph)
         self.dict_analyzer = DictionaryAnalyzer(morph)
 
-
     def parse(self, word, word_lower, seen_parses):
         result = []
         for prefix, unprefixed_word in word_splits(word_lower):
@@ -118,11 +118,11 @@ class UnknownPrefixAnalyzer(_PrefixAnalyzer):
                     continue
 
                 parse = (
-                    prefix+fixed_word,
+                    prefix + fixed_word,
                     tag,
-                    prefix+normal_form,
-                    score*self.ESTIMATE_DECAY,
-                    methods_stack+(method,)
+                    prefix + normal_form,
+                    score * self.ESTIMATE_DECAY,
+                    methods_stack + (method,)
                 )
                 add_parse_if_not_seen(parse, result, seen_parses)
 
@@ -159,7 +159,6 @@ class KnownSuffixAnalyzer(AnalogyAnalizerUnit):
         """ This is just a DictionaryAnalyzer with different __repr__ """
         pass
 
-
     def __init__(self, morph):
         super(KnownSuffixAnalyzer, self).__init__(morph)
 
@@ -168,7 +167,6 @@ class KnownSuffixAnalyzer(AnalogyAnalizerUnit):
         self._prediction_splits = list(reversed(range(1, max_suffix_length+1)))
 
         self.fake_dict = self.FakeDictionary(morph)
-
 
     def parse(self, word, word_lower, seen_parses):
         result = []
@@ -195,6 +193,7 @@ class KnownSuffixAnalyzer(AnalogyAnalizerUnit):
                         # skip non-productive tags
                         if not tag.is_productive():
                             continue
+
                         total_counts[prefix_id] += cnt
 
                         # avoid duplicate parses
@@ -221,7 +220,6 @@ class KnownSuffixAnalyzer(AnalogyAnalizerUnit):
         ]
         result.sort(key=_cnt_getter, reverse=True)
         return result
-
 
     def tag(self, word, word_lower, seen_tags):
         # XXX: the result order may be different from

@@ -3,7 +3,7 @@
 Module for estimating P(t|w) from partially annotated OpenCorpora XML dump
 and saving this information to a file.
 
-This module requires NLTK3 master, opencorpora-tools>=0.4.2 and dawg >= 0.7
+This module requires NLTK3 master, opencorpora-tools>=0.4.3 and dawg >= 0.7
 packages for probability estimation and resulting file creation.
 """
 from __future__ import absolute_import
@@ -35,10 +35,11 @@ def estimate_conditional_tag_probability(morph, corpus_filename):
 
     ambiguous_words = (
         (w.lower(), tag2grammemes(t))
-        for (w,t) in _disambiguated_words(reader)
+        for (w, t) in _disambiguated_words(reader)
         if len(morph.tag(w)) > 1
     )
-    ambiguous_words = ((w, gr) for (w, gr) in ambiguous_words if gr != set(['UNKN']))
+    ambiguous_words = ((w, gr) for (w, gr) in ambiguous_words
+                       if gr != set(['UNKN']))
 
     def probdist_factory(fd, condition):
         bins = max(len(morph.tag(condition)), fd.B())
