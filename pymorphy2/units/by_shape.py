@@ -91,21 +91,40 @@ class LatinAnalyzer(_SingleShapeAnalyzer):
         return is_latin(word)
 
 
-class NumberAnalyzer(_SingleShapeAnalyzer):
+class NumberAnalyzer(_ShapeAnalyzer):
     """
-    This analyzer marks numbers with "NUMB" tag.
-    Example: "12" -> NUMB
+    This analyzer marks integer numbers with "NUMB,int" or "NUMB,real" tags.
+    Example: "12" -> NUMB,int; "12.4" -> NUMB,real
 
     .. note::
 
         Don't confuse it with "NUMR": "тридцать" -> NUMR
 
     """
-    TAG_STR = 'NUMB'
-    TAG_STR_CYR = 'НОМ'
+    EXTRA_GRAMMEMES = ['NUMB', 'intg', 'real']
+    EXTRA_GRAMMEMES_CYR = ['ЧИСЛО', 'цел', 'вещ']
+
+    def __init__(self, morph):
+        super(NumberAnalyzer, self).__init__(morph)
+        self._tags = {
+            'intg': morph.TagClass('NUMB,intg'),
+            'real': morph.TagClass('NUMB,real'),
+        }
 
     def check_shape(self, word, word_lower):
-        return word.isdigit()
+        try:
+            int(word)
+            return 'intg'
+        except ValueError:
+            try:
+                float(word.replace(',', '.'))
+                return 'real'
+            except ValueError:
+                pass
+        return False
+
+    def get_tag(self, word, shape):
+        return self._tags[shape]
 
 
 class RomanNumberAnalyzer(_SingleShapeAnalyzer):

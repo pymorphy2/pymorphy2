@@ -79,8 +79,10 @@ pdf-документов          pdf-документ        NOUN,inan,masc plu
 -       -       PNCT
 …       …       PNCT
 
-123         123         NUMB
-0           0           NUMB
+123         123         NUMB,intg
+0           0           NUMB,intg
+123.1       123.1       NUMB,real
+123,1       123,1       NUMB,real
 I           i           ROMN
 MCMLXXXIX   mcmlxxxix   ROMN
 XVIII       xviii       ROMN
