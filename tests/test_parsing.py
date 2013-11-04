@@ -208,10 +208,14 @@ def test_threading_single_morph_analyzer():
     with concurrent.futures.ThreadPoolExecutor(3) as executor:
         res = list(executor.map(_check_analyzer, [morph]*10, [PARSES]*10))
 
+
+@pytest.mark.xfail  # See https://github.com/kmike/pymorphy2/issues/37
 def test_threading_multiple_morph_analyzers():
     with concurrent.futures.ThreadPoolExecutor(3) as executor:
         res = list(executor.map(_check_new_analyzer, [PARSES]*10))
 
+
+@pytest.mark.xfail  # See https://github.com/kmike/pymorphy2/issues/37
 def test_threading_create_analyzer():
     with concurrent.futures.ThreadPoolExecutor(3) as executor:
         res = list(executor.map(_create_morph_analyzer, range(10)))
