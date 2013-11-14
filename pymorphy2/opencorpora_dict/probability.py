@@ -3,7 +3,7 @@
 Module for estimating P(t|w) from partially annotated OpenCorpora XML dump
 and saving this information to a file.
 
-This module requires NLTK3 master, opencorpora-tools>=0.4.3 and dawg >= 0.7
+This module requires NLTK3 master, opencorpora-tools>=0.4.4 and dawg >= 0.7
 packages for probability estimation and resulting file creation.
 """
 from __future__ import absolute_import
