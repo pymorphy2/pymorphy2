@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, unicode_literals
-import concurrent.futures
 import random
+import concurrent.futures
 import pytest
 import pymorphy2
-from .utils import morph
+from .utils import morph, assert_parse_is_correct
 
 
 def _to_test_data(text):
@@ -91,7 +91,7 @@ XVIII       xviii       ROMN
 Foo     foo     LATN
 I       i       LATN
 
-# ============== abbreviations 1
+# ============== common lowercased abbreviations
 # should normal forms be expanded?
 
 руб     рубль       NOUN,inan,masc,Fixd,Abbr plur,gent
@@ -112,13 +112,13 @@ SYSTEMATIC_ERRORS = _to_test_data("""
 Сердюков    сердюков    NOUN,anim,masc,Surn sing,nomn
 Третьяк     третьяк     NOUN,anim,masc,Surn sing,nomn
 
-# ============== abbreviations 1
+# ============== common lowercased abbreviations
 # should normal forms be expanded?
 
 г       г       NOUN,inan,masc,Fixd,Abbr sing,loc2
 п       п       NOUN,inan,masc,Fixd,Abbr sing,accs
 
-# ============== abbreviations 2
+# ============== uppercased abbreviations
 # it seems is not possible to properly guess gender and number
 
 ГКРФ        гкрф    NOUN,inan,masc,Sgtm,Fixd,Abbr sing,nomn
@@ -145,17 +145,6 @@ SYSTEMATIC_ERRORS = _to_test_data("""
 
 def run_for_all(parses):
     return pytest.mark.parametrize(("word", "normal_form", "tag"), parses)
-
-
-def assert_parse_is_correct(parse, word, normal_form, tag):
-    """
-    Check if one of the word parses has normal form ``normal_form``
-    and tag ``tag``.
-    """
-    for p in parse:
-        if p.normal_form == normal_form and str(p.tag) == tag:
-            return
-    assert False, parse
 
 
 # ====== Tests:
@@ -187,40 +176,3 @@ def _test_tag(parses):
 test_tag = _test_tag(PARSES)
 test_tag_title = _test_tag(PARSES_TITLE)
 test_tag_upper = _test_tag(PARSES_UPPER)
-
-
-def _check_analyzer(morph, parses):
-    for word, normal_form, tag in parses:
-        parse = morph.parse(word)
-        assert_parse_is_correct(parse, word, normal_form, tag)
-
-
-def _check_new_analyzer(parses):
-    morph = pymorphy2.MorphAnalyzer()
-    for word, normal_form, tag in parses:
-        parse = morph.parse(word)
-        assert_parse_is_correct(parse, word, normal_form, tag)
-
-
-def _create_morph_analyzer(i):
-    morph = pymorphy2.MorphAnalyzer()
-    word, normal_form, tag = random.choice(PARSES)
-    parse = morph.parse(word)
-    assert_parse_is_correct(parse, word, normal_form, tag)
-
-
-def test_threading_single_morph_analyzer():
-    with concurrent.futures.ThreadPoolExecutor(3) as executor:
-        res = list(executor.map(_check_analyzer, [morph]*10, [PARSES]*10))
-
-
-@pytest.mark.xfail  # See https://github.com/kmike/pymorphy2/issues/37
-def test_threading_multiple_morph_analyzers():
-    with concurrent.futures.ThreadPoolExecutor(3) as executor:
-        res = list(executor.map(_check_new_analyzer, [PARSES]*10))
-
-
-@pytest.mark.xfail  # See https://github.com/kmike/pymorphy2/issues/37
-def test_threading_create_analyzer():
-    with concurrent.futures.ThreadPoolExecutor(3) as executor:
-        res = list(executor.map(_create_morph_analyzer, range(10)))

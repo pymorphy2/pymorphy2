@@ -85,7 +85,6 @@ PREDICTION_TEST_DATA = [
     ('сапают', ['сапать']), # и никаких местоимений!
 
     ('кюди', ['кюдить', 'кюдь', 'кюди']), # и никаких "человек"
-
 ]
 
 NON_PRODUCTIVE_BUGS_DATA = [
@@ -272,3 +271,4 @@ class TestLatinPredictor:
 class TetsPunctuationPredictor:
     def test_tag(self):
         assert morph.tag('…') == [morph.TagClass('PNCT')]
+
