@@ -1,5 +1,6 @@
 language: python
 python:
+  - "3.4"
   - "3.3"
   - "3.2"
   - "2.7"
@@ -10,15 +11,14 @@ matrix:
     include:
         - python: 2.6
           env: NO_COMPILER="true"
-        - python: 3.3
+        - python: 3.4
           env: NO_COMPILER="true"
 
-# command to install dependencies, e.g. pip install -r requirements.txt --use-mirrors
 install:
-  - pip install -r requirements.txt --use-mirrors
+  - pip install -r requirements.txt
   - pip install futures
-  - pip install coverage pytest-cov coveralls --use-mirrors
-  - if [[ $TRAVIS_PYTHON_VERSION != 'pypy' && ! $NO_COMPILER ]]; then pip install --use-mirrors dawg; fi
+  - pip install coverage pytest-cov coveralls
+  - if [[ $TRAVIS_PYTHON_VERSION != 'pypy' && ! $NO_COMPILER ]]; then pip install dawg; fi
   - python setup.py install
 
 # command to run tests, e.g. python setup.py test
