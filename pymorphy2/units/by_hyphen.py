@@ -31,7 +31,7 @@ class HyphenSeparatedParticleAnalyzer(AnalogyAnalizerUnit):
 
     # XXX: maybe the code can be made faster by compiling this list to a DAWG?
     PARTICLES_AFTER_HYPHEN = [
-        "-то", "-ка", "-таки", "-де", "-тко", "-тка", "-с", "-ста"
+        "-то", "-ка", "-таки", "-де", "-тко", "-тка", "-с", "-ста",
     ]
 
     def parse(self, word, word_lower, seen_parses):
@@ -270,7 +270,7 @@ class HyphenatedWordsAnalyzer(BaseAnalyzerUnit):
 
         word_stripped = word.strip('-')
         if word_stripped != word:
-            # don't handle words that starts of ends with a hyphen
+            # don't handle words that start of end with a hyphen
             return False
 
         if word_stripped.count('-') != 1:
