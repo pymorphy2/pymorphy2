@@ -33,7 +33,7 @@ PARSES = _to_test_data("""
 озера       озеро       NOUN,inan,neut plur,nomn
 
 # ========= particle after a hyphen
-ей-то               она-то              NPRO,femn,3per sing,datv
+ей-то               она-то              NPRO,femn,3per,Anph sing,datv
 скажи-ка            сказать-ка          VERB,perf,tran sing,impr,excl
 измохратился-таки   измохратиться-таки  VERB,perf,intr masc,sing,past,indc
 
@@ -94,9 +94,10 @@ I       i       LATN
 # ============== abbreviations 1
 # should normal forms be expanded?
 
-руб     руб     NOUN,inan,masc,Fixd,Abbr plur,gent
-млн     млн     NOUN,inan,masc,Fixd,Abbr plur,gent
-тыс     тыс     NOUN,inan,femn,Fixd,Abbr plur,gent
+руб     рубль       NOUN,inan,masc,Fixd,Abbr plur,gent
+млн     миллион     NOUN,inan,masc,Fixd,Abbr plur,gent
+тыс     тысяча      NOUN,inan,femn,Fixd,Abbr plur,gent
+ст      ст          NOUN,inan,femn,Fixd,Abbr sing,accs
 """)
 
 PARSES_UPPER = [(w.upper(), norm, tag) for (w, norm, tag) in PARSES]
@@ -116,7 +117,6 @@ SYSTEMATIC_ERRORS = _to_test_data("""
 
 г       г       NOUN,inan,masc,Fixd,Abbr sing,loc2
 п       п       NOUN,inan,masc,Fixd,Abbr sing,accs
-ст      ст      NOUN,inan,femn,Fixd,Abbr sing,accs
 
 # ============== abbreviations 2
 # it seems is not possible to properly guess gender and number
