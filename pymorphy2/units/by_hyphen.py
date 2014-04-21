@@ -27,7 +27,6 @@ class HyphenSeparatedParticleAnalyzer(AnalogyAnalizerUnit):
         particles at tokenization level.
 
     """
-    terminal = True
     ESTIMATE_DECAY = 0.9
 
     # XXX: maybe the code can be made faster by compiling this list to a DAWG?
@@ -98,7 +97,6 @@ class HyphenAdverbAnalyzer(BaseAnalyzerUnit):
 
     Example: по-западному
     """
-    terminal = True
     ESTIMATE_DECAY = 0.7
 
     def __init__(self, morph):
@@ -148,8 +146,6 @@ class HyphenatedWordsAnalyzer(BaseAnalyzerUnit):
         * человек-гора -> человек + гора
 
     """
-
-    terminal = True
     ESTIMATE_DECAY = 0.75
 
     _CONSIDER_THE_SAME = {

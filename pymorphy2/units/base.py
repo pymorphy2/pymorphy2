@@ -5,8 +5,6 @@ from pymorphy2.units.utils import without_last_method, append_method
 
 class BaseAnalyzerUnit(object):
 
-    terminal = False
-
     def __init__(self, morph):
         """
         :type morph: pymorphy2.analyzer.MorphAnalyzer

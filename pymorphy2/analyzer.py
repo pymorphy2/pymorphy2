@@ -147,15 +147,13 @@ class MorphAnalyzer(object):
 
         units.NumberAnalyzer,
         units.PunctuationAnalyzer,
-        units.RomanNumberAnalyzer,
-        units.LatinAnalyzer,
+        [units.RomanNumberAnalyzer, units.LatinAnalyzer],
 
         units.HyphenSeparatedParticleAnalyzer,
         units.HyphenAdverbAnalyzer,
         units.HyphenatedWordsAnalyzer,
         units.KnownPrefixAnalyzer,
-        units.UnknownPrefixAnalyzer,
-        units.KnownSuffixAnalyzer,
+        [units.UnknownPrefixAnalyzer, units.KnownSuffixAnalyzer],
     ]
 
     def __init__(self, path=None, result_type=Parse, units=None,
@@ -180,13 +178,21 @@ class MorphAnalyzer(object):
                 self._result_type = None
 
             self._result_type_orig = result_type
+            self._init_units(units)
 
-            # initialize units
-            if units is None:
-                units = self.DEFAULT_UNITS
+    def _init_units(self, unit_classes=None):
+        if unit_classes is None:
+            unit_classes = self.DEFAULT_UNITS
 
-            self._unit_classes = units
-            self._units = [cls(self) for cls in units]
+        self._unit_classes = unit_classes
+        self._units = []
+        for item in unit_classes:
+            if isinstance(item, (list, tuple)):
+                for cls in item[:-1]:
+                    self._units.append((cls(self), False))
+                self._units.append((item[-1](self), True))
+            else:
+                self._units.append((item(self), True))
 
     @classmethod
     def choose_dictionary_path(cls, path=None):
@@ -219,10 +225,10 @@ class MorphAnalyzer(object):
         seen = set()
         word_lower = word.lower()
 
-        for analyzer in self._units:
+        for analyzer, is_terminal in self._units:
             res.extend(analyzer.parse(word, word_lower, seen))
 
-            if res and analyzer.terminal:
+            if is_terminal and res:
                 break
 
         res = self.prob_estimator.apply_to_parses(word, word_lower, res)
@@ -237,10 +243,10 @@ class MorphAnalyzer(object):
         seen = set()
         word_lower = word.lower()
 
-        for analyzer in self._units:
+        for analyzer, is_terminal in self._units:
             res.extend(analyzer.tag(word, word_lower, seen))
 
-            if res and analyzer.terminal:
+            if is_terminal and res:
                 break
 
         return self.prob_estimator.apply_to_tags(word, word_lower, res)

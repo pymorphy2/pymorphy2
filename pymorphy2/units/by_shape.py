@@ -11,8 +11,6 @@ from pymorphy2.shapes import is_latin, is_punctuation, is_roman_number
 
 
 class _ShapeAnalyzer(BaseAnalyzerUnit):
-
-    terminal = True
     SCORE = 0.9
     EXTRA_GRAMMEMES = []
     EXTRA_GRAMMEMES_CYR = []
@@ -130,7 +128,6 @@ class NumberAnalyzer(_ShapeAnalyzer):
 class RomanNumberAnalyzer(_SingleShapeAnalyzer):
     TAG_STR = 'ROMN'
     TAG_STR_CYR = 'РИМ'
-    terminal = False  # give LatinAnalyzer a chance
 
     def check_shape(self, word, word_lower):
         return is_roman_number(word)

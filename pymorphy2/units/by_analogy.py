@@ -41,8 +41,6 @@ class KnownPrefixAnalyzer(_PrefixAnalyzer):
 
     Example: псевдокошка -> (псевдо) + кошка.
     """
-
-    terminal = True
     ESTIMATE_DECAY = 0.75
     MIN_REMINDER_LENGTH = 3
 
@@ -98,7 +96,6 @@ class UnknownPrefixAnalyzer(_PrefixAnalyzer):
     Example: байткод -> (байт) + код
 
     """
-    terminal = False
     ESTIMATE_DECAY = 0.5
 
     def __init__(self, morph):
@@ -151,8 +148,6 @@ class KnownSuffixAnalyzer(AnalogyAnalizerUnit):
     Example: бутявкать -> ...вкать
 
     """
-
-    terminal = False
     min_word_length = 4
     ESTIMATE_DECAY = 0.5
 

@@ -16,8 +16,6 @@ class DictionaryAnalyzer(BaseAnalyzerUnit):
     Analyzer unit that analyzes word using dictionary.
     """
 
-    terminal = True
-
     def parse(self, word, word_lower, seen_parses):
         """
         Parse a word using this dictionary.
