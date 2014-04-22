@@ -143,17 +143,27 @@ class MorphAnalyzer(object):
 
     ENV_VARIABLE = 'PYMORPHY2_DICT_PATH'
     DEFAULT_UNITS = [
-        units.DictionaryAnalyzer,
+        [
+            units.DictionaryAnalyzer,
+            units.AbbreviatedFirstNameAnalyzer,
+            units.AbbreviatedPatronymicAnalyzer,
+        ],
 
         units.NumberAnalyzer,
         units.PunctuationAnalyzer,
-        [units.RomanNumberAnalyzer, units.LatinAnalyzer],
+        [
+            units.RomanNumberAnalyzer,
+            units.LatinAnalyzer
+        ],
 
         units.HyphenSeparatedParticleAnalyzer,
         units.HyphenAdverbAnalyzer,
         units.HyphenatedWordsAnalyzer,
         units.KnownPrefixAnalyzer,
-        [units.UnknownPrefixAnalyzer, units.KnownSuffixAnalyzer],
+        [
+            units.UnknownPrefixAnalyzer,
+            units.KnownSuffixAnalyzer
+        ],
     ]
 
     def __init__(self, path=None, result_type=Parse, units=None,

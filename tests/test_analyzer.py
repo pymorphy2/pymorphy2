@@ -272,3 +272,55 @@ class TetsPunctuationPredictor:
     def test_tag(self):
         assert morph.tag('…') == [morph.TagClass('PNCT')]
 
+
+class TestInitials:
+
+    def assertHasFirstName(self, tags):
+        assert any(set(['Name', 'Abbr']) in tag for tag in tags), tags
+
+    def assertHasPatronymic(self, tags):
+        assert any(set(['Patr', 'Abbr']) in tag for tag in tags), tags
+
+    def _filter_parse(self, word, grammemes):
+        return [p for p in morph.parse(word) if set(grammemes) in p.tag]
+
+    def test_tag(self):
+        tags = morph.tag('Д')
+        self.assertHasFirstName(tags)
+        self.assertHasPatronymic(tags)
+
+    def test_tag_conj(self):
+        tags = morph.tag('И')
+        self.assertHasFirstName(tags)
+        self.assertHasPatronymic(tags)
+        assert any('CONJ' in tag for tag in tags), tags
+
+    def test_parse(self):
+        tags = [p.tag for p in morph.parse('И')]
+        self.assertHasFirstName(tags)
+        self.assertHasPatronymic(tags)
+
+    def test_normalize_name_masc(self):
+        parse = self._filter_parse('И', ['Name', 'accs', 'masc'])[0]
+        assert parse.normalized.word == 'и'
+        assert parse.normalized.tag.case == 'nomn'
+        assert parse.normalized.tag.gender == 'masc'
+
+    def test_normalize_patr_masc(self):
+        parse = self._filter_parse('И', ['Patr', 'accs', 'masc'])[0]
+        assert parse.normalized.word == 'и'
+        assert parse.normalized.tag.case == 'nomn'
+        assert parse.normalized.tag.gender == 'masc'
+
+    def test_normalize_name_femn(self):
+        parse = self._filter_parse('И', ['Name', 'accs', 'femn'])[0]
+        assert parse.normalized.word == 'и'
+        assert parse.normalized.tag.case == 'nomn'
+        assert parse.normalized.tag.gender == 'femn'
+
+    def test_normalize_patr_femn(self):
+        parse = self._filter_parse('И', ['Patr', 'accs', 'femn'])[0]
+        assert parse.normalized.word == 'и'
+        assert parse.normalized.tag.case == 'nomn'
+        assert parse.normalized.tag.gender == 'masc'
+

@@ -18,3 +18,7 @@ from .by_shape import (
     NumberAnalyzer,
     RomanNumberAnalyzer
 )
+from .abbreviations import (
+    AbbreviatedFirstNameAnalyzer,
+    AbbreviatedPatronymicAnalyzer
+)
