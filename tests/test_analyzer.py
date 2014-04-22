@@ -3,6 +3,7 @@ from __future__ import absolute_import, unicode_literals
 import pickle
 import pytest
 import pymorphy2
+from pymorphy2.units.by_lookup import DictionaryAnalyzer
 from pymorphy2.units.by_analogy import UnknownPrefixAnalyzer, KnownPrefixAnalyzer
 from pymorphy2.units.by_hyphen import HyphenatedWordsAnalyzer
 
@@ -324,3 +325,10 @@ class TestInitials:
         assert parse.normalized.tag.case == 'nomn'
         assert parse.normalized.tag.gender == 'masc'
 
+
+def test_iter_known_word_parses():
+    parses = list(morph.iter_known_word_parses('приве'))
+    assert any(
+        (p.word=='привет' and isinstance(p.methods_stack[0][0], DictionaryAnalyzer))
+        for p in parses
+    ), parses

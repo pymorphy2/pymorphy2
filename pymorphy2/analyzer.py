@@ -316,7 +316,7 @@ class MorphAnalyzer(object):
         # XXX: this method currently assumes that
         # units.DictionaryAnalyzer is the first analyzer unit.
         for word, tag, normal_form, para_id, idx in self.dictionary.iter_known_words(prefix):
-            methods = ((self._units[0], word, para_id, idx),)
+            methods = ((self._units[0][0], word, para_id, idx),)
             parse = (word, tag, normal_form, 1.0, methods)
             if self._result_type is None:
                 yield parse
