@@ -145,32 +145,32 @@ LEXEMES_FULL = parse_lexemes("""
 нём-то     NPRO,masc,3per,Anph sing,loct,Af-p
 
 # ========== initials
-И  NOUN,anim,masc,Sgtm,Name,Fixd,Abbr sing,nomn
-И  NOUN,anim,masc,Sgtm,Name,Fixd,Abbr sing,gent
-И  NOUN,anim,masc,Sgtm,Name,Fixd,Abbr sing,datv
-И  NOUN,anim,masc,Sgtm,Name,Fixd,Abbr sing,accs
-И  NOUN,anim,masc,Sgtm,Name,Fixd,Abbr sing,ablt
-И  NOUN,anim,masc,Sgtm,Name,Fixd,Abbr sing,loct
+И  NOUN,anim,masc,Sgtm,Name,Fixd,Abbr,Init sing,nomn
+И  NOUN,anim,masc,Sgtm,Name,Fixd,Abbr,Init sing,gent
+И  NOUN,anim,masc,Sgtm,Name,Fixd,Abbr,Init sing,datv
+И  NOUN,anim,masc,Sgtm,Name,Fixd,Abbr,Init sing,accs
+И  NOUN,anim,masc,Sgtm,Name,Fixd,Abbr,Init sing,ablt
+И  NOUN,anim,masc,Sgtm,Name,Fixd,Abbr,Init sing,loct
 
-И  NOUN,anim,femn,Sgtm,Name,Fixd,Abbr sing,nomn
-И  NOUN,anim,femn,Sgtm,Name,Fixd,Abbr sing,gent
-И  NOUN,anim,femn,Sgtm,Name,Fixd,Abbr sing,datv
-И  NOUN,anim,femn,Sgtm,Name,Fixd,Abbr sing,accs
-И  NOUN,anim,femn,Sgtm,Name,Fixd,Abbr sing,ablt
-И  NOUN,anim,femn,Sgtm,Name,Fixd,Abbr sing,loct
+И  NOUN,anim,femn,Sgtm,Name,Fixd,Abbr,Init sing,nomn
+И  NOUN,anim,femn,Sgtm,Name,Fixd,Abbr,Init sing,gent
+И  NOUN,anim,femn,Sgtm,Name,Fixd,Abbr,Init sing,datv
+И  NOUN,anim,femn,Sgtm,Name,Fixd,Abbr,Init sing,accs
+И  NOUN,anim,femn,Sgtm,Name,Fixd,Abbr,Init sing,ablt
+И  NOUN,anim,femn,Sgtm,Name,Fixd,Abbr,Init sing,loct
 
-И  NOUN,anim,masc,Sgtm,Patr,Fixd,Abbr sing,nomn
-И  NOUN,anim,masc,Sgtm,Patr,Fixd,Abbr sing,gent
-И  NOUN,anim,masc,Sgtm,Patr,Fixd,Abbr sing,datv
-И  NOUN,anim,masc,Sgtm,Patr,Fixd,Abbr sing,accs
-И  NOUN,anim,masc,Sgtm,Patr,Fixd,Abbr sing,ablt
-И  NOUN,anim,masc,Sgtm,Patr,Fixd,Abbr sing,loct
-И  NOUN,anim,femn,Sgtm,Patr,Fixd,Abbr sing,nomn
-И  NOUN,anim,femn,Sgtm,Patr,Fixd,Abbr sing,gent
-И  NOUN,anim,femn,Sgtm,Patr,Fixd,Abbr sing,datv
-И  NOUN,anim,femn,Sgtm,Patr,Fixd,Abbr sing,accs
-И  NOUN,anim,femn,Sgtm,Patr,Fixd,Abbr sing,ablt
-И  NOUN,anim,femn,Sgtm,Patr,Fixd,Abbr sing,loct
+И  NOUN,anim,masc,Sgtm,Patr,Fixd,Abbr,Init sing,nomn
+И  NOUN,anim,masc,Sgtm,Patr,Fixd,Abbr,Init sing,gent
+И  NOUN,anim,masc,Sgtm,Patr,Fixd,Abbr,Init sing,datv
+И  NOUN,anim,masc,Sgtm,Patr,Fixd,Abbr,Init sing,accs
+И  NOUN,anim,masc,Sgtm,Patr,Fixd,Abbr,Init sing,ablt
+И  NOUN,anim,masc,Sgtm,Patr,Fixd,Abbr,Init sing,loct
+И  NOUN,anim,femn,Sgtm,Patr,Fixd,Abbr,Init sing,nomn
+И  NOUN,anim,femn,Sgtm,Patr,Fixd,Abbr,Init sing,gent
+И  NOUN,anim,femn,Sgtm,Patr,Fixd,Abbr,Init sing,datv
+И  NOUN,anim,femn,Sgtm,Patr,Fixd,Abbr,Init sing,accs
+И  NOUN,anim,femn,Sgtm,Patr,Fixd,Abbr,Init sing,ablt
+И  NOUN,anim,femn,Sgtm,Patr,Fixd,Abbr,Init sing,loct
 """)
 
 

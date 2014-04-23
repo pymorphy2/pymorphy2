@@ -13,9 +13,14 @@ class _InitialsAnalyzer(BaseAnalyzerUnit):
     TAG_PATTERN = None
 
     def __init__(self, morph):
-        super(_InitialsAnalyzer, self).__init__(morph)
         if self.TAG_PATTERN is None:
             raise ValueError("Define TAG_PATTERN in a subclass")
+
+        super(_InitialsAnalyzer, self).__init__(morph)
+
+        if 'Init' not in self.morph.TagClass.KNOWN_GRAMMEMES:
+            self.morph.TagClass.add_grammemes_to_known('Init', 'иниц')
+
         self._tags = self._get_gender_case_tags(self.TAG_PATTERN)
 
     def _get_gender_case_tags(self, pattern):
@@ -40,7 +45,7 @@ class _InitialsAnalyzer(BaseAnalyzerUnit):
 
 
 class AbbreviatedFirstNameAnalyzer(_InitialsAnalyzer):
-    TAG_PATTERN = 'NOUN,anim,%(gender)s,Sgtm,Name,Fixd,Abbr sing,%(case)s'
+    TAG_PATTERN = 'NOUN,anim,%(gender)s,Sgtm,Name,Fixd,Abbr,Init sing,%(case)s'
 
     def __init__(self, morph):
         super(AbbreviatedFirstNameAnalyzer, self).__init__(morph)
@@ -65,7 +70,7 @@ class AbbreviatedFirstNameAnalyzer(_InitialsAnalyzer):
 
 
 class AbbreviatedPatronymicAnalyzer(_InitialsAnalyzer):
-    TAG_PATTERN = 'NOUN,anim,%(gender)s,Sgtm,Patr,Fixd,Abbr sing,%(case)s'
+    TAG_PATTERN = 'NOUN,anim,%(gender)s,Sgtm,Patr,Fixd,Abbr,Init sing,%(case)s'
 
     def get_lexeme(self, form):
         fixed_word, _, normal_form, score, methods_stack = form
