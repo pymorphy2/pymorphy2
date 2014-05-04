@@ -251,8 +251,11 @@ class OpencorporaTag(object):
     )
 
     RARE_CASES = {
+        'gen1': 'gent',
         'gen2': 'gent',
+        'acc1': 'accs',
         'acc2': 'accs',
+        'loc1': 'loct',
         'loc2': 'loct',
         'voct': 'nomn'
     }
