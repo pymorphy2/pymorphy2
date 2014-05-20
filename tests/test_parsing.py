@@ -91,6 +91,9 @@ XVIII       xviii       ROMN
 Foo     foo     LATN
 I       i       LATN
 
+# ========= UNKN
+ьё      ьё      UNKN
+
 # ============== common lowercased abbreviations
 # should normal forms be expanded?
 

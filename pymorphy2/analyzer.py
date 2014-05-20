@@ -164,6 +164,7 @@ class MorphAnalyzer(object):
             units.UnknownPrefixAnalyzer,
             units.KnownSuffixAnalyzer
         ],
+        units.UnknAnalyzer,
     ]
 
     def __init__(self, path=None, result_type=Parse, units=None,

@@ -171,8 +171,10 @@ LEXEMES_FULL = parse_lexemes("""
 И  NOUN,anim,femn,Sgtm,Patr,Fixd,Abbr,Init sing,accs
 И  NOUN,anim,femn,Sgtm,Patr,Fixd,Abbr,Init sing,ablt
 И  NOUN,anim,femn,Sgtm,Patr,Fixd,Abbr,Init sing,loct
-""")
 
+# ============ UNKN
+ьё UNKN
+""")
 
 
 # ============ Tests:

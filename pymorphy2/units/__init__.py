@@ -22,3 +22,4 @@ from .abbreviations import (
     AbbreviatedFirstNameAnalyzer,
     AbbreviatedPatronymicAnalyzer
 )
+from .unkn import UnknAnalyzer
