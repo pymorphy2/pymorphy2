@@ -98,29 +98,34 @@ def is_roman_number(token):
     return re.match(ROMAN_NUMBERS_RE, token) is not None
 
 
-def restore_word_case(word, example):
+def restore_capitalization(word, example):
     """
-    Make the ``word`` be the same case as an ``example``:
+    Make the capitalization of the ``word`` be the same as in ``example``:
 
-        >>> restore_word_case('bye', 'Hello')
+        >>> restore_capitalization('bye', 'Hello')
         'Bye'
-        >>> restore_word_case('half-an-hour', 'Minute')
+        >>> restore_capitalization('half-an-hour', 'Minute')
         'Half-An-Hour'
-        >>> restore_word_case('usa', 'IEEE')
+        >>> restore_capitalization('usa', 'IEEE')
         'USA'
-        >>> restore_word_case('pre-world', 'anti-World')
+        >>> restore_capitalization('pre-world', 'anti-World')
         'pre-World'
-        >>> restore_word_case('123-do', 'anti-IEEE')
+        >>> restore_capitalization('123-do', 'anti-IEEE')
         '123-DO'
-        >>> restore_word_case('123--do', 'anti--IEEE')
+        >>> restore_capitalization('123--do', 'anti--IEEE')
         '123--DO'
 
     In the alignment fails, the reminder is lower-cased:
 
-        >>> restore_word_case('foo-BAR-BAZ', 'Baz-Baz')
+        >>> restore_capitalization('foo-BAR-BAZ', 'Baz-Baz')
         'Foo-Bar-baz'
-        >>> restore_word_case('foo', 'foo-bar')
+        >>> restore_capitalization('foo', 'foo-bar')
         'foo'
+
+    .. note:
+
+        Currently this function doesn't handle uppercase letters in
+        the middle of the token (e.g. McDonald).
 
     """
     if '-' in example:

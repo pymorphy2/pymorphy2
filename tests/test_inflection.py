@@ -3,7 +3,7 @@ from __future__ import absolute_import, unicode_literals
 import pytest
 
 from .utils import morph
-from pymorphy2.shapes import restore_word_case
+from pymorphy2.shapes import restore_capitalization
 
 def with_test_data(data):
     return pytest.mark.parametrize(
@@ -18,7 +18,7 @@ def assert_first_inflected_variant(word, grammemes, result):
     assert len(inflected_variants)
 
     inflected = inflected_variants[0]
-    assert restore_word_case(inflected.word, word) == result
+    assert restore_capitalization(inflected.word, word) == result
 
 
 @with_test_data([

@@ -33,6 +33,7 @@ class WordsDawg(RecordDAWG):
             assert_can_create()
             super(WordsDawg, self).__init__(self.DATA_FORMAT, data)
 
+
 class PredictionSuffixesDAWG(WordsDawg):
     """
     DAWG for storing prediction data.
