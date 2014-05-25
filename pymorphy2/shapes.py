@@ -3,6 +3,7 @@ from __future__ import absolute_import
 # unicode_literals future import is not needed and breaks 2.x tests
 
 import re
+import warnings
 import unicodedata
 
 
@@ -142,6 +143,15 @@ def restore_capitalization(word, example):
         return '-'.join(results)
 
     return _make_the_same_case(word, example)
+
+
+def restore_word_case(word, example):
+    """ This function is renamed to ``restore_capitalization`` """
+    warnings.warn(
+        "`restore_word_case` function is renamed to `restore_capitalization`; "
+        "old alias will be removed in future releases.",
+    )
+    return restore_capitalization(word, example)
 
 
 def _make_the_same_case(word, example):
