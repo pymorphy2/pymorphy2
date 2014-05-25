@@ -34,7 +34,11 @@ def download_bz2(url, out_fp, chunk_size=CHUNK_SIZE, on_chunk=lambda: None):
 def get_mem_usage():
     import psutil
     proc = psutil.Process(os.getpid())
-    return proc.get_memory_info()[0]
+    try:
+        return proc.memory_info().rss
+    except AttributeError:
+        # psutil < 2.x
+        return proc.get_memory_info()[0]
 
 
 def combinations_of_all_lengths(it):
