@@ -21,6 +21,10 @@ sys.path.insert(0, os.path.abspath(
     os.path.join(os.path.dirname(__file__), '..')
 ))
 
+def setup(app):
+    # see https://github.com/snide/sphinx_rtd_theme/issues/117
+    app.add_stylesheet("rtfd_overrides.css")
+
 # -- General configuration -----------------------------------------------------
 
 # If your documentation needs a minimal Sphinx version, state it here.
@@ -46,7 +50,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = 'Морфологический анализатор pymorphy2'
-copyright = '2013, Mikhail Korobov'
+copyright = '2014, Mikhail Korobov'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
