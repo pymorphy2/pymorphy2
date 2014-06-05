@@ -1,13 +1,7 @@
 #!/usr/bin/env python
-from distutils.core import setup
+from setuptools import setup
 #from distutils.extension import Extension
 #from Cython.Distutils import build_ext
-
-import sys
-
-for cmd in ('egg_info', 'develop'):
-    if cmd in sys.argv:
-        from setuptools import setup
 
 def get_version():
     with open("pymorphy2/version.py", "rt") as f:
@@ -27,11 +21,23 @@ setup(
     packages = [
         'pymorphy2',
         'pymorphy2.units',
-        'pymorphy2.vendor',
         'pymorphy2.opencorpora_dict',
     ],
     scripts=['bin/pymorphy'],
-    requires=['dawg_python (>= 0.7)', 'pymorphy2_dicts (>=2.4, <3.0)'],
+    requires=[
+        'dawg_python (>= 0.7)',
+        'pymorphy2_dicts (>=2.4, <3.0)',
+        'docopt (>= 0.6)',
+    ],
+    install_requires=[
+        'dawg-python >= 0.7',
+        'pymorphy2-dicts >=2.4, <3.0',
+        'docopt >= 0.6',
+    ],
+    extras_require = {
+        'fast':  ["DAWG >= 0.7.3"],
+    },
+    zip_safe=False,
 
 #    cmdclass = {'build_ext': build_ext},
 #    ext_modules = [Extension("pymorphy2.analyzer", ["pymorphy2/analyzer.py"])],

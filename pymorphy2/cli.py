@@ -9,7 +9,6 @@ import os
 
 import pymorphy2
 from pymorphy2 import opencorpora_dict, test_suite_generator
-from pymorphy2.vendor.docopt import docopt
 from pymorphy2.utils import download_bz2, get_mem_usage, json_read, json_write
 
 logger = logging.getLogger('pymorphy2')
@@ -177,6 +176,7 @@ def main():
     """
     Pymorphy CLI interface dispatcher
     """
+    from docopt import docopt
     args = docopt(DOC, version=pymorphy2.__version__)
 
     if args['--verbose']:

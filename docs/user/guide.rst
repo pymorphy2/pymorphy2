@@ -10,17 +10,18 @@
 Для установки воспользуйтесь pip::
 
     pip install pymorphy2
-    pip install pymorphy2-dicts
-    pip install 'DAWG-Python >= 0.7'
-
-`pymorphy2-dicts <http://pypi.python.org/pypi/pymorphy2-dicts>`_ - это
-пакет со словарями OpenCorpora_, скомпилированными в формат pymorphy2.
 
 Если вы используете CPython (не PyPy), и в системе есть компилятор и т.д.,
-то вместо `DAWG-Python`_ можно установить библиотеку DAWG_, которая
-позволит pymorphy2 работать быстрее::
+то можно установить pymorphy2 с дополнительными зависимостями (библиотекой
+DAWG_ вместо `DAWG-Python`_), что позволит pymorphy2 работать быстрее::
 
-    pip install 'DAWG >= 0.7'
+    pip install pymorphy2[fast]
+
+Словари обновляются время от времени; чтоб обновить словари, используйте
+
+    pip install -U pymorphy2-dicts
+
+Для установки требуются более-менее современные версии pip и setuptools.
 
 .. _DAWG: https://github.com/kmike/DAWG
 .. _DAWG-Python: https://github.com/kmike/DAWG-Python

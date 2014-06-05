@@ -15,7 +15,6 @@ matrix:
           env: NO_COMPILER="true"
 
 install:
-  - pip install -r requirements.txt
   - pip install futures
   - pip install coverage pytest-cov coveralls
   - if [[ $TRAVIS_PYTHON_VERSION != 'pypy' && ! $NO_COMPILER ]]; then pip install dawg; fi
