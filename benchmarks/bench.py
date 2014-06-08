@@ -17,12 +17,11 @@ Options:
 import logging
 import sys
 import os
-from pymorphy2.vendor.docopt import docopt
+from docopt import docopt
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 import pymorphy2
-
 from benchmarks import speed
 
 logger = logging.getLogger('pymorphy2.bench')
@@ -48,5 +47,4 @@ def main():
 
 
 if __name__ == '__main__':
-    import sys
     sys.exit(main())
