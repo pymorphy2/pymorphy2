@@ -180,6 +180,8 @@ def _join_lexemes(lexemes, links):
 #    <type id="18">ADJF-SUPR_suppl</type>
 #    <type id="19">ADJF-SUPR_nai</type>
 #    <type id="20">ADJF-SUPR_slng</type>
+#    <type id="21">FULL-CONTRACTED</type>
+#    <type id="22">ORPHOVAR</type>
 #    </link_types>
 
     EXCLUDED_LINK_TYPES = set([7, ])
