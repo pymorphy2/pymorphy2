@@ -15,3 +15,5 @@ reports
 
 .tox
 MANIFEST
+
+pymorphy2.egg-info/
