@@ -22,4 +22,5 @@ from .abbreviations import (
     AbbreviatedFirstNameAnalyzer,
     AbbreviatedPatronymicAnalyzer
 )
+from .numb import NumberWithCaseAnalyzer
 from .unkn import UnknAnalyzer

@@ -2,7 +2,7 @@
 from __future__ import absolute_import, unicode_literals, division
 
 
-def add_parse_if_not_seen(parse, result_list, seen_parses):
+def add_parse_if_not_seen(parse, result_list, seen_parses, compare_by_tag=False):
     try:
         para_id = parse[4][0][2]
     except IndexError:
@@ -13,7 +13,7 @@ def add_parse_if_not_seen(parse, result_list, seen_parses):
 
     reduced_parse = word, tag, para_id
 
-    if reduced_parse in seen_parses:
+    if reduced_parse in seen_parses or (compare_by_tag and tag in [parse[1] for parse in seen_parses]):
         return
     seen_parses.add(reduced_parse)
     result_list.append(parse)
