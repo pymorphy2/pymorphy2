@@ -149,7 +149,7 @@ class MorphAnalyzer(object):
             units.AbbreviatedPatronymicAnalyzer,
         ],
 
-        #units.NumberWithCaseAnalyzer,
+        units.NumberWithCaseAnalyzer,
         units.NumberAnalyzer,
         units.PunctuationAnalyzer,
         [
