@@ -11,9 +11,8 @@ for Russian language. License is MIT.
 
 * docs: https://pymorphy2.readthedocs.org
 * changelog: https://github.com/kmike/pymorphy2/blob/master/CHANGES.rst
-* source code: github_, bitbucket_.
+* source code: github_
 * bug tracker: https://github.com/kmike/pymorphy2/issues
 * support: https://groups.google.com/forum/?fromgroups#!forum/pymorphy
 
 .. _github: https://github.com/kmike/pymorphy2
-.. _bitbucket: https://bitbucket.org/kmike/pymorphy2
