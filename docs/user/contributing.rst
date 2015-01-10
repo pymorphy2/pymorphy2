@@ -5,14 +5,12 @@
 Общая информация
 ================
 
-Исходный код pymorphy2 распространяется по лицензии MIT и доступен на github
-и bitbucket:
+Исходный код pymorphy2 распространяется по лицензии MIT и доступен на github:
+https://github.com/kmike/pymorphy2
 
-* https://github.com/kmike/pymorphy2
-* https://bitbucket.org/kmike/pymorphy2
-
-Баг-трекер - на `гитхабе`_. Для общения можно использовать `гугл-группу`_
-(есть какие-то идеи, предложения, замечания - пишите).
+Баг-трекер: https://github.com/kmike/pymorphy2/issues.
+Для общения можно использовать `гугл-группу`_ (есть какие-то идеи,
+предложения, замечания - пишите).
 
 Если вы хотите улучшить код pymorphy2 - может быть
 полезным ознакомиться с разделом :ref:`internals`.
@@ -34,7 +32,6 @@ pymorphy2 основывается на словарях из OpenCorpora_ и и
 
 .. _OpenCorpora: http://opencorpora.org
 .. _баг-трекер: https://github.com/kmike/pymorphy2/issues
-.. _гитхабе: https://github.com/kmike/pymorphy2/issues
 .. _гугл-группу: https://groups.google.com/forum/?fromgroups#!forum/pymorphy
 
 .. _testing:

@@ -38,12 +38,11 @@ pymorphy2_ написан на языке Python (работает под 2.x и
 * :ref:`search`
 
 
-Исходный код - на github_ или bitbucket_. Если заметили
-ошибку, то пишите в `баг-трекер`_. Для обсуждения есть `гугл-группа`_;
-если есть какие-то вопросы - пишите туда.
+Исходный код - на github_. Если заметили ошибку, то пишите
+в `баг-трекер`_. Для обсуждения есть `гугл-группа`_; если есть какие-то
+вопросы - пишите туда.
 
 .. _github: https://github.com/kmike/pymorphy2
-.. _bitbucket: https://bitbucket.org/kmike/pymorphy2
 .. _баг-трекер: https://github.com/kmike/pymorphy2/issues
 .. _гугл-группа: https://groups.google.com/forum/?fromgroups#!forum/pymorphy
 .. _pymorphy2: https://github.com/kmike/pymorphy2
