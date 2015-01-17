@@ -11,12 +11,14 @@ from pymorphy2.shapes import is_latin, is_punctuation, is_roman_number
 
 
 class _ShapeAnalyzer(BaseAnalyzerUnit):
-    SCORE = 0.9
     EXTRA_GRAMMEMES = []
     EXTRA_GRAMMEMES_CYR = []
 
-    def __init__(self, morph):
-        super(_ShapeAnalyzer, self).__init__(morph)
+    def __init__(self, score=0.9):
+        self.score = score
+
+    def init(self, morph):
+        super(_ShapeAnalyzer, self).init(morph)
 
         for lat, cyr in zip(self.EXTRA_GRAMMEMES, self.EXTRA_GRAMMEMES_CYR):
             self.morph.TagClass.add_grammemes_to_known(lat, cyr)
@@ -27,7 +29,7 @@ class _ShapeAnalyzer(BaseAnalyzerUnit):
             return []
 
         methods = ((self, word),)
-        return [(word_lower, self.get_tag(word, shape), word_lower, self.SCORE, methods)]
+        return [(word_lower, self.get_tag(word, shape), word_lower, self.score, methods)]
 
     def tag(self, word, word_lower, seen_tags):
         shape = self.check_shape(word, word_lower)
@@ -53,12 +55,12 @@ class _SingleShapeAnalyzer(_ShapeAnalyzer):
     TAG_STR = None
     TAG_STR_CYR = None
 
-    def __init__(self, morph):
+    def init(self, morph):
         assert self.TAG_STR is not None
         assert self.TAG_STR_CYR is not None
         self.EXTRA_GRAMMEMES = self.TAG_STR.split(',')
         self.EXTRA_GRAMMEMES_CYR = self.TAG_STR_CYR.split(',')
-        super(_SingleShapeAnalyzer, self).__init__(morph)
+        super(_SingleShapeAnalyzer, self).init(morph)
         self._tag = self.morph.TagClass(self.TAG_STR)
 
     def get_tag(self, word, shape):
@@ -102,8 +104,8 @@ class NumberAnalyzer(_ShapeAnalyzer):
     EXTRA_GRAMMEMES = ['NUMB', 'intg', 'real']
     EXTRA_GRAMMEMES_CYR = ['ЧИСЛО', 'цел', 'вещ']
 
-    def __init__(self, morph):
-        super(NumberAnalyzer, self).__init__(morph)
+    def init(self, morph):
+        super(NumberAnalyzer, self).init(morph)
         self._tags = {
             'intg': morph.TagClass('NUMB,intg'),
             'real': morph.TagClass('NUMB,real'),

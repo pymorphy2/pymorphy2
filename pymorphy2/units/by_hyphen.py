@@ -13,6 +13,11 @@ from pymorphy2.units.utils import (add_parse_if_not_seen, add_tag_if_not_seen,
                                    replace_methods_stack)
 
 
+RU_PARTICLES_AFTER_HYPHEN = [
+    "-то", "-ка", "-таки", "-де", "-тко", "-тка", "-с", "-ста",
+]
+
+
 class HyphenSeparatedParticleAnalyzer(AnalogyAnalizerUnit):
     """
     Parse the word by analyzing it without
@@ -27,12 +32,13 @@ class HyphenSeparatedParticleAnalyzer(AnalogyAnalizerUnit):
         particles at tokenization level.
 
     """
-    ESTIMATE_DECAY = 0.9
+    def __init__(self, score_multiplier=0.9,
+                 particles_after_hyphen=RU_PARTICLES_AFTER_HYPHEN):
+        self.score_multiplier = score_multiplier
 
-    # XXX: maybe the code can be made faster by compiling this list to a DAWG?
-    PARTICLES_AFTER_HYPHEN = [
-        "-то", "-ка", "-таки", "-де", "-тко", "-тка", "-с", "-ста",
-    ]
+        # XXX: maybe the code can be made faster by compiling
+        # `particles_after_hyphen` list to a DAWG?
+        self.particles_after_hyphen = particles_after_hyphen
 
     def parse(self, word, word_lower, seen_parses):
 
@@ -45,7 +51,7 @@ class HyphenSeparatedParticleAnalyzer(AnalogyAnalizerUnit):
                     fixed_word+particle,
                     tag,
                     normal_form+particle,
-                    score*self.ESTIMATE_DECAY,
+                    score*self.score_multiplier,
                     methods_stack+(method,)
                 )
                 add_parse_if_not_seen(parse, result, seen_parses)
@@ -70,7 +76,7 @@ class HyphenSeparatedParticleAnalyzer(AnalogyAnalizerUnit):
         if '-' not in word:
             return
 
-        for particle in self.PARTICLES_AFTER_HYPHEN:
+        for particle in self.particles_after_hyphen:
             if not word.endswith(particle):
                 continue
 
@@ -97,10 +103,12 @@ class HyphenAdverbAnalyzer(BaseAnalyzerUnit):
 
     Example: по-западному
     """
-    ESTIMATE_DECAY = 0.7
 
-    def __init__(self, morph):
-        super(HyphenAdverbAnalyzer, self).__init__(morph)
+    def __init__(self, score_multiplier=0.7):
+        self.score_multiplier = score_multiplier
+
+    def init(self, morph):
+        super(HyphenAdverbAnalyzer, self).init(morph)
         self._tag = self.morph.TagClass('ADVB')
 
     def parse(self, word, word_lower, seen_parses):
@@ -109,7 +117,7 @@ class HyphenAdverbAnalyzer(BaseAnalyzerUnit):
 
         parse = (
             word_lower, self._tag, word_lower,
-            self.ESTIMATE_DECAY,
+            self.score_multiplier,
             ((self, word),)
         )
         seen_parses.add(parse)
@@ -146,8 +154,6 @@ class HyphenatedWordsAnalyzer(BaseAnalyzerUnit):
         * человек-гора -> человек + гора
 
     """
-    ESTIMATE_DECAY = 0.75
-
     _CONSIDER_THE_SAME = {
         'V-oy': 'V-ey',
         'gen1': 'gent',
@@ -156,8 +162,11 @@ class HyphenatedWordsAnalyzer(BaseAnalyzerUnit):
 
     }  # TODO: add more grammemes
 
-    def __init__(self, morph):
-        super(HyphenatedWordsAnalyzer, self).__init__(morph)
+    def __init__(self, score_multiplier=0.75):
+        self.score_multiplier = score_multiplier
+
+    def init(self, morph):
+        super(HyphenatedWordsAnalyzer, self).init(morph)
         Tag = morph.TagClass
         self._FEATURE_GRAMMEMES = (Tag.PARTS_OF_SPEECH | Tag.NUMBERS |
                                    Tag.CASES | Tag.PERSONS | Tag.TENSES)
@@ -198,7 +207,7 @@ class HyphenatedWordsAnalyzer(BaseAnalyzerUnit):
                 '-'.join((left, fixed_word)),
                 tag,
                 '-'.join((left, normal_form)),
-                score * self.ESTIMATE_DECAY,
+                score * self.score_multiplier,
                 new_methods_stack
             )
             result.append(parse)
@@ -242,7 +251,7 @@ class HyphenatedWordsAnalyzer(BaseAnalyzerUnit):
                     '-'.join((left_parse[0], right_parse[0])),  # word
                     left_tag,
                     '-'.join((left_parse[2], right_parse[2])),  # normal form
-                    left_parse[3] * self.ESTIMATE_DECAY,
+                    left_parse[3] * self.score_multiplier,
                     new_methods_stack
                 )
                 result.append(parse)
@@ -256,13 +265,6 @@ class HyphenatedWordsAnalyzer(BaseAnalyzerUnit):
             tag.grammemes & self._FEATURE_GRAMMEMES,
             {'gen1': 'gent', 'loc1': 'loct'}
         )
-
-    def tag(self, word, word_lower, seen_tags):
-        result = []
-        # TODO: do not use self.parse
-        for p in self.parse(word, word_lower, set()):
-            add_tag_if_not_seen(p[1], result, seen_tags)
-        return result
 
     def _should_parse(self, word):
         if '-' not in word:

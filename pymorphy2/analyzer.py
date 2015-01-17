@@ -144,27 +144,27 @@ class MorphAnalyzer(object):
     ENV_VARIABLE = 'PYMORPHY2_DICT_PATH'
     DEFAULT_UNITS = [
         [
-            units.DictionaryAnalyzer,
-            units.AbbreviatedFirstNameAnalyzer,
-            units.AbbreviatedPatronymicAnalyzer,
+            units.DictionaryAnalyzer(),
+            units.AbbreviatedFirstNameAnalyzer(),
+            units.AbbreviatedPatronymicAnalyzer(),
         ],
 
-        units.NumberAnalyzer,
-        units.PunctuationAnalyzer,
+        units.NumberAnalyzer(),
+        units.PunctuationAnalyzer(),
         [
-            units.RomanNumberAnalyzer,
-            units.LatinAnalyzer
+            units.RomanNumberAnalyzer(),
+            units.LatinAnalyzer()
         ],
 
-        units.HyphenSeparatedParticleAnalyzer,
-        units.HyphenAdverbAnalyzer,
-        units.HyphenatedWordsAnalyzer,
-        units.KnownPrefixAnalyzer,
+        units.HyphenSeparatedParticleAnalyzer(),
+        units.HyphenAdverbAnalyzer(),
+        units.HyphenatedWordsAnalyzer(),
+        units.KnownPrefixAnalyzer(),
         [
-            units.UnknownPrefixAnalyzer,
-            units.KnownSuffixAnalyzer
+            units.UnknownPrefixAnalyzer(),
+            units.KnownSuffixAnalyzer()
         ],
-        units.UnknAnalyzer,
+        units.UnknAnalyzer(),
     ]
 
     def __init__(self, path=None, result_type=Parse, units=None,
@@ -199,11 +199,16 @@ class MorphAnalyzer(object):
         self._units = []
         for item in unit_classes:
             if isinstance(item, (list, tuple)):
-                for cls in item[:-1]:
-                    self._units.append((cls(self), False))
-                self._units.append((item[-1](self), True))
+                for unit in item[:-1]:
+                    self._units.append((self._bound_unit(unit), False))
+                self._units.append((self._bound_unit(item[-1]), True))
             else:
-                self._units.append((item(self), True))
+                self._units.append((self._bound_unit(item), True))
+
+    def _bound_unit(self, unit):
+        unit = unit.clone()
+        unit.init(self)
+        return unit
 
     @classmethod
     def choose_dictionary_path(cls, path=None):

@@ -37,12 +37,13 @@ class _PrefixAnalyzer(AnalogyAnalizerUnit):
 class KnownPrefixAnalyzer(_PrefixAnalyzer):
     """
     Parse the word by checking if it starts with a known prefix
-    and parsing the reminder.
+    and parsing the remainder.
 
     Example: псевдокошка -> (псевдо) + кошка.
     """
-    ESTIMATE_DECAY = 0.75
-    MIN_REMINDER_LENGTH = 3
+    def __init__(self, score_multiplier=0.75, min_remainder_length=3):
+        self.score_multiplier = score_multiplier
+        self.min_remainder_length = min_remainder_length
 
     def parse(self, word, word_lower, seen_parses):
         result = []
@@ -59,7 +60,7 @@ class KnownPrefixAnalyzer(_PrefixAnalyzer):
                     prefix + fixed_word,
                     tag,
                     prefix + normal_form,
-                    score * self.ESTIMATE_DECAY,
+                    score * self.score_multiplier,
                     methods_stack + (method,)
                 )
 
@@ -82,7 +83,7 @@ class KnownPrefixAnalyzer(_PrefixAnalyzer):
         for prefix in word_prefixes:
             unprefixed_word = word[len(prefix):]
 
-            if len(unprefixed_word) < self.MIN_REMINDER_LENGTH:
+            if len(unprefixed_word) < self.min_remainder_length:
                 continue
 
             yield prefix, unprefixed_word
@@ -96,11 +97,13 @@ class UnknownPrefixAnalyzer(_PrefixAnalyzer):
     Example: байткод -> (байт) + код
 
     """
-    ESTIMATE_DECAY = 0.5
+    def __init__(self, score_multiplier=0.5):
+        self.score_multiplier = score_multiplier
 
-    def __init__(self, morph):
-        super(AnalogyAnalizerUnit, self).__init__(morph)
-        self.dict_analyzer = DictionaryAnalyzer(morph)
+    def init(self, morph):
+        super(AnalogyAnalizerUnit, self).init(morph)
+        self.dict_analyzer = DictionaryAnalyzer()
+        self.dict_analyzer.init(morph)
 
     def parse(self, word, word_lower, seen_parses):
         result = []
@@ -118,7 +121,7 @@ class UnknownPrefixAnalyzer(_PrefixAnalyzer):
                     prefix + fixed_word,
                     tag,
                     prefix + normal_form,
-                    score * self.ESTIMATE_DECAY,
+                    score * self.score_multiplier,
                     methods_stack + (method,)
                 )
                 add_parse_if_not_seen(parse, result, seen_parses)
@@ -148,21 +151,23 @@ class KnownSuffixAnalyzer(AnalogyAnalizerUnit):
     Example: бутявкать -> ...вкать
 
     """
-    min_word_length = 4
-    ESTIMATE_DECAY = 0.5
-
     class FakeDictionary(DictionaryAnalyzer):
         """ This is just a DictionaryAnalyzer with different __repr__ """
         pass
 
-    def __init__(self, morph):
-        super(KnownSuffixAnalyzer, self).__init__(morph)
+    def __init__(self, score_multiplier=0.5,  min_word_length=4):
+        self.min_word_length = min_word_length
+        self.score_multiplier = score_multiplier
+
+    def init(self, morph):
+        super(KnownSuffixAnalyzer, self).init(morph)
 
         self._paradigm_prefixes = list(reversed(list(enumerate(self.dict.paradigm_prefixes))))
         max_suffix_length = self.dict.meta['prediction_options']['max_suffix_length']
         self._prediction_splits = list(reversed(range(1, max_suffix_length+1)))
 
-        self.fake_dict = self.FakeDictionary(morph)
+        self.fake_dict = self.FakeDictionary()
+        self.fake_dict.init(morph)
 
     def parse(self, word, word_lower, seen_parses):
         result = []
@@ -213,7 +218,7 @@ class KnownSuffixAnalyzer(AnalogyAnalizerUnit):
                     break
 
         result = [
-            (fixed_word, tag, normal_form, cnt/total_counts[prefix_id] * self.ESTIMATE_DECAY, methods_stack)
+            (fixed_word, tag, normal_form, cnt/total_counts[prefix_id] * self.score_multiplier, methods_stack)
             for (cnt, fixed_word, tag, normal_form, prefix_id, methods_stack) in result
         ]
         result.sort(key=_cnt_getter, reverse=True)

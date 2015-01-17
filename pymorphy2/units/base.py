@@ -1,26 +1,76 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, unicode_literals, division
-from pymorphy2.units.utils import without_last_method, append_method
+import inspect
+
+from pymorphy2.utils import kwargs_repr
+from pymorphy2.units.utils import (
+    without_last_method,
+    append_method,
+    add_tag_if_not_seen,
+)
 
 
 class BaseAnalyzerUnit(object):
+    """
+    Base class for analyzer units.
 
-    def __init__(self, morph):
-        """
-        :type morph: pymorphy2.analyzer.MorphAnalyzer
-        :type self.dict: pymorphy2.analyzer.Dictionary
-        """
+    For parsing to work subclasses must implement `parse` method;
+    as an optimization they may also override `tag` method.
+
+    For inflection to work (this includes normalization) a subclass
+    must implement `normalized` and `get_lexeme` methods.
+    """
+    morph = None
+    dict = None
+
+    def init(self, morph):
         self.morph = morph
         self.dict = morph.dictionary
+
+    def clone(self):
+        return self.__class__(**self._get_params())
 
     def parse(self, word, word_lower, seen_parses):
         raise NotImplementedError()
 
     def tag(self, word, word_lower, seen_tags):
+        # By default .tag() uses .parse().
+        # Usually it is possible to write a more efficient implementation;
+        # analyzers should do it when possible.
+        result = []
+        for p in self.parse(word, word_lower, set()):
+            add_tag_if_not_seen(p[1], result, seen_tags)
+        return result
+
+    def normalized(self, form):
+        raise NotImplementedError()
+
+    def get_lexeme(self, form):
         raise NotImplementedError()
 
     def __repr__(self):
-        return str("<%s>") % self.__class__.__name__
+        cls_text = self.__class__.__name__
+        kwargs_text = kwargs_repr(**self._get_params())
+        return str("%s(%s)") % (cls_text, kwargs_text)
+
+    @classmethod
+    def _get_param_names(cls):
+        """
+        Get parameter names for the analyzer unit.
+        It works by introspecting `__init__` arguments.
+        `__init__` method must not use *args.
+        """
+        if cls.__init__ is object.__init__:
+            return []
+        args, varargs, kw, default = inspect.getargspec(cls.__init__)
+        return sorted(args[1:])
+
+    def _get_params(self):
+        """ Return a dict with the parameters for this analyzer unit. """
+        return dict(
+            (key, getattr(self, key, None)) for key in self._get_param_names()
+        )
+
 
 
 class AnalogyAnalizerUnit(BaseAnalyzerUnit):

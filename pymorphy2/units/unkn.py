@@ -9,8 +9,8 @@ class UnknAnalyzer(BaseAnalyzerUnit):
     Add an UNKN parse if other analyzers returned nothing.
     This allows to always have at least one parse result.
     """
-    def __init__(self, morph):
-        super(UnknAnalyzer, self).__init__(morph)
+    def init(self, morph):
+        super(UnknAnalyzer, self).init(morph)
         self.morph.TagClass.add_grammemes_to_known('UNKN', 'НЕИЗВ')
         self._tag = self.morph.TagClass('UNKN')
 

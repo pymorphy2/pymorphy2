@@ -6,22 +6,27 @@ Analyzer units for abbreviated words
 from __future__ import absolute_import, unicode_literals, division
 from pymorphy2.units.base import BaseAnalyzerUnit
 
+RU_LETTERS = 'АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЭЮЯ'
 
 class _InitialsAnalyzer(BaseAnalyzerUnit):
-    SCORE = 0.1
-    LETTERS = set('АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЭЮЯ')
-    TAG_PATTERN = None
+    def __init__(self, tag_pattern=None, score=0.1, letters=RU_LETTERS):
+        if tag_pattern is None:
+            if hasattr(self, 'TAG_PATTERN'):
+                tag_pattern = self.TAG_PATTERN
+            else:
+                raise ValueError("Please provide tag_pattern.")
+        self.tag_pattern = tag_pattern
+        self.score = score
+        self.letters = letters
+        self._letters_set = set(letters)
 
-    def __init__(self, morph):
-        if self.TAG_PATTERN is None:
-            raise ValueError("Define TAG_PATTERN in a subclass")
-
-        super(_InitialsAnalyzer, self).__init__(morph)
+    def init(self, morph):
+        super(_InitialsAnalyzer, self).init(morph)
 
         if 'Init' not in self.morph.TagClass.KNOWN_GRAMMEMES:
             self.morph.TagClass.add_grammemes_to_known('Init', 'иниц')
 
-        self._tags = self._get_gender_case_tags(self.TAG_PATTERN)
+        self._tags = self._get_gender_case_tags(self.tag_pattern)
 
     def _get_gender_case_tags(self, pattern):
         return [
@@ -31,15 +36,15 @@ class _InitialsAnalyzer(BaseAnalyzerUnit):
         ]
 
     def parse(self, word, word_lower, seen_parses):
-        if word not in self.LETTERS:
+        if word not in self._letters_set:
             return []
         return [
-            (word_lower, tag, word_lower, self.SCORE, ((self, word),))
+            (word_lower, tag, word_lower, self.score, ((self, word),))
             for tag in self._tags
         ]
 
     def tag(self, word, word_lower, seen_tags):
-        if word not in self.LETTERS:
+        if word not in self._letters_set:
             return []
         return self._tags[:]
 
@@ -47,8 +52,8 @@ class _InitialsAnalyzer(BaseAnalyzerUnit):
 class AbbreviatedFirstNameAnalyzer(_InitialsAnalyzer):
     TAG_PATTERN = 'NOUN,anim,%(gender)s,Sgtm,Name,Fixd,Abbr,Init sing,%(case)s'
 
-    def __init__(self, morph):
-        super(AbbreviatedFirstNameAnalyzer, self).__init__(morph)
+    def init(self, morph):
+        super(AbbreviatedFirstNameAnalyzer, self).init(morph)
         self._tags_masc = [tag for tag in self._tags if 'masc' in tag]
         self._tags_femn = [tag for tag in self._tags if 'femn' in tag]
         assert self._tags_masc + self._tags_femn == self._tags

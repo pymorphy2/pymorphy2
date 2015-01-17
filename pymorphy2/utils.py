@@ -119,3 +119,15 @@ def word_splits(word, min_reminder=3, max_prefix_length=5):
     max_split = min(max_prefix_length, len(word)-min_reminder)
     split_indexes = range(1, 1+max_split)
     return [(word[:i], word[i:]) for i in split_indexes]
+
+
+def kwargs_repr(**kwargs):
+    """
+    >>> kwargs_repr(foo="123", a=5, x=8)
+    "a=5, foo='123', x=8"
+    >>> kwargs_repr()
+    ''
+    """
+    return ", ".join(
+        "%s=%r" % (key, value) for key, value in sorted(kwargs.items())
+    )

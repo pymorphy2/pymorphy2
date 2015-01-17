@@ -204,8 +204,11 @@ class TestHyphen:
 class TestTagWithPrefix:
     def test_tag_with_unknown_prefix(self):
         word = 'мегакот'
-        pred1 = UnknownPrefixAnalyzer(morph)
-        pred2 = KnownPrefixAnalyzer(morph)
+
+        pred1 = UnknownPrefixAnalyzer()
+        pred1.init(morph)
+        pred2 = KnownPrefixAnalyzer()
+        pred2.init(morph)
 
         parse1 = pred1.tag(word, word.lower(), set())
         parse2 = pred2.tag(word, word.lower(), set())
