@@ -87,6 +87,7 @@ def json_write(filename, obj, **json_options):
     """ Create file ``filename`` with ``obj`` serialized to JSON """
 
     json_options.setdefault('ensure_ascii', False)
+    json_options.setdefault('indent', 2)
     with codecs.open(filename, 'w', 'utf8') as f:
         json.dump(obj, f, **json_options)
 
