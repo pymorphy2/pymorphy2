@@ -11,7 +11,6 @@ from pymorphy2 import opencorpora_dict, test_suite_generator
 from pymorphy2.utils import get_mem_usage, json_read, json_write
 
 logger = logging.getLogger('pymorphy2')
-logger.addHandler(logging.StreamHandler())
 
 # ============================ Commands ===========================
 
@@ -149,6 +148,8 @@ def main():
     """
     Pymorphy CLI interface dispatcher
     """
+    logger.addHandler(logging.StreamHandler())
+
     from docopt import docopt
     args = docopt(DOC, version=pymorphy2.__version__)
 
