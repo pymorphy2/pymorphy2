@@ -53,7 +53,7 @@ class TestToyDictionary:
             'min_ending_freq': 0,
         }
         convert_to_pymorphy2(self.XML_PATH, out_path, overwrite=True,
-                             prediction_options=options)
+                             prediction_options=options, source_name='toy')
 
         # use it
         morph = pymorphy2.MorphAnalyzer(out_path, probability_estimator_cls=None)
