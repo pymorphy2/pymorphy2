@@ -30,8 +30,8 @@ CompiledDictionary = collections.namedtuple(
 )
 
 
-def convert_to_pymorphy2(opencorpora_dict_path, out_path, overwrite=False,
-                         prediction_options=None):
+def convert_to_pymorphy2(opencorpora_dict_path, out_path, source_name,
+                         overwrite=False, prediction_options=None):
     """
     Convert a dictionary from OpenCorpora XML format to
     Pymorphy2 compacted format.
@@ -49,7 +49,7 @@ def convert_to_pymorphy2(opencorpora_dict_path, out_path, overwrite=False,
     parsed_dict = parse_opencorpora_xml(opencorpora_dict_path)
     simplify_tags(parsed_dict)
     compiled_dict = compile_parsed_dict(parsed_dict, prediction_options)
-    save_compiled_dict(compiled_dict, out_path)
+    save_compiled_dict(compiled_dict, out_path, source_name=source_name)
 
 
 def compile_parsed_dict(parsed_dict, prediction_options=None):

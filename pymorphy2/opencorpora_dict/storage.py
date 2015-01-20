@@ -68,7 +68,7 @@ def load_dict(path, gramtab_format='opencorpora-int'):
                             Tag, paradigm_prefixes)
 
 
-def save_compiled_dict(compiled_dict, out_path):
+def save_compiled_dict(compiled_dict, out_path, source_name):
     """
     Save a compiled_dict to ``out_path``
     ``out_path`` should be a name of folder where to put dictionaries.
@@ -122,7 +122,7 @@ def save_compiled_dict(compiled_dict, out_path):
         ['pymorphy2_version', pymorphy2.__version__],
         ['compiled_at', datetime.datetime.utcnow().isoformat()],
 
-        ['source', 'opencorpora.org'],
+        ['source', source_name],
         ['source_version', compiled_dict.parsed_dict.version],
         ['source_revision', compiled_dict.parsed_dict.revision],
         ['source_lexemes_count', len(compiled_dict.parsed_dict.lexemes)],

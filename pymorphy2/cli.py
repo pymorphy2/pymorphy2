@@ -18,19 +18,22 @@ XML_BZ2_URL = "http://opencorpora.org/files/export/dict/dict.opcorpora.xml.bz2"
 
 # ============================ Commands ===========================
 
-def compile_dict(in_filename, out_path=None, overwrite=False, prediction_options=None):
+def compile_dict(in_filename, out_path=None, overwrite=False,
+                 prediction_options=None, source_name='opencorpora.org'):
     """
-    Make a Pymorphy2 dictionary from OpenCorpora .xml dictionary.
+    Make a Pymorphy2 dictionary from .xml dictionary in OpenCorpora format.
     """
     if out_path is None:
         out_path = 'dict'
 
     opencorpora_dict.convert_to_pymorphy2(
-        opencorpora_dict_path = in_filename,
-        out_path = out_path,
-        overwrite = overwrite,
-        prediction_options = prediction_options
+        opencorpora_dict_path=in_filename,
+        out_path=out_path,
+        source_name=source_name,
+        overwrite=overwrite,
+        prediction_options=prediction_options,
     )
+
 
 def show_dict_mem_usage(dict_path=None, verbose=False):
     """
