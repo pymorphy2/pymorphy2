@@ -3,18 +3,15 @@ from __future__ import absolute_import, unicode_literals, print_function, divisi
 
 import logging
 import time
-import sys
 import codecs
 import os
 
 import pymorphy2
 from pymorphy2 import opencorpora_dict, test_suite_generator
-from pymorphy2.utils import download_bz2, get_mem_usage, json_read, json_write
+from pymorphy2.utils import get_mem_usage, json_read, json_write
 
 logger = logging.getLogger('pymorphy2')
 logger.addHandler(logging.StreamHandler())
-
-XML_BZ2_URL = "http://opencorpora.org/files/export/dict/dict.opcorpora.xml.bz2"
 
 # ============================ Commands ===========================
 
@@ -71,20 +68,6 @@ def make_test_suite(dict_filename, out_filename, word_limit=100):
         dict_filename, out_filename, word_limit=int(word_limit))
 
 
-def download_dict_xml(out_filename, verbose):
-    """ Download an updated dictionary XML from OpenCorpora """
-    def on_chunk():
-        if verbose:
-            sys.stdout.write('.')
-            sys.stdout.flush()
-
-    logger.info('Creating %s from %s' % (out_filename, XML_BZ2_URL))
-    with open(out_filename, "wb") as f:
-        download_bz2(XML_BZ2_URL, f, on_chunk=on_chunk)
-
-    logger.info('\nDone.')
-
-
 def _parse(dict_path, in_filename, out_filename):
     morph = pymorphy2.MorphAnalyzer(dict_path)
     with codecs.open(in_filename, 'r', 'utf8') as in_file:
@@ -94,17 +77,6 @@ def _parse(dict_path, in_filename, out_filename):
                 parses = morph.parse(word)
                 parse_str = "|".join([p[1] for p in parses])
                 out_file.write(word + ": " +parse_str + "\n")
-
-
-def download_corpus_xml(out_filename):
-    from opencorpora.cli import _download, FULL_CORPORA_URL_BZ2
-    return _download(
-        out_file=out_filename,
-        decompress=True,
-        disambig=False,
-        url=FULL_CORPORA_URL_BZ2,
-        verbose=True
-    )
 
 
 def estimate_tag_cpd(corpus_filename, out_path, min_word_freq, update_meta=True):
@@ -149,11 +121,9 @@ __doc__ ="""
 Usage::
 
     pymorphy dict compile <DICT_XML> [--out <PATH>] [--force] [--verbose] [--min_ending_freq <NUM>] [--min_paradigm_popularity <NUM>] [--max_suffix_length <NUM>]
-    pymorphy dict download_xml <OUT_FILE> [--verbose]
     pymorphy dict mem_usage [--dict <PATH>] [--verbose]
     pymorphy dict make_test_suite <XML_FILE> <OUT_FILE> [--limit <NUM>] [--verbose]
     pymorphy dict meta [--dict <PATH>]
-    pymorphy prob download_xml <OUT_FILE> [--verbose]
     pymorphy prob estimate_cpd <CORPUS_XML> [--out <PATH>] [--min_word_freq <NUM>]
     pymorphy _parse <IN_FILE> <OUT_FILE> [--dict <PATH>] [--verbose]
     pymorphy -h | --help
@@ -205,12 +175,8 @@ def main():
             return show_dict_meta(args['--dict'])
         elif args['make_test_suite']:
             return make_test_suite(args['<XML_FILE>'], args['<OUT_FILE>'], int(args['--limit']))
-        elif args['download_xml']:
-            return download_dict_xml(args['<OUT_FILE>'], args['--verbose'])
 
     elif args['prob']:
-        if args['download_xml']:
-            return download_corpus_xml(args['<OUT_FILE>'])
-        elif args['estimate_cpd']:
+        if args['estimate_cpd']:
             return estimate_tag_cpd(args['<CORPUS_XML>'], args['--out'], args['--min_word_freq'])
 
