@@ -42,7 +42,7 @@ def load_dict(path, gramtab_format='opencorpora-int'):
 
     _f = lambda p: os.path.join(path, p)
 
-    meta = _load_meta(_f('meta.json'))
+    meta = load_meta(_f('meta.json'))
     _assert_format_is_compatible(meta, path)
 
     Tag = _load_tag_class(gramtab_format, _f('grammemes.json'))
@@ -117,7 +117,7 @@ def save_compiled_dict(compiled_dict, out_path, source_name):
     for prediction_suffixes_dawg in compiled_dict.prediction_suffixes_dawgs:
         prediction_suffixes_dawg_lenghts.append(_dawg_len(prediction_suffixes_dawg))
 
-    meta = [
+    write_meta(_f('meta.json'), [
         ['format_version', CURRENT_FORMAT_VERSION],
         ['pymorphy2_version', pymorphy2.__version__],
         ['compiled_at', datetime.datetime.utcnow().isoformat()],
@@ -138,17 +138,29 @@ def save_compiled_dict(compiled_dict, out_path, source_name):
         ['prediction_suffixes_dawg_lengths', prediction_suffixes_dawg_lenghts],
         ['prediction_prefixes_dawg_length', len(PREDICTION_PREFIXES)],
         ['paradigm_prefixes_length', len(PARADIGM_PREFIXES)],
-    ]
-
-    json_write(_f('meta.json'), meta, indent=4)
+    ])
 
 
-def _load_meta(filename):
+def load_meta(filename):
     """ Load metadata. """
     meta = json_read(filename, parse_float=str)
     if hasattr(collections, 'OrderedDict'):
         return collections.OrderedDict(meta)
     return dict(meta)
+
+
+def write_meta(filename, meta):
+    """ Save metadata to a file. """
+    if isinstance(meta, dict):
+        meta = list(meta.items())
+    json_write(filename, meta)
+
+
+def update_meta(filename, extra):
+    """ Update meta with extra fields """
+    meta = load_meta(filename)
+    meta.update(extra)
+    write_meta(filename, meta)
 
 
 def _load_tag_class(gramtab_format, grammemes_filename):
