@@ -3,12 +3,45 @@
 Module for estimating P(t|w) from partially annotated OpenCorpora XML dump
 and saving this information to a file.
 
-This module requires NLTK3 master, opencorpora-tools>=0.4.4 and dawg >= 0.7
+This module requires NLTK 3.x, opencorpora-tools>=0.4.4 and dawg >= 0.7
 packages for probability estimation and resulting file creation.
 """
 from __future__ import absolute_import
+import os
+import logging
+from pymorphy2 import MorphAnalyzer
 from pymorphy2.opencorpora_dict.preprocess import tag2grammemes
 from pymorphy2.dawg import ConditionalProbDistDAWG
+from pymorphy2.opencorpora_dict.storage import update_meta
+
+
+def add_conditional_tag_probability(corpus_filename, out_path, min_word_freq,
+                                    logger=None, morph=None):
+    """ Add P(t|w) estimates to a compiled dictionary """
+
+    if morph is None:
+        morph = MorphAnalyzer(out_path, probability_estimator_cls=None)
+
+    if logger is None:
+        logger = logging.getLogger(__name__)
+
+    logger.info("Estimating P(t|w) from %s" % corpus_filename)
+    cpd, cfd = estimate_conditional_tag_probability(morph, corpus_filename)
+
+    logger.info("Encoding P(t|w) as DAWG")
+    d = build_cpd_dawg(morph, cpd, int(min_word_freq))
+    dawg_filename = os.path.join(out_path, 'p_t_given_w.intdawg')
+    d.save(dawg_filename)
+
+    logger.info("Updating meta information")
+    meta_filename = os.path.join(out_path, 'meta.json')
+    update_meta(meta_filename, [
+        ('P(t|w)', True),
+        ('P(t|w)_unique_words', len(cpd.conditions())),
+        ('P(t|w)_outcomes', cfd.N()),
+        ('P(t|w)_min_word_freq', int(min_word_freq)),
+    ])
+    logger.info('\nDone.')
 
 
 def estimate_conditional_tag_probability(morph, corpus_filename):
@@ -50,7 +83,7 @@ def estimate_conditional_tag_probability(morph, corpus_filename):
     return cpd, cfd
 
 
-def build_cpd_dawg(morph, cpd, min_frequency):
+def build_cpd_dawg(morph, cpd, min_word_freq):
     """
     Return conditional tag probability information encoded as DAWG.
 
@@ -58,7 +91,7 @@ def build_cpd_dawg(morph, cpd, min_frequency):
     stores ``"word:tag"`` key with ``probability*1000000`` integer value.
     """
     words = [word for (word, fd) in cpd.items()
-             if fd.freqdist().N() >= min_frequency]
+             if fd.freqdist().N() >= min_word_freq]
 
     prob_data = filter(
         lambda rec: not _all_the_same(rec[1]),

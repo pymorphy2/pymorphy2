@@ -4,31 +4,15 @@ from __future__ import absolute_import, unicode_literals, print_function, divisi
 import logging
 import time
 import codecs
-import os
 
 import pymorphy2
-from pymorphy2 import opencorpora_dict, test_suite_generator
-from pymorphy2.utils import get_mem_usage, json_read, json_write
+from pymorphy2 import test_suite_generator
+from pymorphy2.utils import get_mem_usage
 
 logger = logging.getLogger('pymorphy2')
 
+
 # ============================ Commands ===========================
-
-def compile_dict(in_filename, out_path=None, overwrite=False,
-                 prediction_options=None, source_name='opencorpora.org'):
-    """
-    Make a Pymorphy2 dictionary from .xml dictionary in OpenCorpora format.
-    """
-    if out_path is None:
-        out_path = 'dict'
-
-    opencorpora_dict.convert_to_pymorphy2(
-        opencorpora_dict_path=in_filename,
-        out_path=out_path,
-        source_name=source_name,
-        overwrite=overwrite,
-        prediction_options=prediction_options,
-    )
 
 
 def show_dict_mem_usage(dict_path=None, verbose=False):
@@ -78,35 +62,6 @@ def _parse(dict_path, in_filename, out_filename):
                 out_file.write(word + ": " +parse_str + "\n")
 
 
-def estimate_tag_cpd(corpus_filename, out_path, min_word_freq, update_meta=True):
-    from pymorphy2.opencorpora_dict.probability import (
-        estimate_conditional_tag_probability, build_cpd_dawg)
-
-    m = pymorphy2.MorphAnalyzer(out_path, probability_estimator_cls=None)
-
-    logger.info("Estimating P(t|w) from %s" % corpus_filename)
-    cpd, cfd = estimate_conditional_tag_probability(m, corpus_filename)
-
-    logger.info("Encoding P(t|w) as DAWG")
-    d = build_cpd_dawg(m, cpd, int(min_word_freq))
-    dawg_filename = os.path.join(out_path, 'p_t_given_w.intdawg')
-    d.save(dawg_filename)
-
-    if update_meta:
-        logger.info("Updating meta information")
-        meta_filename = os.path.join(out_path, 'meta.json')
-        meta = json_read(meta_filename)
-        meta.extend([
-            ('P(t|w)', True),
-            ('P(t|w)_unique_words', len(cpd.conditions())),
-            ('P(t|w)_outcomes', cfd.N()),
-            ('P(t|w)_min_word_freq', int(min_word_freq)),
-        ])
-        json_write(meta_filename, meta)
-
-    logger.info('\nDone.')
-
-
 # =============================================================================
 
 # Hacks are here to make docstring compatible with both
@@ -119,26 +74,19 @@ Pymorphy2 is a morphological analyzer / inflection engine for Russian language.
 __doc__ ="""
 Usage::
 
-    pymorphy dict compile <DICT_XML> [--out <PATH>] [--force] [--verbose] [--min_ending_freq <NUM>] [--min_paradigm_popularity <NUM>] [--max_suffix_length <NUM>]
-    pymorphy dict mem_usage [--dict <PATH>] [--verbose]
-    pymorphy dict make_test_suite <XML_FILE> <OUT_FILE> [--limit <NUM>] [--verbose]
     pymorphy dict meta [--dict <PATH>]
-    pymorphy prob estimate_cpd <CORPUS_XML> [--out <PATH>] [--min_word_freq <NUM>]
+    pymorphy dict mem_usage [--dict <PATH>] [--verbose]
+    pymorphy dict _maketest <XML_FILE> <OUT_FILE> [--limit <NUM>] [--verbose]
     pymorphy _parse <IN_FILE> <OUT_FILE> [--dict <PATH>] [--verbose]
     pymorphy -h | --help
     pymorphy --version
 
 Options::
 
+    --dict <PATH>                       Dictionary folder path
     -v --verbose                        Be more verbose
-    -f --force                          Overwrite target folder
     -o --out <PATH>                     Output folder name [default: dict]
     --limit <NUM>                       Min. number of words per gram. tag [default: 100]
-    --min_ending_freq <NUM>             Prediction: min. number of suffix occurances [default: 2]
-    --min_paradigm_popularity <NUM>     Prediction: min. number of lexemes for the paradigm [default: 3]
-    --max_suffix_length <NUM>           Prediction: max. length of prediction suffixes [default: 5]
-    --min_word_freq <NUM>               P(t|w) estimation: min. word count in source corpus [default: 1]
-    --dict <PATH>                       Dictionary folder path
 
 """
 DOC = head + __doc__.replace('::\n', ':')
@@ -153,31 +101,16 @@ def main():
     from docopt import docopt
     args = docopt(DOC, version=pymorphy2.__version__)
 
-    if args['--verbose']:
-        logger.setLevel(logging.DEBUG)
-    else:
-        logger.setLevel(logging.INFO)
-
+    logger.setLevel(logging.DEBUG if args['--verbose'] else logging.INFO)
     logger.debug(args)
 
     if args['_parse']:
         return _parse(args['--dict'], args['<IN_FILE>'], args['<OUT_FILE>'])
 
     elif args['dict']:
-        if args['compile']:
-            prediction_options = dict(
-                (key, int(args['--'+key]))
-                for key in ('min_ending_freq', 'min_paradigm_popularity', 'max_suffix_length')
-            )
-            return compile_dict(args['<DICT_XML>'], args['--out'], args['--force'], prediction_options)
-        elif args['mem_usage']:
+        if args['mem_usage']:
             return show_dict_mem_usage(args['--dict'], args['--verbose'])
         elif args['meta']:
             return show_dict_meta(args['--dict'])
-        elif args['make_test_suite']:
+        elif args['_maketest']:
             return make_test_suite(args['<XML_FILE>'], args['<OUT_FILE>'], int(args['--limit']))
-
-    elif args['prob']:
-        if args['estimate_cpd']:
-            return estimate_tag_cpd(args['<CORPUS_XML>'], args['--out'], args['--min_word_freq'])
-
