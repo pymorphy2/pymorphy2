@@ -16,6 +16,8 @@ logger = logging.getLogger(__name__)
 _Parse = collections.namedtuple('Parse', 'word, tag, normal_form, score, methods_stack')
 
 _score_getter = operator.itemgetter(3)
+auto = object()
+
 
 class Parse(_Parse):
     """
@@ -59,7 +61,7 @@ class Parse(_Parse):
     #     return self._dict.build_paradigm_info(self.para_id)
 
 
-class SingleTagProbabilityEstimator(object):
+class ProbabilityEstimator(object):
     def __init__(self, dict_path):
         cpd_path = os.path.join(dict_path, 'p_t_given_w.intdawg')
         self.p_t_given_w = ConditionalProbDistDAWG().load(cpd_path)
@@ -93,17 +95,6 @@ class SingleTagProbabilityEstimator(object):
             key=lambda tag: self.p_t_given_w.prob(word_lower, tag),
             reverse=True
         )
-
-
-class DummySingleTagProbabilityEstimator(object):
-    def __init__(self, dict_path):
-        pass
-
-    def apply_to_parses(self, word, word_lower, parses):
-        return parses
-
-    def apply_to_tags(self, word, word_lower, tags):
-        return tags
 
 
 class MorphAnalyzer(object):
@@ -168,13 +159,14 @@ class MorphAnalyzer(object):
     ]
 
     def __init__(self, path=None, result_type=Parse, units=None,
-                 probability_estimator_cls=SingleTagProbabilityEstimator):
+                 probability_estimator_cls=auto):
         path = self.choose_dictionary_path(path)
         with threading.RLock():
             self.dictionary = opencorpora_dict.Dictionary(path)
-            if probability_estimator_cls is None:
-                probability_estimator_cls = DummySingleTagProbabilityEstimator
-            self.prob_estimator = probability_estimator_cls(path)
+
+            self.prob_estimator = self._get_prob_estimator(
+                probability_estimator_cls, self.dictionary, path
+            )
 
             if result_type is not None:
                 # create a subclass with the same name,
@@ -209,6 +201,15 @@ class MorphAnalyzer(object):
         unit = unit.clone()
         unit.init(self)
         return unit
+
+    @classmethod
+    def _get_prob_estimator(cls, estimator_cls, dictionary, path):
+        if estimator_cls is auto:
+            if dictionary.meta.get('P(t|w)'):
+                estimator_cls = ProbabilityEstimator
+        if estimator_cls is auto or estimator_cls is None:
+            return None
+        return estimator_cls(path)
 
     @classmethod
     def choose_dictionary_path(cls, path=None):
@@ -247,7 +248,8 @@ class MorphAnalyzer(object):
             if is_terminal and res:
                 break
 
-        res = self.prob_estimator.apply_to_parses(word, word_lower, res)
+        if self.prob_estimator is not None:
+            res = self.prob_estimator.apply_to_parses(word, word_lower, res)
 
         if self._result_type is None:
             return res
@@ -265,7 +267,9 @@ class MorphAnalyzer(object):
             if is_terminal and res:
                 break
 
-        return self.prob_estimator.apply_to_tags(word, word_lower, res)
+        if self.prob_estimator is not None:
+            res = self.prob_estimator.apply_to_tags(word, word_lower, res)
+        return res
 
     def normal_forms(self, word):
         """

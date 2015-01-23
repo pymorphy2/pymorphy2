@@ -56,7 +56,7 @@ class TestToyDictionary:
                              prediction_options=options, source_name='toy')
 
         # use it
-        morph = pymorphy2.MorphAnalyzer(out_path, probability_estimator_cls=None)
+        morph = pymorphy2.MorphAnalyzer(out_path)
         assert morph.tag('ёжиться') == [morph.TagClass('INFN,impf,intr')]
 
     def test_test_suite_generator(self, tmpdir):

@@ -135,7 +135,6 @@ class Dictionary(object):
             normal_form = self.build_normal_form(para_id, idx, word)
             yield word, tag, normal_form, para_id, idx
 
-
     def __repr__(self):
         return str("<%s>") % self.__class__.__name__
 
