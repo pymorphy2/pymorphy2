@@ -18,7 +18,7 @@ except AttributeError:
     izip = zip
 
 from pymorphy2 import dawg
-from pymorphy2.constants import PARADIGM_PREFIXES, PREDICTION_PREFIXES
+from pymorphy2.constants import PARADIGM_PREFIXES
 from pymorphy2.utils import longest_common_substring, largest_group
 
 logger = logging.getLogger(__name__)
@@ -26,12 +26,12 @@ logger = logging.getLogger(__name__)
 
 CompiledDictionary = collections.namedtuple(
     'CompiledDictionary',
-    'gramtab suffixes paradigms words_dawg prediction_suffixes_dawgs parsed_dict prediction_options'
+    'gramtab suffixes paradigms words_dawg prediction_suffixes_dawgs parsed_dict build_options'
 )
 
 
 def convert_to_pymorphy2(opencorpora_dict_path, out_path, source_name,
-                         overwrite=False, prediction_options=None):
+                         overwrite=False, build_options=None):
     """
     Convert a dictionary from OpenCorpora XML format to
     Pymorphy2 compacted format.
@@ -48,21 +48,22 @@ def convert_to_pymorphy2(opencorpora_dict_path, out_path, source_name,
 
     parsed_dict = parse_opencorpora_xml(opencorpora_dict_path)
     simplify_tags(parsed_dict)
-    compiled_dict = compile_parsed_dict(parsed_dict, prediction_options)
+    compiled_dict = compile_parsed_dict(parsed_dict, build_options)
     save_compiled_dict(compiled_dict, out_path, source_name=source_name)
 
 
-def compile_parsed_dict(parsed_dict, prediction_options=None):
+def compile_parsed_dict(parsed_dict, build_options=None):
     """
     Return compacted dictionary data.
     """
-    _prediction_options = dict(
-        # defaults
+    options = dict(
         min_ending_freq=2,
         min_paradigm_popularity=3,
-        max_suffix_length=5
+        max_suffix_length=5,
+        paradigm_prefixes=PARADIGM_PREFIXES,
     )
-    _prediction_options.update(prediction_options or {})
+    options.update(build_options or {})
+    paradigm_prefixes = options["paradigm_prefixes"]
 
     gramtab = []
     paradigms = []
@@ -80,7 +81,7 @@ def compile_parsed_dict(parsed_dict, prediction_options=None):
     paradigm_popularity = collections.defaultdict(int)
 
     for index, lexeme in enumerate(lexemes):
-        stem, paradigm = _to_paradigm(lexeme)
+        stem, paradigm = _to_paradigm(lexeme, paradigm_prefixes)
 
         # build gramtab
         for suff, tag, pref in paradigm:
@@ -122,12 +123,15 @@ def compile_parsed_dict(parsed_dict, prediction_options=None):
         for index, suff in enumerate(suffixes)
     )
 
+    paradigm_prefixes_dict = dict(
+        (pref, idx) for idx, pref in enumerate(paradigm_prefixes)
+    )
     def fix_strings(paradigm):
         """ Replace suffix and prefix with the respective id numbers. """
         para = []
         for suff, tag, pref in paradigm:
             para.append(
-                (suffixes_dict[suff], tag, PARADIGM_PREFIXES.index(pref))
+                (suffixes_dict[suff], tag, paradigm_prefixes_dict[pref])
             )
         return para
 
@@ -136,7 +140,15 @@ def compile_parsed_dict(parsed_dict, prediction_options=None):
 
     logger.debug('calculating prediction data..')
     suffixes_dawgs_data = _suffixes_prediction_data(
-        words, paradigm_popularity, gramtab, paradigms, suffixes, **_prediction_options
+        words=words,
+        paradigm_popularity=paradigm_popularity,
+        gramtab=gramtab,
+        paradigms=paradigms,
+        suffixes=suffixes,
+        min_ending_freq=options["min_ending_freq"],
+        min_paradigm_popularity=options["min_paradigm_popularity"],
+        max_suffix_length=options["max_suffix_length"],
+        paradigm_prefixes=paradigm_prefixes,
     )
 
     logger.debug('building word DAWG..')
@@ -156,7 +168,7 @@ def compile_parsed_dict(parsed_dict, prediction_options=None):
         words_dawg=words_dawg,
         prediction_suffixes_dawgs=prediction_suffixes_dawgs,
         parsed_dict=parsed_dict,
-        prediction_options=_prediction_options
+        build_options=options,
     )
 
 
@@ -218,7 +230,7 @@ def _join_lexemes(lexemes, links):
     return [lexemes[lex_id] for lex_id in lex_ids if lexemes[lex_id]]
 
 
-def _to_paradigm(lexeme):
+def _to_paradigm(lexeme, paradigm_prefixes):
     """
     Extract (stem, paradigm) pair from lexeme (which is a list of
     (word_form, tag) tuples). Paradigm is a list of suffixes with
@@ -234,7 +246,7 @@ def _to_paradigm(lexeme):
         prefixes = [form[:form.index(stem)] for form in forms]
 
         # only allow prefixes from PARADIGM_PREFIXES
-        if any(pref not in PARADIGM_PREFIXES for pref in prefixes):
+        if any(pref not in paradigm_prefixes for pref in prefixes):
             # With right PARADIGM_PREFIXES empty stem is fine;
             # os.path.commonprefix doesn't return anything useful
             # for prediction.
@@ -250,7 +262,8 @@ def _to_paradigm(lexeme):
 
 
 def _suffixes_prediction_data(words, paradigm_popularity, gramtab, paradigms, suffixes,
-                              min_ending_freq, min_paradigm_popularity, max_suffix_length):
+                              min_ending_freq, min_paradigm_popularity, max_suffix_length,
+                              paradigm_prefixes):
 
     logger.debug('calculating prediction data: removing non-productive paradigms..')
     productive_paradigms = set(
@@ -266,7 +279,7 @@ def _suffixes_prediction_data(words, paradigm_popularity, gramtab, paradigms, su
     # [form_prefix_id]["suffix"]["POS"][(para_id, idx)] => number or occurrences
     # this is for selecting most popular parses
     endings = {}
-    for form_prefix_id in range(len(PARADIGM_PREFIXES)):
+    for form_prefix_id in range(len(paradigm_prefixes)):
         endings[form_prefix_id] = collections.defaultdict(
                                     lambda: collections.defaultdict(
                                         lambda: collections.defaultdict(int)))
@@ -283,7 +296,7 @@ def _suffixes_prediction_data(words, paradigm_popularity, gramtab, paradigms, su
 
         tag = gramtab[paradigm[form_count + idx]]
         form_prefix_id = paradigm[2*form_count + idx]
-        form_prefix = PARADIGM_PREFIXES[form_prefix_id]
+        form_prefix = paradigm_prefixes[form_prefix_id]
         form_suffix = suffixes[paradigm[idx]]
 
         assert len(word) >= len(form_prefix+form_suffix), word

@@ -3,11 +3,14 @@ from __future__ import absolute_import, unicode_literals
 
 import os
 import pymorphy2
-from pymorphy2.opencorpora_dict.compile import (_to_paradigm,
-                                                convert_to_pymorphy2)
+from pymorphy2.opencorpora_dict.compile import (
+    _to_paradigm,
+    convert_to_pymorphy2
+)
 from pymorphy2.opencorpora_dict.parse import parse_opencorpora_xml
 from pymorphy2.dawg import assert_can_create
 from pymorphy2.test_suite_generator import make_test_suite
+from pymorphy2.constants import PARADIGM_PREFIXES
 
 import pytest
 
@@ -53,7 +56,7 @@ class TestToyDictionary:
             'min_ending_freq': 0,
         }
         convert_to_pymorphy2(self.XML_PATH, out_path, overwrite=True,
-                             prediction_options=options, source_name='toy')
+                             build_options=options, source_name='toy')
 
         # use it
         morph = pymorphy2.MorphAnalyzer(out_path)
@@ -73,7 +76,7 @@ class TestToParadigm(object):
             ["ярче", "COMP,Qual"],
             ["ярчей", "COMP,Qual V-ej"],
         ]
-        stem, forms = _to_paradigm(lexeme)
+        stem, forms = _to_paradigm(lexeme, PARADIGM_PREFIXES)
         assert stem == "ярче"
         assert forms == (
             ("", "COMP,Qual", ""),
@@ -85,7 +88,7 @@ class TestToParadigm(object):
             ["ярче", "COMP,Qual"],
             ["поярче", "COMP,Qual Cmp2"],
         ]
-        stem, forms = _to_paradigm(lexeme)
+        stem, forms = _to_paradigm(lexeme, PARADIGM_PREFIXES)
         assert stem == "ярче"
         assert forms == (
             ("", "COMP,Qual", ""),
@@ -100,7 +103,7 @@ class TestToParadigm(object):
             ["поярчей", "COMP,Qual Cmp2,V-ej"],
             ["наиярчайший", "ADJF,Supr,Qual masc,sing,nomn"],
         ]
-        stem, forms = _to_paradigm(lexeme)
+        stem, forms = _to_paradigm(lexeme, PARADIGM_PREFIXES)
         assert stem == 'ярч'
 
     def test_multiple_prefixes_2(self):
@@ -109,7 +112,7 @@ class TestToParadigm(object):
             ["наиподробнейший", 2],
             ["поподробнее", 3]
         ]
-        stem, forms = _to_paradigm(lexeme)
+        stem, forms = _to_paradigm(lexeme, PARADIGM_PREFIXES)
         assert stem == 'подробне'
         assert forms == (
             ("йший", 1, ""),
@@ -124,7 +127,7 @@ class TestToParadigm(object):
             ["поплатиновее", 3],
             ["поплатиновей", 4],
         ]
-        stem, forms = _to_paradigm(lexeme)
+        stem, forms = _to_paradigm(lexeme, PARADIGM_PREFIXES)
         assert forms == (
             ("е", 1, ""),
             ("й", 2, ""),
@@ -135,7 +138,7 @@ class TestToParadigm(object):
 
     def test_no_prefix(self):
         lexeme = [["английский", 1], ["английского", 2]]
-        stem, forms = _to_paradigm(lexeme)
+        stem, forms = _to_paradigm(lexeme, PARADIGM_PREFIXES)
         assert stem == 'английск'
         assert forms == (
             ("ий", 1, ""),
@@ -144,7 +147,7 @@ class TestToParadigm(object):
 
     def test_single(self):
         lexeme = [["английски", 1]]
-        stem, forms = _to_paradigm(lexeme)
+        stem, forms = _to_paradigm(lexeme, PARADIGM_PREFIXES)
         assert stem == 'английски'
         assert forms == (("", 1, ""),)
 

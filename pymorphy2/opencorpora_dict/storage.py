@@ -20,7 +20,7 @@ except AttributeError:
 import pymorphy2
 from pymorphy2 import tagset
 from pymorphy2 import dawg
-from pymorphy2.constants import PARADIGM_PREFIXES, PREDICTION_PREFIXES
+from pymorphy2.constants import PREDICTION_PREFIXES
 from pymorphy2.utils import json_write, json_read
 
 logger = logging.getLogger(__name__)
@@ -51,11 +51,16 @@ def load_dict(path, gramtab_format='opencorpora-int'):
     gramtab = [Tag(tag_str) for tag_str in str_gramtab]
 
     suffixes = json_read(_f('suffixes.json'))
-    paradigm_prefixes = json_read(_f('paradigm-prefixes.json'))
     paradigms = _load_paradigms(_f('paradigms.array'))
     words = dawg.WordsDawg().load(_f('words.dawg'))
 
     prediction_prefixes = dawg.DAWG().load(_f('prediction-prefixes.dawg'))
+
+    try:
+        paradigm_prefixes = meta["build_options"]["paradigm_prefixes"]
+    except KeyError:
+        # support dicts v2.4
+        paradigm_prefixes = json_read(_f('paradigm-prefixes.json'))
 
     prediction_suffixes_dawgs = []
     for prefix_id in range(len(paradigm_prefixes)):
@@ -108,9 +113,7 @@ def save_compiled_dict(compiled_dict, out_path, source_name):
     for prefix_id, prediction_suffixes_dawg in enumerate(compiled_dict.prediction_suffixes_dawgs):
         prediction_suffixes_dawg.save(_f('prediction-suffixes-%s.dawg' % prefix_id))
 
-
     dawg.DAWG(PREDICTION_PREFIXES).save(_f('prediction-prefixes.dawg'))
-    json_write(_f('paradigm-prefixes.json'), PARADIGM_PREFIXES)
 
     logger.debug("computing metadata..")
 
@@ -142,10 +145,9 @@ def save_compiled_dict(compiled_dict, out_path, source_name):
         ['suffixes_length', len(compiled_dict.suffixes)],
 
         ['words_dawg_length', words_dawg_len],
-        ['prediction_options', compiled_dict.prediction_options],
+        ['build_options', compiled_dict.build_options],
         ['prediction_suffixes_dawg_lengths', prediction_suffixes_dawg_lenghts],
         ['prediction_prefixes_dawg_length', len(PREDICTION_PREFIXES)],
-        ['paradigm_prefixes_length', len(PARADIGM_PREFIXES)],
     ])
 
 

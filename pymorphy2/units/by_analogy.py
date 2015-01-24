@@ -161,13 +161,18 @@ class KnownSuffixAnalyzer(AnalogyAnalizerUnit):
 
     def init(self, morph):
         super(KnownSuffixAnalyzer, self).init(morph)
-
         self._paradigm_prefixes = list(reversed(list(enumerate(self.dict.paradigm_prefixes))))
-        max_suffix_length = self.dict.meta['prediction_options']['max_suffix_length']
-        self._prediction_splits = list(reversed(range(1, max_suffix_length+1)))
+        self._prediction_splits = list(reversed(range(1, self._max_suffix_length()+1)))
 
         self.fake_dict = self.FakeDictionary()
         self.fake_dict.init(morph)
+
+    def _max_suffix_length(self):
+        try:
+            return self.dict.meta['build_options']['max_suffix_length']
+        except KeyError:
+            # dicts v2.4 support
+            return self.dict.meta['prediction_options']['max_suffix_length']
 
     def parse(self, word, word_lower, seen_parses):
         result = []
