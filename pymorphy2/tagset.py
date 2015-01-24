@@ -423,7 +423,9 @@ class OpencorporaTag(object):
         return frozenset(cls.RARE_CASES.get(g, g) for g in grammemes)
 
     @classmethod
-    def add_grammemes_to_known(cls, lat, cyr):
+    def add_grammemes_to_known(cls, lat, cyr, overwrite=True):
+        if not overwrite and lat in cls.KNOWN_GRAMMEMES:
+            return
         cls.KNOWN_GRAMMEMES.add(lat)
         cls._LAT2CYR[lat] = cyr
         cls._CYR2LAT[cyr] = lat

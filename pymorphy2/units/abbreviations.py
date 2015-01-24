@@ -22,11 +22,11 @@ class _InitialsAnalyzer(BaseAnalyzerUnit):
 
     def init(self, morph):
         super(_InitialsAnalyzer, self).init(morph)
-
-        if 'Init' not in self.morph.TagClass.KNOWN_GRAMMEMES:
-            self.morph.TagClass.add_grammemes_to_known('Init', 'иниц')
-
+        self._init_grammemes(self.morph.TagClass)
         self._tags = self._get_gender_case_tags(self.tag_pattern)
+
+    def _init_grammemes(self, tag_cls):
+        tag_cls.add_grammemes_to_known('Init', 'иниц', overwrite=False)
 
     def _get_gender_case_tags(self, pattern):
         return [
@@ -58,6 +58,10 @@ class AbbreviatedFirstNameAnalyzer(_InitialsAnalyzer):
         self._tags_femn = [tag for tag in self._tags if 'femn' in tag]
         assert self._tags_masc + self._tags_femn == self._tags
 
+    def _init_grammemes(self, tag_cls):
+        super(AbbreviatedFirstNameAnalyzer, self)._init_grammemes(tag_cls)
+        self.morph.TagClass.add_grammemes_to_known('Name', 'имя', overwrite=False)
+
     def get_lexeme(self, form):
         # 2 lexemes: masc and femn
         fixed_word, form_tag, normal_form, score, methods_stack = form
@@ -76,6 +80,10 @@ class AbbreviatedFirstNameAnalyzer(_InitialsAnalyzer):
 
 class AbbreviatedPatronymicAnalyzer(_InitialsAnalyzer):
     TAG_PATTERN = 'NOUN,anim,%(gender)s,Sgtm,Patr,Fixd,Abbr,Init sing,%(case)s'
+
+    def _init_grammemes(self, tag_cls):
+        super(AbbreviatedPatronymicAnalyzer, self)._init_grammemes(tag_cls)
+        self.morph.TagClass.add_grammemes_to_known('Patr', 'отч', overwrite=False)
 
     def get_lexeme(self, form):
         fixed_word, _, normal_form, score, methods_stack = form
