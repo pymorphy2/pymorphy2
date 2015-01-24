@@ -149,9 +149,15 @@ def compile_parsed_dict(parsed_dict, prediction_options=None):
         logger.debug('building prediction_suffixes DAWGs #%d..' % prefix_id)
         prediction_suffixes_dawgs.append(dawg.PredictionSuffixesDAWG(dawg_data))
 
-    return CompiledDictionary(tuple(gramtab), suffixes, paradigms,
-                              words_dawg, prediction_suffixes_dawgs,
-                              parsed_dict, _prediction_options)
+    return CompiledDictionary(
+        gramtab=tuple(gramtab),
+        suffixes=suffixes,
+        paradigms=paradigms,
+        words_dawg=words_dawg,
+        prediction_suffixes_dawgs=prediction_suffixes_dawgs,
+        parsed_dict=parsed_dict,
+        prediction_options=_prediction_options
+    )
 
 
 def _join_lexemes(lexemes, links):

@@ -86,7 +86,13 @@ def parse_opencorpora_xml(filename):
             logger.debug("%d lexemes parsed" % len(lexemes))
             _lexemes_len = len(lexemes)
 
-    return ParsedDictionary(lexemes, links, grammemes, version, revision)
+    return ParsedDictionary(
+        lexemes=lexemes,
+        links=links,
+        grammemes=grammemes,
+        version=version,
+        revision=revision
+    )
 
 
 def _grammemes_from_elem(elem):

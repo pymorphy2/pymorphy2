@@ -63,9 +63,17 @@ def load_dict(path, gramtab_format='opencorpora-int'):
         assert os.path.exists(fn)
         prediction_suffixes_dawgs.append(dawg.PredictionSuffixesDAWG().load(fn))
 
-    return LoadedDictionary(meta, gramtab, suffixes, paradigms, words,
-                            prediction_prefixes, prediction_suffixes_dawgs,
-                            Tag, paradigm_prefixes)
+    return LoadedDictionary(
+        meta=meta,
+        gramtab=gramtab,
+        suffixes=suffixes,
+        paradigms=paradigms,
+        words=words,
+        prediction_prefixes=prediction_prefixes,
+        prediction_suffixes_dawgs=prediction_suffixes_dawgs,
+        Tag=Tag,
+        paradigm_prefixes=paradigm_prefixes
+    )
 
 
 def save_compiled_dict(compiled_dict, out_path, source_name):
