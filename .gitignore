@@ -13,6 +13,8 @@ pymorphy2.egg-info
 .rope*
 PYSMELLTAGS
 reports
+.ipynb_checkpoints
+*.ipynb
 
 .tox
 MANIFEST
