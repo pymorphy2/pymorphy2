@@ -19,7 +19,7 @@ except AttributeError:
 
 from pymorphy2 import dawg
 from pymorphy2.constants import PARADIGM_PREFIXES
-from pymorphy2.utils import longest_common_substring, largest_group
+from pymorphy2.utils import longest_common_substring, largest_elements
 
 logger = logging.getLogger(__name__)
 
@@ -328,7 +328,7 @@ def _suffixes_prediction_data(words, paradigm_popularity, gramtab, paradigms, su
 
             for POS in endings_with_prefix[suff]:
 
-                common_endings = largest_group(
+                common_endings = largest_elements(
                     endings_with_prefix[suff][POS].items(),
                     operator.itemgetter(1)
                 )

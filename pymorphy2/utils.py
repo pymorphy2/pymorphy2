@@ -3,6 +3,7 @@ from __future__ import absolute_import
 # unicode_literals here would break tests
 
 import os
+import heapq
 import itertools
 import codecs
 import json
@@ -75,18 +76,27 @@ def json_read(filename, **json_options):
         return json.load(f, **json_options)
 
 
-def largest_group(iterable, key):
+def largest_elements(iterable, key, n=1):
     """
-    Find a group of largest elements (according to ``key``).
+    Return a list of large elements of the ``iterable``
+    (according to ``key`` function).
+
+    ``n`` is a number of top element values to consider; when n==1
+    (default) only largest elements are returned; when n==2 - elements
+    with one of the top-2 values, etc.
 
     >>> s = [-4, 3, 5, 7, 4, -7]
-    >>> largest_group(s, abs)
+    >>> largest_elements(s, abs)
     [7, -7]
+    >>> largest_elements(s, abs, 2)
+    [5, 7, -7]
+    >>> largest_elements(s, abs, 3)
+    [-4, 5, 7, 4, -7]
 
     """
     it1, it2 = itertools.tee(iterable)
-    max_key = max(map(key, it1))
-    return [el for el in it2 if key(el) == max_key]
+    top_keys = set(heapq.nlargest(n, set(map(key, it1))))
+    return [el for el in it2 if key(el) in top_keys]
 
 
 def word_splits(word, min_reminder=3, max_prefix_length=5):
