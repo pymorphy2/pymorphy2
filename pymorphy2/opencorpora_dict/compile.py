@@ -69,8 +69,8 @@ def compile_parsed_dict(parsed_dict, build_options=None):
     paradigms = []
     words = []
 
-    seen_tags = dict()
-    seen_paradigms = dict()
+    tag_ids = dict()
+    paradigm_ids = dict()
 
     logger.info("inlining lexeme derivational rules...")
     lexemes = _join_lexemes(parsed_dict.lexemes, parsed_dict.links)
@@ -85,18 +85,18 @@ def compile_parsed_dict(parsed_dict, build_options=None):
 
         # build gramtab
         for suff, tag, pref in paradigm:
-            if tag not in seen_tags:
-                seen_tags[tag] = len(gramtab)
+            if tag not in tag_ids:
+                tag_ids[tag] = len(gramtab)
                 gramtab.append(tag)
 
         # build paradigm index
-        if paradigm not in seen_paradigms:
-            seen_paradigms[paradigm] = len(paradigms)
+        if paradigm not in paradigm_ids:
+            paradigm_ids[paradigm] = len(paradigms)
             paradigms.append(
-                tuple([(suff, seen_tags[tag], pref) for suff, tag, pref in paradigm])
+                tuple([(suff, tag_ids[tag], pref) for suff, tag, pref in paradigm])
             )
 
-        para_id = seen_paradigms[paradigm]
+        para_id = paradigm_ids[paradigm]
         paradigm_popularity[para_id] += 1
 
         for idx, (suff, tag, pref) in enumerate(paradigm):
@@ -118,12 +118,12 @@ def compile_parsed_dict(parsed_dict, build_options=None):
 
     forms = [get_form(para) for para in paradigms]
     suffixes = sorted(set(list(itertools.chain(*forms))))
-    suffixes_dict = dict(
+    suffix_ids = dict(
         (suff, index)
         for index, suff in enumerate(suffixes)
     )
 
-    paradigm_prefixes_dict = dict(
+    paradigm_prefix_ids = dict(
         (pref, idx) for idx, pref in enumerate(paradigm_prefixes)
     )
     def fix_strings(paradigm):
@@ -131,7 +131,7 @@ def compile_parsed_dict(parsed_dict, build_options=None):
         para = []
         for suff, tag, pref in paradigm:
             para.append(
-                (suffixes_dict[suff], tag, paradigm_prefixes_dict[pref])
+                (suffix_ids[suff], tag, paradigm_prefix_ids[pref])
             )
         return para
 
