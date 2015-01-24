@@ -31,6 +31,18 @@ logger = logging.getLogger(__name__)
 ParsedDictionary = collections.namedtuple('ParsedDictionary', 'lexemes links grammemes version revision')
 
 
+def get_dictionary_info(filename, elem_limit=1000):
+    """ Return dictionary version and revision """
+    for idx, (ev, elem) in enumerate(iterparse(filename, events=(str('start'),))):
+        if elem.tag == 'dictionary':
+            version = elem.get('version')
+            revision = elem.get('revision')
+            return version, revision
+        if idx > elem_limit:
+            return None, None
+    return None, None
+
+
 def parse_opencorpora_xml(filename):
     """
     Parse OpenCorpora dict XML and return a ``ParsedDictionary`` namedtuple.
@@ -39,17 +51,14 @@ def parse_opencorpora_xml(filename):
     links = []
     lexemes = {}
     grammemes = []
-    version, revision = None, None
     _lexemes_len = 0
 
-    for ev, elem in iterparse(filename, events=(str('start'), str('end'))):
+    version, revision = get_dictionary_info(filename)
+    logger.info("dictionary v%s, rev%s", version, revision)
+    interesting_tags = set(['grammeme', 'lemma', 'link'])
 
-        if ev == 'start':
-            if elem.tag == 'dictionary':
-                version = elem.get('version')
-                revision = elem.get('revision')
-                logger.info("dictionary v%s, rev%s", version, revision)
-                xml_clear_elem(elem)
+    for ev, elem in iterparse(filename):
+        if elem.tag not in interesting_tags:
             continue
 
         if elem.tag == 'grammeme':
@@ -95,8 +104,9 @@ def parse_opencorpora_xml(filename):
     )
 
 
+# TODO: replace elem.getiterator with elem.iter when dropping Python 2.6 support
 def _grammemes_from_elem(elem):
-    return ",".join(g.get('v') for g in elem.findall('g'))
+    return ",".join([g.get('v') for g in elem.getiterator('g')])
 
 
 def _word_forms_from_xml_elem(elem):
@@ -109,16 +119,16 @@ def _word_forms_from_xml_elem(elem):
     if len(elem) == 0:  # deleted lexeme?
         return lex_id, lexeme
 
-    base_info = elem.findall('l')
+    base_info = list(elem.getiterator('l'))
 
     assert len(base_info) == 1
     base_grammemes = _grammemes_from_elem(base_info[0])
 
-    for form_elem in elem.findall('f'):
+    for form_elem in elem.getiterator('f'):
         grammemes = _grammemes_from_elem(form_elem)
         form = form_elem.get('t').lower()
         lexeme.append(
-            (form, " ".join([base_grammemes, grammemes]).strip())
+            (form, (base_grammemes + " " + grammemes).strip())
         )
 
     return lex_id, lexeme
