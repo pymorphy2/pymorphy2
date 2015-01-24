@@ -229,6 +229,10 @@ def _to_paradigm(lexeme):
 
         # only allow prefixes from PARADIGM_PREFIXES
         if any(pref not in PARADIGM_PREFIXES for pref in prefixes):
+            # With right PARADIGM_PREFIXES empty stem is fine;
+            # os.path.commonprefix doesn't return anything useful
+            # for prediction.
+            # stem = os.path.commonprefix(forms)
             stem = ""
             prefixes = [''] * len(tags)
 
@@ -236,7 +240,6 @@ def _to_paradigm(lexeme):
         form[len(pref)+len(stem):]
         for form, pref in zip(forms, prefixes)
     )
-
     return stem, tuple(zip(suffixes, tags, prefixes))
 
 
