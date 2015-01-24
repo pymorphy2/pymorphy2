@@ -29,6 +29,8 @@ CompiledDictionary = collections.namedtuple(
     'gramtab suffixes paradigms words_dawg prediction_suffixes_dawgs parsed_dict build_options'
 )
 
+_pick_second = operator.itemgetter(1)
+
 
 def convert_to_pymorphy2(opencorpora_dict_path, out_path, source_name,
                          overwrite=False, build_options=None):
@@ -266,11 +268,7 @@ def _suffixes_prediction_data(words, paradigm_popularity, gramtab, paradigms, su
                               paradigm_prefixes):
 
     logger.debug('calculating prediction data: removing non-productive paradigms..')
-    productive_paradigms = set(
-        para_id
-        for (para_id, count) in paradigm_popularity.items()
-        if count >= min_paradigm_popularity
-    )
+    productive_paradigms = _popular_keys(paradigm_popularity, min_paradigm_popularity)
 
     # ["suffix"] => number of occurrences
     # this is for removing non-productive suffixes
@@ -330,7 +328,7 @@ def _suffixes_prediction_data(words, paradigm_popularity, gramtab, paradigms, su
 
                 common_endings = largest_elements(
                     endings_with_prefix[suff][POS].items(),
-                    operator.itemgetter(1)
+                    _pick_second,
                 )
 
                 for form, cnt in common_endings:
@@ -341,6 +339,10 @@ def _suffixes_prediction_data(words, paradigm_popularity, gramtab, paradigms, su
         dawgs_data.append(counted_suffixes_dawg_data)
 
     return dawgs_data
+
+
+def _popular_keys(counter, threshold):
+    return set(key for (key, count) in counter.items() if count >= threshold)
 
 
 def _linearized_paradigm(paradigm):
