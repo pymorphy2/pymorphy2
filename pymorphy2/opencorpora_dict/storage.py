@@ -145,7 +145,7 @@ def save_compiled_dict(compiled_dict, out_path, source_name):
         ['suffixes_length', len(compiled_dict.suffixes)],
 
         ['words_dawg_length', words_dawg_len],
-        ['build_options', compiled_dict.build_options],
+        ['compile_options', compiled_dict.compile_options],
         ['prediction_suffixes_dawg_lengths', prediction_suffixes_dawg_lenghts],
         ['prediction_prefixes_dawg_length', len(PREDICTION_PREFIXES)],
     ])

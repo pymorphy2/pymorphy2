@@ -169,7 +169,7 @@ class KnownSuffixAnalyzer(AnalogyAnalizerUnit):
 
     def _max_suffix_length(self):
         try:
-            return self.dict.meta['build_options']['max_suffix_length']
+            return self.dict.meta['compile_options']['max_suffix_length']
         except KeyError:
             # dicts v2.4 support
             return self.dict.meta['prediction_options']['max_suffix_length']

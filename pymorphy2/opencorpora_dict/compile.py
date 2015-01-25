@@ -26,14 +26,14 @@ logger = logging.getLogger(__name__)
 
 CompiledDictionary = collections.namedtuple(
     'CompiledDictionary',
-    'gramtab suffixes paradigms words_dawg prediction_suffixes_dawgs parsed_dict build_options'
+    'gramtab suffixes paradigms words_dawg prediction_suffixes_dawgs parsed_dict compile_options'
 )
 
 _pick_second = operator.itemgetter(1)
 
 
 def convert_to_pymorphy2(opencorpora_dict_path, out_path, source_name,
-                         overwrite=False, build_options=None):
+                         overwrite=False, compile_options=None):
     """
     Convert a dictionary from OpenCorpora XML format to
     Pymorphy2 compacted format.
@@ -50,11 +50,11 @@ def convert_to_pymorphy2(opencorpora_dict_path, out_path, source_name,
 
     parsed_dict = parse_opencorpora_xml(opencorpora_dict_path)
     simplify_tags(parsed_dict)
-    compiled_dict = compile_parsed_dict(parsed_dict, build_options)
+    compiled_dict = compile_parsed_dict(parsed_dict, compile_options)
     save_compiled_dict(compiled_dict, out_path, source_name=source_name)
 
 
-def compile_parsed_dict(parsed_dict, build_options=None):
+def compile_parsed_dict(parsed_dict, compile_options=None):
     """
     Return compacted dictionary data.
     """
@@ -64,7 +64,7 @@ def compile_parsed_dict(parsed_dict, build_options=None):
         max_suffix_length=5,
         paradigm_prefixes=PARADIGM_PREFIXES,
     )
-    options.update(build_options or {})
+    options.update(compile_options or {})
     paradigm_prefixes = options["paradigm_prefixes"]
 
     gramtab = []
@@ -170,7 +170,7 @@ def compile_parsed_dict(parsed_dict, build_options=None):
         words_dawg=words_dawg,
         prediction_suffixes_dawgs=prediction_suffixes_dawgs,
         parsed_dict=parsed_dict,
-        build_options=options,
+        compile_options=options,
     )
 
 
