@@ -57,7 +57,7 @@ def load_dict(path, gramtab_format='opencorpora-int'):
     prediction_prefixes = dawg.DAWG().load(_f('prediction-prefixes.dawg'))
 
     try:
-        paradigm_prefixes = meta["build_options"]["paradigm_prefixes"]
+        paradigm_prefixes = meta["compile_options"]["paradigm_prefixes"]
     except KeyError:
         # support dicts v2.4
         paradigm_prefixes = json_read(_f('paradigm-prefixes.json'))
