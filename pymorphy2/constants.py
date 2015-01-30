@@ -1,7 +1,12 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, unicode_literals
 
-PARADIGM_PREFIXES = ["", "по", "наи"]
+
+LANG_PARADIGM_PREFIXES = {
+    "ru": ["", "по", "наи"],
+    "ua": ["", "най", "якнай", "щонай"],
+}
+
 
 PREDICTION_PREFIXES = [
     "авиа",

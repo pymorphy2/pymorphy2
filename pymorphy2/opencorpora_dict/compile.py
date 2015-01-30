@@ -18,7 +18,6 @@ except AttributeError:
     izip = zip
 
 from pymorphy2 import dawg
-from pymorphy2.constants import PARADIGM_PREFIXES
 from pymorphy2.utils import longest_common_substring, largest_elements
 
 logger = logging.getLogger(__name__)
@@ -62,7 +61,6 @@ def compile_parsed_dict(parsed_dict, compile_options=None):
         min_ending_freq=2,
         min_paradigm_popularity=3,
         max_suffix_length=5,
-        paradigm_prefixes=PARADIGM_PREFIXES,
     )
     options.update(compile_options or {})
     paradigm_prefixes = options["paradigm_prefixes"]
