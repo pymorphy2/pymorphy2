@@ -239,10 +239,10 @@ def _to_paradigm(lexeme, paradigm_prefixes):
     associated tags and prefixes.
     """
     forms, tags = list(zip(*lexeme))
-    prefixes = [''] * len(tags)
 
     if len(forms) == 1:
         stem = forms[0]
+        prefixes = ['']
     else:
         stem = longest_common_substring(forms)
         prefixes = [form[:form.index(stem)] for form in forms]
