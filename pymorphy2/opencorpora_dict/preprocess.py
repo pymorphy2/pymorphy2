@@ -9,6 +9,9 @@ not fully compatible with OpenCorpora.
 from __future__ import absolute_import, unicode_literals
 import logging
 import collections
+
+from pymorphy2.utils import memoized
+
 logger = logging.getLogger(__name__)
 
 
@@ -34,11 +37,13 @@ def simplify_tags(parsed_dict, skip_space_ambiguity=True):
         parsed_dict.lexemes[lex_id] = new_lexeme
 
 
+@memoized({})
 def tag2grammemes(tag_str):
     """ Given tag string, return tag grammemes """
     return _split_grammemes(replace_redundant_grammemes(tag_str))
 
 
+@memoized({})
 def replace_redundant_grammemes(tag_str):
     """ Replace 'loc1', 'gen1' and 'acc1' grammemes in ``tag_str`` """
     return tag_str.replace('loc1', 'loct').replace('gen1', 'gent').replace('acc1', 'accs')
