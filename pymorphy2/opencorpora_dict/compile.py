@@ -28,7 +28,7 @@ CompiledDictionary = collections.namedtuple(
     'gramtab suffixes paradigms words_dawg prediction_suffixes_dawgs parsed_dict compile_options'
 )
 
-_pick_second = operator.itemgetter(1)
+_pick_second_item = operator.itemgetter(1)
 
 
 def convert_to_pymorphy2(opencorpora_dict_path, out_path, source_name,
@@ -274,9 +274,9 @@ def _suffixes_prediction_data(words, paradigm_popularity, gramtab, paradigms, su
 
     # [form_prefix_id]["suffix"]["POS"][(para_id, idx)] => number or occurrences
     # this is for selecting most popular parses
-    endings = {}
+    prefix_endings = {}
     for form_prefix_id in range(len(paradigm_prefixes)):
-        endings[form_prefix_id] = collections.defaultdict(
+        prefix_endings[form_prefix_id] = collections.defaultdict(
                                     lambda: collections.defaultdict(
                                         lambda: collections.defaultdict(int)))
 
@@ -307,36 +307,45 @@ def _suffixes_prediction_data(words, paradigm_popularity, gramtab, paradigms, su
 
         for i in range(max(len(form_suffix), 1), max_suffix_length+1): #was: 1,2,3,4,5
             word_end = word[-i:]
-
             ending_counts[word_end] += 1
-            endings[form_prefix_id][word_end][POS][(para_id, idx)] += 1
+            prefix_endings[form_prefix_id][word_end][POS][(para_id, idx)] += 1
 
     dawgs_data = []
 
-    for form_prefix_id in sorted(endings.keys()):
+    for form_prefix_id in sorted(prefix_endings.keys()):
         logger.debug('calculating prediction data: preparing DAWGs data #%d..' % form_prefix_id)
-        counted_suffixes_dawg_data = []
-        endings_with_prefix = endings[form_prefix_id]
-
-        for suff in endings_with_prefix:
-            if ending_counts[suff] < min_ending_freq:
-                continue
-
-            for POS in endings_with_prefix[suff]:
-
-                common_endings = largest_elements(
-                    endings_with_prefix[suff][POS].items(),
-                    _pick_second,
-                )
-
-                for form, cnt in common_endings:
-                    counted_suffixes_dawg_data.append(
-                        (suff, (cnt,) + form)
-                    )
-
-        dawgs_data.append(counted_suffixes_dawg_data)
+        endings = prefix_endings[form_prefix_id]
+        dawgs_data.append(
+            _get_suffixes_dawg_data(endings, ending_counts, min_ending_freq)
+        )
 
     return dawgs_data
+
+
+def _get_suffixes_dawg_data(endings, ending_counts, min_ending_freq):
+    counted_suffixes_dawg_data = []
+
+    for ending in endings:
+        if ending_counts[ending] < min_ending_freq:
+            continue
+
+        for POS in endings[ending]:
+
+            common_form_counts = largest_elements(
+                iterable=endings[ending][POS].items(),
+                key=_pick_second_item,
+                n=1,
+            )
+
+            for form, cnt in common_form_counts:
+                # form is a `(para_id, idx)` tuple here
+                # XXX: shouldn't we use inverted cnt to make the results
+                # sorted high to low?
+                counted_suffixes_dawg_data.append(
+                    (ending, (cnt,) + form)
+                )
+
+    return counted_suffixes_dawg_data
 
 
 def _popular_keys(counter, threshold):

@@ -191,7 +191,7 @@ class HyphenatedWordsAnalyzer(BaseAnalyzerUnit):
 
     def _parse_as_fixed_left(self, right_parses, seen, left):
         """
-        Step 1: Assume that the left part is an uninflected prefix.
+        Step 1: Assume that the left part is an immutable prefix.
         Examples: интернет-магазин, воздушно-капельный
         """
         result = []
