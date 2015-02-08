@@ -76,7 +76,7 @@ def load_dict(path, gramtab_format='opencorpora-int'):
     )
 
 
-def save_compiled_dict(compiled_dict, out_path, source_name):
+def save_compiled_dict(compiled_dict, out_path, source_name, language_code):
     """
     Save a compiled_dict to ``out_path``
     ``out_path`` should be a name of folder where to put dictionaries.
@@ -122,6 +122,7 @@ def save_compiled_dict(compiled_dict, out_path, source_name):
         prediction_suffixes_dawg_lenghts.append(_dawg_len(prediction_suffixes_dawg))
 
     write_meta(_f('meta.json'), [
+        ['language_code', language_code],
         ['format_version', CURRENT_FORMAT_VERSION],
         ['pymorphy2_version', pymorphy2.__version__],
         ['compiled_at', datetime.datetime.utcnow().isoformat()],

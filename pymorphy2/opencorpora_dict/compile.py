@@ -32,7 +32,7 @@ _pick_second_item = operator.itemgetter(1)
 
 
 def convert_to_pymorphy2(opencorpora_dict_path, out_path, source_name,
-                         overwrite=False, compile_options=None):
+                         language_code, overwrite=False, compile_options=None):
     """
     Convert a dictionary from OpenCorpora XML format to
     Pymorphy2 compacted format.
@@ -50,7 +50,8 @@ def convert_to_pymorphy2(opencorpora_dict_path, out_path, source_name,
     parsed_dict = parse_opencorpora_xml(opencorpora_dict_path)
     simplify_tags(parsed_dict)
     compiled_dict = compile_parsed_dict(parsed_dict, compile_options)
-    save_compiled_dict(compiled_dict, out_path, source_name=source_name)
+    save_compiled_dict(compiled_dict, out_path,
+                       source_name=source_name, language_code=language_code)
 
 
 def compile_parsed_dict(parsed_dict, compile_options=None):

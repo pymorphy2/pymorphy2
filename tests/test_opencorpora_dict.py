@@ -56,8 +56,9 @@ class TestToyDictionary:
             'min_ending_freq': 0,
             'paradigm_prefixes': lang.ru.PARADIGM_PREFIXES,
         }
-        convert_to_pymorphy2(self.XML_PATH, out_path, overwrite=True,
-                             compile_options=options, source_name='toy')
+        convert_to_pymorphy2(self.XML_PATH, out_path,
+                             source_name='toy', language_code='ru',
+                             overwrite=True, compile_options=options)
 
         # use it
         morph = pymorphy2.MorphAnalyzer(out_path)
