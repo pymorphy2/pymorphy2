@@ -8,8 +8,8 @@ import threading
 import operator
 
 from pymorphy2 import opencorpora_dict
-from pymorphy2 import units
 from pymorphy2.dawg import ConditionalProbDistDAWG
+from pymorphy2 import lang
 
 logger = logging.getLogger(__name__)
 
@@ -133,30 +133,7 @@ class MorphAnalyzer(object):
     """
 
     ENV_VARIABLE = 'PYMORPHY2_DICT_PATH'
-    DEFAULT_UNITS = [
-        [
-            units.DictionaryAnalyzer(),
-            units.AbbreviatedFirstNameAnalyzer(),
-            units.AbbreviatedPatronymicAnalyzer(),
-        ],
-
-        units.NumberAnalyzer(),
-        units.PunctuationAnalyzer(),
-        [
-            units.RomanNumberAnalyzer(),
-            units.LatinAnalyzer()
-        ],
-
-        units.HyphenSeparatedParticleAnalyzer(),
-        units.HyphenAdverbAnalyzer(),
-        units.HyphenatedWordsAnalyzer(),
-        units.KnownPrefixAnalyzer(),
-        [
-            units.UnknownPrefixAnalyzer(),
-            units.KnownSuffixAnalyzer()
-        ],
-        units.UnknAnalyzer(),
-    ]
+    DEFAULT_UNITS = lang.ru.DEFAULT_UNITS
 
     def __init__(self, path=None, result_type=Parse, units=None,
                  probability_estimator_cls=auto):

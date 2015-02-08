@@ -445,13 +445,11 @@ DAWG достаточно эффективная. Хранение слов в D
         gramtab-opencorpora-ext.json
         grammemes.json
         suffixes.json
-        paradigm-prefixes.json
         paradigms.array
         words.dawg
         prediction-suffixes-0.dawg
         prediction-suffixes-1.dawg
         prediction-suffixes-2.dawg
-        prediction-prefixes.dawg
 
 Файлы .json - обычные json-данные; .dawg - это двоичный формат C++ библиотеки
 `dawgdic`_; paradigms.array - это массив чисел в двоичном виде.

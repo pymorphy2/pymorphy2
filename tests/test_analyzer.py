@@ -6,6 +6,7 @@ import pymorphy2
 from pymorphy2.units.by_lookup import DictionaryAnalyzer
 from pymorphy2.units.by_analogy import UnknownPrefixAnalyzer, KnownPrefixAnalyzer
 from pymorphy2.units.by_hyphen import HyphenatedWordsAnalyzer
+from pymorphy2 import lang
 
 from .utils import morph
 
@@ -207,7 +208,7 @@ class TestTagWithPrefix:
 
         pred1 = UnknownPrefixAnalyzer()
         pred1.init(morph)
-        pred2 = KnownPrefixAnalyzer()
+        pred2 = KnownPrefixAnalyzer(lang.ru.KNOWN_PREFIXES)
         pred2.init(morph)
 
         parse1 = pred1.tag(word, word.lower(), set())

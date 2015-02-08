@@ -21,6 +21,7 @@ setup(
     packages = [
         'pymorphy2',
         'pymorphy2.units',
+        'pymorphy2.lang',
         'pymorphy2.opencorpora_dict',
     ],
     scripts=['bin/pymorphy'],

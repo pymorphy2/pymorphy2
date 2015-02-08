@@ -5,17 +5,13 @@ Analyzer units for unknown words with hyphens
 """
 
 from __future__ import absolute_import, unicode_literals, division
+from pymorphy2.dawg import PrefixMatcher
 
 from pymorphy2.units.base import BaseAnalyzerUnit, AnalogyAnalizerUnit
 from pymorphy2.units.utils import (add_parse_if_not_seen, add_tag_if_not_seen,
                                    with_suffix, without_fixed_suffix,
                                    with_prefix, without_fixed_prefix,
                                    replace_methods_stack)
-
-
-RU_PARTICLES_AFTER_HYPHEN = [
-    "-то", "-ка", "-таки", "-де", "-тко", "-тка", "-с", "-ста",
-]
 
 
 class HyphenSeparatedParticleAnalyzer(AnalogyAnalizerUnit):
@@ -32,8 +28,7 @@ class HyphenSeparatedParticleAnalyzer(AnalogyAnalizerUnit):
         particles at tokenization level.
 
     """
-    def __init__(self, score_multiplier=0.9,
-                 particles_after_hyphen=RU_PARTICLES_AFTER_HYPHEN):
+    def __init__(self, particles_after_hyphen, score_multiplier=0.9):
         self.score_multiplier = score_multiplier
 
         # XXX: maybe the code can be made faster by compiling
@@ -162,14 +157,16 @@ class HyphenatedWordsAnalyzer(BaseAnalyzerUnit):
 
     }  # TODO: add more grammemes
 
-    def __init__(self, score_multiplier=0.75):
+    def __init__(self, skip_prefixes, score_multiplier=0.75):
         self.score_multiplier = score_multiplier
+        self.skip_prefixes = skip_prefixes
 
     def init(self, morph):
         super(HyphenatedWordsAnalyzer, self).init(morph)
         Tag = morph.TagClass
         self._FEATURE_GRAMMEMES = (Tag.PARTS_OF_SPEECH | Tag.NUMBERS |
                                    Tag.CASES | Tag.PERSONS | Tag.TENSES)
+        self._has_skip_prefix = PrefixMatcher(self.skip_prefixes).is_prefixed
 
     def parse(self, word, word_lower, seen_parses):
         if not self._should_parse(word_lower):
@@ -279,7 +276,7 @@ class HyphenatedWordsAnalyzer(BaseAnalyzerUnit):
             # require exactly 1 hyphen, in the middle of the word
             return False
 
-        if self.dict.prediction_prefixes.prefixes(word):
+        if self._has_skip_prefix(word):
             # such words should really be parsed by KnownPrefixAnalyzer
             return False
 

@@ -3,14 +3,15 @@ from __future__ import absolute_import, division
 
 try:
     from dawg import DAWG, RecordDAWG, IntCompletionDAWG
-    CAN_CREATE = True
+    EXTENSION_AVAILABLE = True
 
 except ImportError:
     from dawg_python import DAWG, RecordDAWG, IntCompletionDAWG
-    CAN_CREATE = False
+    EXTENSION_AVAILABLE = False
+
 
 def assert_can_create():
-    if not CAN_CREATE:
+    if not EXTENSION_AVAILABLE:
         msg = ("Creating of DAWGs with DAWG-Python is "
                "not supported; install 'dawg' package.")
         raise NotImplementedError(msg)
@@ -63,3 +64,24 @@ class ConditionalProbDistDAWG(IntCompletionDAWG):
     def prob(self, word, tag):
         dawg_key = "%s:%s" % (word, tag)
         return self.get(dawg_key, 0) / self.MULTIPLIER
+
+
+class DawgPrefixMatcher(DAWG):
+    def is_prefixed(self, word):
+        return bool(self.prefixes(word))
+
+
+class PythonPrefixMatcher(object):
+    def __init__(self, prefixes):
+        self._prefixes = tuple(prefixes)
+
+    def prefixes(self, word):
+        if not self.is_prefixed(word):  # fail-fast path
+            return []
+        return [pref for pref in self._prefixes if word.startswith(pref)]
+
+    def is_prefixed(self, word):
+        return word.startswith(self._prefixes)
+
+
+PrefixMatcher = DawgPrefixMatcher if EXTENSION_AVAILABLE else PythonPrefixMatcher

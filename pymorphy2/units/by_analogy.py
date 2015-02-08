@@ -14,9 +14,14 @@ import operator
 
 from pymorphy2.units.base import AnalogyAnalizerUnit
 from pymorphy2.units.by_lookup import DictionaryAnalyzer
-from pymorphy2.units.utils import (add_parse_if_not_seen, add_tag_if_not_seen,
-                                   without_fixed_prefix, with_prefix)
+from pymorphy2.units.utils import (
+    add_parse_if_not_seen,
+    add_tag_if_not_seen,
+    without_fixed_prefix,
+    with_prefix
+)
 from pymorphy2.utils import word_splits
+from pymorphy2.dawg import PrefixMatcher
 
 _cnt_getter = operator.itemgetter(3)
 
@@ -41,9 +46,14 @@ class KnownPrefixAnalyzer(_PrefixAnalyzer):
 
     Example: псевдокошка -> (псевдо) + кошка.
     """
-    def __init__(self, score_multiplier=0.75, min_remainder_length=3):
+    def __init__(self, known_prefixes, score_multiplier=0.75, min_remainder_length=3):
+        self.known_prefixes = known_prefixes
         self.score_multiplier = score_multiplier
         self.min_remainder_length = min_remainder_length
+
+    def init(self, morph):
+        super(KnownPrefixAnalyzer, self).init(morph)
+        self.get_prefixes = PrefixMatcher(self.known_prefixes).prefixes
 
     def parse(self, word, word_lower, seen_parses):
         result = []
@@ -78,7 +88,7 @@ class KnownPrefixAnalyzer(_PrefixAnalyzer):
         return result
 
     def possible_splits(self, word):
-        word_prefixes = self.dict.prediction_prefixes.prefixes(word)
+        word_prefixes = self.get_prefixes(word)
         word_prefixes.sort(key=len, reverse=True)
         for prefix in word_prefixes:
             unprefixed_word = word[len(prefix):]

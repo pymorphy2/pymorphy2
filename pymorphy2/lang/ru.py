@@ -1,14 +1,21 @@
 # -*- coding: utf-8 -*-
+"""
+Constants and configuration for Russian language.
+"""
 from __future__ import absolute_import, unicode_literals
+from pymorphy2 import units
 
+# paradigm prefixes used for dictionary compilation
+PARADIGM_PREFIXES = ["", "по", "наи"]
 
-LANG_PARADIGM_PREFIXES = {
-    "ru": ["", "по", "наи"],
-    "ua": ["", "най", "якнай", "щонай"],
-}
+# letters initials can start with
+INITIAL_LETTERS = 'АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЭЮЯ'
 
+# a list of particles which can be attached to a word using a hyphen
+PARTICLES_AFTER_HYPHEN = ["-то", "-ка", "-таки", "-де", "-тко", "-тка", "-с", "-ста"]
 
-PREDICTION_PREFIXES = [
+# Prefixes which don't change the word parse.
+KNOWN_PREFIXES = [
     "авиа",
     "авто",
     "аква",
@@ -153,4 +160,30 @@ PREDICTION_PREFIXES = [
     "электро",
     "энерго",
     "этно",
+]
+
+# default analyzer units
+DEFAULT_UNITS = [
+    [
+        units.DictionaryAnalyzer(),
+        units.AbbreviatedFirstNameAnalyzer(INITIAL_LETTERS),
+        units.AbbreviatedPatronymicAnalyzer(INITIAL_LETTERS),
+    ],
+
+    units.NumberAnalyzer(),
+    units.PunctuationAnalyzer(),
+    [
+        units.RomanNumberAnalyzer(),
+        units.LatinAnalyzer()
+    ],
+
+    units.HyphenSeparatedParticleAnalyzer(PARTICLES_AFTER_HYPHEN),
+    units.HyphenAdverbAnalyzer(),
+    units.HyphenatedWordsAnalyzer(skip_prefixes=KNOWN_PREFIXES),
+    units.KnownPrefixAnalyzer(known_prefixes=KNOWN_PREFIXES),
+    [
+        units.UnknownPrefixAnalyzer(),
+        units.KnownSuffixAnalyzer()
+    ],
+    units.UnknAnalyzer(),
 ]

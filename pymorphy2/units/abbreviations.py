@@ -6,10 +6,9 @@ Analyzer units for abbreviated words
 from __future__ import absolute_import, unicode_literals, division
 from pymorphy2.units.base import BaseAnalyzerUnit
 
-RU_LETTERS = 'АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЭЮЯ'
 
 class _InitialsAnalyzer(BaseAnalyzerUnit):
-    def __init__(self, tag_pattern=None, score=0.1, letters=RU_LETTERS):
+    def __init__(self, letters, tag_pattern=None, score=0.1):
         if tag_pattern is None:
             if hasattr(self, 'TAG_PATTERN'):
                 tag_pattern = self.TAG_PATTERN

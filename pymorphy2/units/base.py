@@ -19,6 +19,9 @@ class BaseAnalyzerUnit(object):
 
     For inflection to work (this includes normalization) a subclass
     must implement `normalized` and `get_lexeme` methods.
+
+    In __init__ method all parameters must be saved as instance variables
+    for analyzer unit to work.
     """
     morph = None
     dict = None
