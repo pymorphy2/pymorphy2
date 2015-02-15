@@ -27,9 +27,15 @@ logger = logging.getLogger(__name__)
 CURRENT_FORMAT_VERSION = '2.4'
 
 LoadedDictionary = collections.namedtuple('LoadedDictionary', [
-    'meta', 'gramtab', 'suffixes', 'paradigms', 'words',
-    'prediction_suffixes_dawgs', 'Tag', 'paradigm_prefixes']
-)
+    'meta',
+    'gramtab',
+    'suffixes',
+    'paradigms',
+    'words',
+    'prediction_suffixes_dawgs',
+    'Tag',
+    'paradigm_prefixes',
+])
 
 
 def load_dict(path, gramtab_format='opencorpora-int'):
@@ -72,7 +78,7 @@ def load_dict(path, gramtab_format='opencorpora-int'):
         words=words,
         prediction_suffixes_dawgs=prediction_suffixes_dawgs,
         Tag=Tag,
-        paradigm_prefixes=paradigm_prefixes
+        paradigm_prefixes=paradigm_prefixes,
     )
 
 
