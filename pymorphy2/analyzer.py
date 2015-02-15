@@ -6,6 +6,7 @@ import collections
 import logging
 import threading
 import operator
+import warnings
 
 from pymorphy2 import opencorpora_dict
 from pymorphy2.dawg import ConditionalProbDistDAWG
@@ -48,7 +49,10 @@ class Parse(_Parse):
     @property
     def is_known(self):
         """ True if this form is a known dictionary form. """
-        return self._dict.word_is_known(self.word, strict_ee=True)
+        return self._dict.word_is_known(
+            word=self.word,
+            substitutes_compiled=self._morph.char_substitutes
+        )
 
     @property
     def normalized(self):
@@ -131,12 +135,13 @@ class MorphAnalyzer(object):
         >>> morph = pymorphy2.MorphAnalyzer(result_type=None)
 
     """
-
     ENV_VARIABLE = 'PYMORPHY2_DICT_PATH'
     DEFAULT_UNITS = lang.ru.DEFAULT_UNITS
+    DEFAULT_SUBSTITUTES = lang.ru.CHAR_SUBSTITUTES
+    char_substitutes = None
 
     def __init__(self, path=None, result_type=Parse, units=None,
-                 probability_estimator_cls=auto):
+                 probability_estimator_cls=auto, char_substitutes=auto):
         path = self.choose_dictionary_path(path)
         with threading.RLock():
             self.dictionary = opencorpora_dict.Dictionary(path)
@@ -158,6 +163,7 @@ class MorphAnalyzer(object):
                 self._result_type = None
 
             self._result_type_orig = result_type
+            self._init_char_substitutes(char_substitutes)
             self._init_units(units)
 
     def _init_units(self, units_unbound=None):
@@ -173,6 +179,11 @@ class MorphAnalyzer(object):
                 self._units.append((self._bound_unit(item[-1]), True))
             else:
                 self._units.append((self._bound_unit(item), True))
+
+    def _init_char_substitutes(self, char_substitutes):
+        if char_substitutes is auto:
+            char_substitutes = getattr(self._lang_defaults(), 'CHAR_SUBSTITUTES', self.DEFAULT_SUBSTITUTES)
+        self.char_substitutes = self.dictionary.words.compile_replaces(char_substitutes or {})
 
     def _bound_unit(self, unit):
         unit = unit.clone()
@@ -318,11 +329,14 @@ class MorphAnalyzer(object):
             else:
                 yield self._result_type(*parse)
 
-    def word_is_known(self, word, strict_ee=False):
+    def word_is_known(self, word, strict=False):
         """
         Check if a ``word`` is in the dictionary.
-        Pass ``strict_ee=True`` if ``word`` is guaranteed to
-        have correct е/ё letters.
+
+        By default, some fuzziness is allowed, depending on a
+        dictionary - e.g. for Russian ё letters replaced with е are handled.
+        Pass ``strict=True`` to make matching strict (e.g. if it is
+        guaranteed the ``word`` has correct е/ё or г/ґ letters).
 
         .. note::
 
@@ -332,7 +346,10 @@ class MorphAnalyzer(object):
             method should be used with extra care.
 
         """
-        return self.dictionary.word_is_known(word.lower(), strict_ee)
+        return self.dictionary.word_is_known(
+            word = word.lower(),
+            substitutes_compiled = None if strict else self.char_substitutes
+        )
 
     @property
     def TagClass(self):

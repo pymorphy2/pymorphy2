@@ -14,6 +14,9 @@ INITIAL_LETTERS = 'АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЭЮЯ'
 # a list of particles which can be attached to a word using a hyphen
 PARTICLES_AFTER_HYPHEN = ["-то", "-ка", "-таки", "-де", "-тко", "-тка", "-с", "-ста"]
 
+# "ё" is sometimes written as "е", but not the other way around
+CHAR_SUBSTITUTES = {'е': 'ё'}
+
 # Prefixes which don't change the word parse.
 KNOWN_PREFIXES = [
     "авиа",

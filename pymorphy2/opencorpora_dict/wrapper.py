@@ -32,7 +32,6 @@ class Dictionary(object):
 
         # extra attributes
         self.path = path
-        self.ee = self.words.compile_replaces({'е': 'ё'})
 
     def build_tag_info(self, para_id, idx):
         """
@@ -104,11 +103,14 @@ class Dictionary(object):
         else:
             return fixed_word[len(prefix):]
 
-    def word_is_known(self, word, strict_ee=False):
+    def word_is_known(self, word, substitutes_compiled=None):
         """
         Check if a ``word`` is in the dictionary.
-        Pass ``strict_ee=True`` if ``word`` is guaranteed to
-        have correct е/ё letters.
+
+        To allow some fuzzyness pass ``substitutes_compiled`` argument;
+        it should be a result of :meth:`DAWG.compile_replaces()`.
+        This way you can e.g. handle ё letters replaced with е in the
+        input words.
 
         .. note::
 
@@ -118,10 +120,10 @@ class Dictionary(object):
             method should be used with extra care.
 
         """
-        if strict_ee:
-            return word in self.words
+        if substitutes_compiled:
+            return bool(self.words.similar_keys(word, substitutes_compiled))
         else:
-            return bool(self.words.similar_keys(word, self.ee))
+            return word in self.words
 
     def iter_known_words(self, prefix=""):
         """

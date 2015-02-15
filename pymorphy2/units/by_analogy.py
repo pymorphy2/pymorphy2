@@ -200,7 +200,7 @@ class KnownSuffixAnalyzer(AnalogyAnalizerUnit):
                 # XXX: this should be counted once, not for each prefix
                 word_start, word_end = word_lower[:-i], word_lower[-i:]
 
-                para_data = suffixes_dawg.similar_items(word_end, self.dict.ee)
+                para_data = suffixes_dawg.similar_items(word_end, self.morph.char_substitutes)
                 for fixed_suffix, parses in para_data:
 
                     fixed_word = word_start + fixed_suffix
@@ -254,7 +254,7 @@ class KnownSuffixAnalyzer(AnalogyAnalizerUnit):
                 # XXX: end should be counted once, not for each prefix
                 end = word_lower[-i:]
 
-                para_data = suffixes_dawg.similar_items(end, self.dict.ee)
+                para_data = suffixes_dawg.similar_items(end, self.morph.char_substitutes)
                 found = False
 
                 for fixed_suffix, parses in para_data:

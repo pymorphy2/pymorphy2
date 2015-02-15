@@ -228,9 +228,9 @@ class TestUtils:
         assert not morph.word_is_known('еш')
 
     def test_word_is_known_strict(self):
-        assert not morph.word_is_known('еж', strict_ee=True)
-        assert morph.word_is_known('ёж', strict_ee=True)
-        assert not morph.word_is_known('еш', strict_ee=True)
+        assert not morph.word_is_known('еж', strict=True)
+        assert morph.word_is_known('ёж', strict=True)
+        assert not morph.word_is_known('еш', strict=True)
 
 
 class TestParseResultClass:

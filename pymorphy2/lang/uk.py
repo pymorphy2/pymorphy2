@@ -14,6 +14,9 @@ INITIAL_LETTERS = 'АБВГҐДЕЄЖЗІЇЙКЛМНОПРСТУФХЦЧШЩЮ�
 # a list of particles which can be attached to a word using a hyphen
 PARTICLES_AFTER_HYPHEN = ["-таки"]  # TODO: check this list
 
+# "ґ" is sometimes written as "г", but not the other way around
+CHAR_SUBSTITUTES = {'г': 'ґ'}
+
 # Prefixes which don't change the word parse.
 # The list is based on
 # https://github.com/languagetool-org/languagetool/blob/master/languagetool-language-modules/uk/src/main/resources/org/languagetool/resource/uk/dash_prefixes.txt

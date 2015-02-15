@@ -22,10 +22,10 @@ class DictionaryAnalyzer(BaseAnalyzerUnit):
         """
         res = []
         normal_forms_cache = {}
-        para_data = self.dict.words.similar_items(word_lower, self.dict.ee)
+        para_data = self.dict.words.similar_items(word_lower, self.morph.char_substitutes)
 
         for fixed_word, parses in para_data:
-            # `fixed_word` is a word with proper ё letters
+            # `fixed_word` is a word with proper substitute (e.g. ё) letters
 
             for para_id, idx in parses:
                 if para_id not in normal_forms_cache:
@@ -45,7 +45,7 @@ class DictionaryAnalyzer(BaseAnalyzerUnit):
         """
         Tag a word using this dictionary.
         """
-        para_data = self.dict.words.similar_item_values(word_lower, self.dict.ee)
+        para_data = self.dict.words.similar_item_values(word_lower, self.morph.char_substitutes)
 
         # avoid extra attribute lookups
         paradigms = self.dict.paradigms
