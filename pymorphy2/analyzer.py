@@ -160,13 +160,13 @@ class MorphAnalyzer(object):
             self._result_type_orig = result_type
             self._init_units(units)
 
-    def _init_units(self, unit_classes=None):
-        if unit_classes is None:
-            unit_classes = self.DEFAULT_UNITS
+    def _init_units(self, units_unbound=None):
+        if units_unbound is None:
+            units_unbound = getattr(self._lang_defaults(), 'DEFAULT_UNITS', self.DEFAULT_UNITS)
 
-        self._unit_classes = unit_classes
+        self._units_unbound = units_unbound
         self._units = []
-        for item in unit_classes:
+        for item in units_unbound:
             if isinstance(item, (list, tuple)):
                 for unit in item[:-1]:
                     self._units.append((self._bound_unit(unit), False))
@@ -178,6 +178,14 @@ class MorphAnalyzer(object):
         unit = unit.clone()
         unit.init(self)
         return unit
+
+    def _lang_defaults(self):
+        if not self.dictionary.lang:
+            return None
+        if not hasattr(lang, self.dictionary.lang):
+            warnings.warn("unkonwn language code: %r" % self.dictionary.lang)
+            return None
+        return getattr(lang, self.dictionary.lang)
 
     @classmethod
     def _get_prob_estimator(cls, estimator_cls, dictionary, path):
@@ -342,7 +350,7 @@ class MorphAnalyzer(object):
         return self.TagClass.lat2cyr(tag_or_grammeme)
 
     def __reduce__(self):
-        args = (self.dictionary.path, self._result_type_orig, self._unit_classes)
+        args = (self.dictionary.path, self._result_type_orig, self._units_unbound)
         return self.__class__, args, None
 
 

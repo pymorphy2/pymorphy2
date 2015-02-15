@@ -28,6 +28,7 @@ class Dictionary(object):
         self.prediction_suffixes_dawgs = self._data.prediction_suffixes_dawgs
         self.meta = self._data.meta
         self.Tag = self._data.Tag
+        self.lang = self.meta.get('language_code')
 
         # extra attributes
         self.path = path
