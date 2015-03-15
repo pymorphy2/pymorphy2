@@ -10,7 +10,7 @@ import warnings
 
 from pymorphy2 import opencorpora_dict
 from pymorphy2.dawg import ConditionalProbDistDAWG
-from pymorphy2 import lang
+import pymorphy2.lang
 
 logger = logging.getLogger(__name__)
 
@@ -101,6 +101,33 @@ class ProbabilityEstimator(object):
         )
 
 
+def _lang_dict_paths():
+    import pkg_resources
+    return dict(
+        (pkg.name, pkg.load().get_path())
+        for pkg in pkg_resources.iter_entry_points('pymorphy2_dicts')
+    )
+
+
+def lang_dict_path(lang):
+    """ Return language-specific dictionary path """
+    lang_paths = _lang_dict_paths()
+    if lang in lang_paths:
+        return lang_paths[lang]
+
+    if lang == 'ru':
+        # backwards compatibility
+        try:
+            import pymorphy2_dicts
+            return pymorphy2_dicts.get_path()
+        except ImportError:
+            raise ValueError("Can't find dictionaries for Russian. "
+                             "Please install 'pymorphy2-dicts-ru' package.")
+
+    raise ValueError("Can't find a dictionary for language %r. "
+                     "Installed languages: %r" % (lang, list(lang_paths.keys())))
+
+
 class MorphAnalyzer(object):
     """
     Morphological analyzer for Russian language.
@@ -125,7 +152,7 @@ class MorphAnalyzer(object):
     with a path to dictionaries, or pass ``path`` argument
     to :class:`pymorphy2.MorphAnalyzer` constructor::
 
-        >>> morph = pymorphy2.MorphAnalyzer('/path/to/dictionaries') # doctest: +SKIP
+        >>> morph = pymorphy2.MorphAnalyzer(path='/path/to/dictionaries') # doctest: +SKIP
 
     By default, methods of this class return parsing results
     as namedtuples :class:`Parse`. This has performance implications
@@ -136,15 +163,28 @@ class MorphAnalyzer(object):
 
     """
     ENV_VARIABLE = 'PYMORPHY2_DICT_PATH'
-    DEFAULT_UNITS = lang.ru.DEFAULT_UNITS
-    DEFAULT_SUBSTITUTES = lang.ru.CHAR_SUBSTITUTES
+    DEFAULT_UNITS = pymorphy2.lang.ru.DEFAULT_UNITS
+    DEFAULT_SUBSTITUTES = pymorphy2.lang.ru.CHAR_SUBSTITUTES
     char_substitutes = None
 
-    def __init__(self, path=None, result_type=Parse, units=None,
+    def __init__(self, path=None, lang='ru', result_type=Parse, units=None,
                  probability_estimator_cls=auto, char_substitutes=auto):
-        path = self.choose_dictionary_path(path)
+
+        self._path = path
+        self._lang = lang
+
+        self.lang = None if path is None else lang
+        path = self.choose_dictionary_path(path, lang)
+
         with threading.RLock():
             self.dictionary = opencorpora_dict.Dictionary(path)
+            if self.lang is None:
+                # When path is passed explicitly, set language
+                # to dict language.
+                self.lang = self.dictionary.lang
+            elif self.dictionary.lang != self.lang:
+                warnings.warn("Dictionary language (%r) doesn't match "
+                  "analyzer language (%r)." % (self.dictionary.lang, self.lang))
 
             self.prob_estimator = self._get_prob_estimator(
                 probability_estimator_cls, self.dictionary, path
@@ -191,12 +231,12 @@ class MorphAnalyzer(object):
         return unit
 
     def _lang_defaults(self):
-        if not self.dictionary.lang:
+        if not self.lang:
             return None
-        if not hasattr(lang, self.dictionary.lang):
-            warnings.warn("unkonwn language code: %r" % self.dictionary.lang)
+        if not hasattr(pymorphy2.lang, self.lang):
+            warnings.warn("unkonwn language code: %r" % self.lang)
             return None
-        return getattr(lang, self.dictionary.lang)
+        return getattr(pymorphy2.lang, self.lang)
 
     @classmethod
     def _get_prob_estimator(cls, estimator_cls, dictionary, path):
@@ -208,22 +248,14 @@ class MorphAnalyzer(object):
         return estimator_cls(path)
 
     @classmethod
-    def choose_dictionary_path(cls, path=None):
+    def choose_dictionary_path(cls, path=None, lang=None):
         if path is not None:
             return path
 
         if cls.ENV_VARIABLE in os.environ:
             return os.environ[cls.ENV_VARIABLE]
 
-        try:
-            import pymorphy2_dicts
-            return pymorphy2_dicts.get_path()
-        except ImportError:
-            msg = ("Can't find dictionaries. "
-                   "Please either pass a path to dictionaries, "
-                   "or install 'pymorphy2-dicts' package, "
-                   "or set %s environment variable.") % cls.ENV_VARIABLE
-            raise ValueError(msg)
+        return lang_dict_path(lang)
 
     def parse(self, word):
         """
@@ -367,7 +399,5 @@ class MorphAnalyzer(object):
         return self.TagClass.lat2cyr(tag_or_grammeme)
 
     def __reduce__(self):
-        args = (self.dictionary.path, self._result_type_orig, self._units_unbound)
+        args = (self._path, self._lang, self._result_type_orig, self._units_unbound)
         return self.__class__, args, None
-
-
