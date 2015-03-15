@@ -26,17 +26,17 @@ setup(
     ],
     scripts=['bin/pymorphy'],
     requires=[
-        'dawg_python (>= 0.7)',
+        'dawg_python (>= 0.7.1)',
         'pymorphy2_dicts_ru (>=2.4, <3.0)',
         'docopt (>= 0.6)',
     ],
     install_requires=[
-        'dawg-python >= 0.7',
+        'dawg-python >= 0.7.1',
         'pymorphy2-dicts-ru >=2.4, <3.0',
         'docopt >= 0.6',
     ],
     extras_require = {
-        'fast':  ["DAWG >= 0.7.3"],
+        'fast':  ["DAWG >= 0.7.7"],
     },
     zip_safe=False,
 
