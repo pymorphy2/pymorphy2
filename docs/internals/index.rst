@@ -9,4 +9,4 @@
 
    dict
    prediction
-   umlauts
+   char-substitutes
