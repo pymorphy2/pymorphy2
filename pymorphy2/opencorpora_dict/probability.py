@@ -13,6 +13,7 @@ from pymorphy2 import MorphAnalyzer
 from pymorphy2.opencorpora_dict.preprocess import tag2grammemes
 from pymorphy2.dawg import ConditionalProbDistDAWG
 from pymorphy2.opencorpora_dict.storage import update_meta
+from pymorphy2.utils import with_progress
 
 
 def add_conditional_tag_probability(corpus_filename, out_path, min_word_freq,
@@ -26,7 +27,7 @@ def add_conditional_tag_probability(corpus_filename, out_path, min_word_freq,
         logger = logging.getLogger(__name__)
 
     logger.info("Estimating P(t|w) from %s" % corpus_filename)
-    cpd, cfd = estimate_conditional_tag_probability(morph, corpus_filename)
+    cpd, cfd = estimate_conditional_tag_probability(morph, corpus_filename, logger)
 
     logger.info("Encoding P(t|w) as DAWG")
     d = build_cpd_dawg(morph, cpd, int(min_word_freq))
@@ -44,7 +45,7 @@ def add_conditional_tag_probability(corpus_filename, out_path, min_word_freq,
     logger.info('\nDone.')
 
 
-def estimate_conditional_tag_probability(morph, corpus_filename):
+def estimate_conditional_tag_probability(morph, corpus_filename, logger=None):
     """
     Estimate P(t|w) based on OpenCorpora xml dump.
 
@@ -53,6 +54,9 @@ def estimate_conditional_tag_probability(morph, corpus_filename):
     """
     import nltk
     import opencorpora
+
+    if logger is None:
+        logger = logging.getLogger(__name__)
 
     class _ConditionalProbDist(nltk.ConditionalProbDist):
         """
@@ -66,13 +70,23 @@ def estimate_conditional_tag_probability(morph, corpus_filename):
 
     reader = opencorpora.CorpusReader(corpus_filename)
 
-    ambiguous_words = (
-        (w.lower(), tag2grammemes(t))
-        for (w, t) in _disambiguated_words(reader)
-        if len(morph.tag(w)) > 1
+    disambig_words = list(
+        with_progress(
+            _disambiguated_words(reader),
+            "Reading disambiguated words from corpus"
+        )
     )
-    ambiguous_words = ((w, gr) for (w, gr) in ambiguous_words
-                       if gr != set(['UNKN']))
+
+    disambig_words = with_progress(disambig_words, "Filtering out non-ambiguous words")
+    ambiguous_words = [
+        (w, gr) for (w, gr) in (
+            (w.lower(), tag2grammemes(t))
+            for (w, t) in disambig_words
+            if len(morph.tag(w)) > 1
+        ) if gr != set(['UNKN'])
+    ]
+
+    logger.info("Computing P(t|w)")
 
     def probdist_factory(fd, condition):
         bins = max(len(morph.tag(condition)), fd.B())

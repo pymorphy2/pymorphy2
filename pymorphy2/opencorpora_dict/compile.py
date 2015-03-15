@@ -18,7 +18,11 @@ except AttributeError:
     izip = zip
 
 from pymorphy2 import dawg
-from pymorphy2.utils import longest_common_substring, largest_elements
+from pymorphy2.utils import (
+    longest_common_substring,
+    largest_elements,
+    with_progress
+)
 
 logger = logging.getLogger(__name__)
 
@@ -73,10 +77,11 @@ def compile_parsed_dict(parsed_dict, compile_options=None):
     tag_ids = dict()
     paradigm_ids = dict()
 
-    logger.info("inlining lexeme derivational rules...")
+    logger.info("inlining lexeme derivational rules")
     lexemes = _join_lexemes(parsed_dict.lexemes, parsed_dict.links)
+    logger.info("lexemes after link inlining: %s", len(lexemes))
 
-    logger.info('building paradigms...')
+    logger.info('building paradigms')
     logger.debug("%20s %15s %15s %15s", "word", "len(gramtab)", "len(words)", "len(paradigms)")
 
     paradigm_popularity = collections.defaultdict(int)
@@ -112,7 +117,7 @@ def compile_parsed_dict(parsed_dict, compile_options=None):
 
 
     logger.debug("%20s %15s %15s %15s", "total:", len(gramtab), len(words), len(paradigms))
-    logger.debug("linearizing paradigms..")
+    logger.debug("linearizing paradigms")
 
     def get_form(para):
         return list(next(izip(*para)))
@@ -152,14 +157,14 @@ def compile_parsed_dict(parsed_dict, compile_options=None):
         paradigm_prefixes=paradigm_prefixes,
     )
 
-    logger.debug('building word DAWG..')
+    logger.debug('building word DAFSA')
     words_dawg = dawg.WordsDawg(words)
 
     del words
 
     prediction_suffixes_dawgs = []
     for prefix_id, dawg_data in enumerate(suffixes_dawgs_data):
-        logger.debug('building prediction_suffixes DAWGs #%d..' % prefix_id)
+        logger.debug('building prediction_suffixes DAFSA #%d' % prefix_id)
         prediction_suffixes_dawgs.append(dawg.PredictionSuffixesDAWG(dawg_data))
 
     return CompiledDictionary(
@@ -282,7 +287,7 @@ def _suffixes_prediction_data(words, paradigm_popularity, gramtab, paradigms, su
                                         lambda: collections.defaultdict(int)))
 
     logger.debug('calculating prediction data: checking word endings..')
-    for word, (para_id, idx) in words:
+    for word, (para_id, idx) in with_progress(words, "Checking word endings"):
 
         if para_id not in productive_paradigms:
             continue
@@ -314,7 +319,7 @@ def _suffixes_prediction_data(words, paradigm_popularity, gramtab, paradigms, su
     dawgs_data = []
 
     for form_prefix_id in sorted(prefix_endings.keys()):
-        logger.debug('calculating prediction data: preparing DAWGs data #%d..' % form_prefix_id)
+        logger.debug('calculating prediction data: preparing DAFSA #%d..' % form_prefix_id)
         endings = prefix_endings[form_prefix_id]
         dawgs_data.append(
             _get_suffixes_dawg_data(endings, ending_counts, min_ending_freq)

@@ -10,7 +10,7 @@ from __future__ import absolute_import, unicode_literals
 import logging
 import collections
 
-from pymorphy2.utils import memoized
+from pymorphy2.utils import memoized, with_progress
 
 logger = logging.getLogger(__name__)
 
@@ -29,7 +29,7 @@ def simplify_tags(parsed_dict, skip_space_ambiguity=True):
     logger.debug("%d duplicate tags will be removed", len(tag_replaces))
 
     logger.info("simplifying tags: fixing")
-    for lex_id in parsed_dict.lexemes:
+    for lex_id in with_progress(parsed_dict.lexemes, "Simplifying tags"):
         new_lexeme = [
             (word, _simplify_tag(tag, tag_replaces))
             for word, tag in parsed_dict.lexemes[lex_id]
@@ -108,6 +108,6 @@ def _simplify_tag(tag, tag_replaces):
 
 
 def _itertags(parsed_dict):
-    for lex_id in parsed_dict.lexemes:
+    for lex_id in with_progress(parsed_dict.lexemes, "Looking for tag spellings"):
         for word, tag in parsed_dict.lexemes[lex_id]:
             yield tag

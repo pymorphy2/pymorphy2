@@ -25,6 +25,8 @@ except ImportError:
     def xml_clear_elem(elem):
         elem.clear()
 
+from pymorphy2.utils import with_progress
+
 
 logger = logging.getLogger(__name__)
 
@@ -51,16 +53,20 @@ def parse_opencorpora_xml(filename):
     links = []
     lexemes = {}
     grammemes = []
-    _lexemes_len = 0
 
     version, revision = get_dictionary_info(filename)
     logger.info("dictionary v%s, rev%s", version, revision)
     interesting_tags = set(['grammeme', 'lemma', 'link'])
 
-    for ev, elem in iterparse(filename):
-        if elem.tag not in interesting_tags:
-            continue
+    def _parse(filename):
+        for ev, elem in iterparse(filename):
+            if elem.tag not in interesting_tags:
+                continue
+            yield ev, elem
 
+    logger.info("parsing XML dictionary")
+
+    for ev, elem in with_progress(_parse(filename), "XML parsing"):
         if elem.tag == 'grammeme':
             name = elem.find('name').text
             parent = elem.get('parent')
@@ -72,17 +78,11 @@ def parse_opencorpora_xml(filename):
             xml_clear_elem(elem)
 
         if elem.tag == 'lemma':
-            if not lexemes:
-                logger.info('parsing xml:lemmas...')
-
             lex_id, word_forms = _word_forms_from_xml_elem(elem)
             lexemes[lex_id] = word_forms
             xml_clear_elem(elem)
 
         elif elem.tag == 'link':
-            if not links:
-                logger.info('parsing xml:links...')
-
             link_tuple = (
                 elem.get('from'),
                 elem.get('to'),
@@ -90,10 +90,6 @@ def parse_opencorpora_xml(filename):
             )
             links.append(link_tuple)
             xml_clear_elem(elem)
-
-        if len(lexemes) != _lexemes_len and not (len(lexemes) % 50000):
-            logger.debug("%d lexemes parsed" % len(lexemes))
-            _lexemes_len = len(lexemes)
 
     return ParsedDictionary(
         lexemes=lexemes,

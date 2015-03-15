@@ -146,3 +146,29 @@ def memoized(cache):
             return cache[args]
         return wrapper
     return decorator
+
+
+def with_progress(iterable, desc=None, total=None, leave=True):
+    """
+    Return an iterator which prints the iteration progress using tqdm package.
+    Return iterable intact if tqdm is not available.
+    """
+    try:
+        from tqdm import tqdm
+
+        # workarounds for tqdm bugs
+        def _it(iterable, desc, total, leave):
+            if total is None:
+                try:
+                    total = len(iterable)
+                except Exception:
+                    total = 0
+            for el in tqdm(iterable, desc=desc, total=total, leave=leave):
+                yield el
+            if leave:
+                print("")
+
+        return _it(iterable, desc, total, leave)
+
+    except ImportError:
+        return iterable
