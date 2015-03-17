@@ -24,7 +24,9 @@ setup(
         'pymorphy2.lang',
         'pymorphy2.opencorpora_dict',
     ],
-    scripts=['bin/pymorphy'],
+    entry_points={
+        'console_scripts': ['pymorphy = pymorphy2.cli:main']
+    },
     requires=[
         'dawg_python (>= 0.7.1)',
         'pymorphy2_dicts_ru (>=2.4, <3.0)',
