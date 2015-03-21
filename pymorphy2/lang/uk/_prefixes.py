@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from __future__ import absolute_import
+from __future__ import absolute_import, unicode_literals
 
 # Prefixes which don't change the word parse.
 # The list is from
@@ -341,7 +341,7 @@ Y
 
 # TODO: prefixes without a hyphen?
 KNOWN_PREFIXES = [
-    line.strip()+"-"
+    line.strip() + "-"
     for line in _DASH_PREFIXES.split("\n")
     if line.strip()
 ]
