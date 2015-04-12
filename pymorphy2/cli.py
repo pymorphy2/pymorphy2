@@ -6,7 +6,6 @@ import time
 import codecs
 
 import pymorphy2
-from pymorphy2 import test_suite_generator
 from pymorphy2.utils import get_mem_usage
 
 logger = logging.getLogger('pymorphy2')
@@ -45,12 +44,6 @@ def show_dict_meta(dict_path=None):
         logger.info("%s: %s", key, value)
 
 
-def make_test_suite(dict_filename, out_filename, word_limit=100):
-    """ Make a test suite from (unparsed) OpenCorpora dictionary. """
-    return test_suite_generator.make_test_suite(
-        dict_filename, out_filename, word_limit=int(word_limit))
-
-
 def _parse(dict_path, in_filename, out_filename):
     morph = pymorphy2.MorphAnalyzer(dict_path)
     with codecs.open(in_filename, 'r', 'utf8') as in_file:
@@ -71,22 +64,20 @@ head = """
 
 Pymorphy2 is a morphological analyzer / inflection engine for Russian language.
 """
-__doc__ ="""
+__doc__ = """
 Usage::
 
     pymorphy dict meta [--dict <PATH>]
     pymorphy dict mem_usage [--dict <PATH>] [--verbose]
-    pymorphy dict _maketest <XML_FILE> <OUT_FILE> [--limit <NUM>] [--verbose]
     pymorphy _parse <IN_FILE> <OUT_FILE> [--dict <PATH>] [--verbose]
     pymorphy -h | --help
     pymorphy --version
 
 Options::
 
-    --dict <PATH>                       Dictionary folder path
-    -v --verbose                        Be more verbose
-    -o --out <PATH>                     Output folder name [default: dict]
-    --limit <NUM>                       Min. number of words per gram. tag [default: 100]
+    --dict <PATH>       Dictionary folder path
+    -v --verbose        Be more verbose
+    -h --help           Show this help
 
 """
 DOC = head + __doc__.replace('::\n', ':')
@@ -112,5 +103,3 @@ def main():
             return show_dict_mem_usage(args['--dict'], args['--verbose'])
         elif args['meta']:
             return show_dict_meta(args['--dict'])
-        elif args['_maketest']:
-            return make_test_suite(args['<XML_FILE>'], args['<OUT_FILE>'], int(args['--limit']))

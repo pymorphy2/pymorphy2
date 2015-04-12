@@ -42,8 +42,6 @@
 .. _DAWG: https://github.com/kmike/DAWG
 .. _DAWG-Python: https://github.com/kmike/DAWG-Python
 
-"Наивный" подход в pymorphy2 используется только в скрипте генерации
-данных для автоматических тестов (чтобы обеспечить перекрестную проверку).
 
 .. note::
 

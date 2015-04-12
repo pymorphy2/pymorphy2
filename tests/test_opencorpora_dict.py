@@ -11,7 +11,6 @@ from pymorphy2.opencorpora_dict.compile import (
 )
 from pymorphy2.opencorpora_dict.parse import parse_opencorpora_xml
 from pymorphy2.dawg import assert_can_create
-from pymorphy2.test_suite_generator import make_test_suite
 from pymorphy2 import lang
 
 
@@ -63,12 +62,6 @@ class TestToyDictionary:
         # use it
         morph = pymorphy2.MorphAnalyzer(out_path)
         assert morph.tag('ёжиться') == [morph.TagClass('INFN,impf,intr')]
-
-    def test_test_suite_generator(self, tmpdir):
-        # just make sure it doesn't raise an exception
-        out_path = tmpdir.join('test_suite.txt')
-        make_test_suite(self.XML_PATH, str(out_path))
-        out_path.check()
 
 
 class TestToParadigm(object):
