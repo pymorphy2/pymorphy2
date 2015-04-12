@@ -8,6 +8,7 @@ build/
 docs/_build
 dist/
 pymorphy2.egg-info
+stuff/
 
 .idea/
 .rope*

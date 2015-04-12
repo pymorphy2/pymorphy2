@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
-from __future__ import absolute_import, unicode_literals, print_function, division
+from __future__ import absolute_import
+from __future__ import unicode_literals, print_function, division
 
 import logging
 import time
@@ -26,8 +27,10 @@ def show_dict_mem_usage(dict_path=None, verbose=False):
     end_time = time.time()
     mem_usage = get_mem_usage()
 
-    logger.info('Memory usage: %0.1fM dictionary, %0.1fM total (load time %0.2fs)',
-        (mem_usage-initial_mem)/(1024*1024), mem_usage/(1024*1024), end_time-initial_time)
+    logger.info(
+        'Memory usage: %0.1fM dictionary, %0.1fM total (load time %0.2fs)',
+        (mem_usage-initial_mem)/(1024*1024), mem_usage/(1024*1024), end_time-initial_time
+    )
 
     if verbose:
         try:
@@ -45,7 +48,7 @@ def show_dict_meta(dict_path=None):
 
 
 def _parse(dict_path, in_filename, out_filename):
-    morph = pymorphy2.MorphAnalyzer(dict_path)
+    morph = pymorphy2.MorphAnalyzer(path=dict_path)
     with codecs.open(in_filename, 'r', 'utf8') as in_file:
         with codecs.open(out_filename, 'w', 'utf8') as out_file:
             for line in in_file:
