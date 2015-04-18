@@ -22,6 +22,8 @@ setup(
         'pymorphy2',
         'pymorphy2.units',
         'pymorphy2.lang',
+        'pymorphy2.lang.ru',
+        'pymorphy2.lang.uk',
         'pymorphy2.opencorpora_dict',
     ],
     entry_points={
