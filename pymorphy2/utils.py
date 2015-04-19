@@ -14,10 +14,6 @@ def get_mem_usage():
     """
     Return memory usage of the current process, in bytes.
     Requires psutil Python package.
-
-    >>> rss = get_mem_usage()
-    >>> 1000000 < rss < 500000000
-    True
     """
     import psutil
     proc = psutil.Process(os.getpid())
