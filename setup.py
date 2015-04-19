@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 from setuptools import setup
-#from distutils.extension import Extension
-#from Cython.Distutils import build_ext
+# from Cython.Build import cythonize
+
 
 def get_version():
     with open("pymorphy2/version.py", "rt") as f:
@@ -46,6 +46,11 @@ setup(
 
 #    cmdclass = {'build_ext': build_ext},
 #    ext_modules = [Extension("pymorphy2.analyzer", ["pymorphy2/analyzer.py"])],
+    # ext_modules=cythonize([
+    #     'pymorphy2/*.py',
+    #     'pymorphy2/units/*.py',
+    #     'pymorphy2/opencorpora_dict/*.py',
+    # ], annotate=True, profile=True),
 
     classifiers=[
           'Development Status :: 4 - Beta',
