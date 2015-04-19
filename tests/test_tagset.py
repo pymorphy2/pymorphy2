@@ -206,3 +206,5 @@ class TestCyrillic:
     def test_lat2cyr(self, lat, cyr):
         assert Tag.lat2cyr(lat) == cyr
         assert Tag.cyr2lat(cyr) == lat
+        assert morph.lat2cyr(lat) == cyr
+        assert morph.cyr2lat(cyr) == lat
