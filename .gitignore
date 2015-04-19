@@ -9,6 +9,8 @@ docs/_build
 dist/
 pymorphy2.egg-info
 stuff/
+htmlcov/
+.coverage
 
 .idea/
 .rope*
@@ -16,6 +18,11 @@ PYSMELLTAGS
 reports
 .ipynb_checkpoints
 *.ipynb
+*.prof
+*.html
+*.so
 
 .tox
 MANIFEST
+
+stuff
