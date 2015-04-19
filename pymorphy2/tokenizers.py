@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import re
 
-GROUPING_SPACE_REGEX = re.compile('([^\w_-]|[+])', re.U)
+GROUPING_SPACE_REGEX = re.compile('([^\w_-]|[+])', re.UNICODE)
 
 
 def simple_word_tokenize(text, _split=GROUPING_SPACE_REGEX.split):

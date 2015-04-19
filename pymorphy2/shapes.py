@@ -80,7 +80,7 @@ ROMAN_NUMBERS_RE = re.compile("""
     $                   # end of string
 """, re.VERBOSE | re.IGNORECASE)
 
-def is_roman_number(token):
+def is_roman_number(token, _match=ROMAN_NUMBERS_RE.match):
     """
     Return True if token looks like a Roman number:
 
@@ -96,7 +96,7 @@ def is_roman_number(token):
     """
     if not token:
         return False
-    return re.match(ROMAN_NUMBERS_RE, token) is not None
+    return _match(token) is not None
 
 
 def restore_capitalization(word, example):
