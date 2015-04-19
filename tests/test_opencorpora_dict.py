@@ -63,6 +63,9 @@ class TestToyDictionary:
         morph = pymorphy2.MorphAnalyzer(out_path)
         assert morph.tag('ёжиться') == [morph.TagClass('INFN,impf,intr')]
 
+        # tag simplification should work
+        assert morph.tag("ёж")[0] == morph.tag("ванька-встанька")[0]
+
 
 class TestToParadigm(object):
 
