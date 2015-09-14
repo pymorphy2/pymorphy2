@@ -37,6 +37,21 @@ def simplify_tags(parsed_dict, skip_space_ambiguity=True):
         parsed_dict.lexemes[lex_id] = new_lexeme
 
 
+def drop_unsupported_parses(parsed_dict):
+    """
+    Remove unsupported parses from OpenCorpora dictionary.
+
+    In particular, lexemes with Init tags are removed
+    because pymorphy2 handles them differently.
+    """
+    logger.info("dropping unsupported parses")
+    for lex_id in parsed_dict.lexemes:
+        parsed_dict.lexemes[lex_id] = [
+            (word, tag) for word, tag in parsed_dict.lexemes[lex_id]
+            if 'Init' not in tag
+        ]
+
+
 @memoized({})
 def tag2grammemes(tag_str):
     """ Given tag string, return tag grammemes """

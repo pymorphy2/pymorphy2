@@ -44,7 +44,7 @@ def convert_to_pymorphy2(opencorpora_dict_path, out_path, source_name,
     ``out_path`` should be a name of folder where to put dictionaries.
     """
     from .parse import parse_opencorpora_xml
-    from .preprocess import simplify_tags
+    from .preprocess import simplify_tags, drop_unsupported_parses
     from .storage import save_compiled_dict
 
     dawg.assert_can_create()
@@ -53,6 +53,7 @@ def convert_to_pymorphy2(opencorpora_dict_path, out_path, source_name,
 
     parsed_dict = parse_opencorpora_xml(opencorpora_dict_path)
     simplify_tags(parsed_dict)
+    drop_unsupported_parses(parsed_dict)
     compiled_dict = compile_parsed_dict(parsed_dict, compile_options)
     save_compiled_dict(compiled_dict, out_path,
                        source_name=source_name, language_code=language_code)

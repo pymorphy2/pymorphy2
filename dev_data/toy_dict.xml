@@ -112,6 +112,9 @@
     <grammeme parent=""><name>Af-p</name><alias>*предл</alias><description>форма после предлога</description></grammeme>
     <grammeme parent=""><name>Inmx</name><alias>неодуш?</alias><description>может использоваться как неодушевлённое</description></grammeme>
     <grammeme parent=""><name>Vpre</name><alias>в_предл</alias><description>Вариант предлога ( со, подо, ...)</description></grammeme>
+    <grammeme parent=""><name>Anph</name><alias>Анаф</alias><description>Анафорическое (местоимение)</description></grammeme>
+    <grammeme parent=""><name>Init</name><alias>иниц</alias><description>Инициал</description></grammeme>
+    <grammeme parent=""><name>Adjx</name><alias>прил?</alias><description>может выступать в роли прилагательного</description></grammeme>
 </grammemes>
 <restrictions>
     <restr type="obligatory" auto="0"><left type="lemma"></left><right type="lemma">POST</right></restr>
@@ -164,6 +167,7 @@
     <lemma id="1931" rev="1931"><l t="абсурден"><g v="ADJS"/><g v="Qual"/></l><f t="абсурден"><g v="masc"/><g v="sing"/></f><f t="абсурдна"><g v="femn"/><g v="sing"/></f><f t="абсурдно"><g v="neut"/><g v="sing"/></f><f t="абсурдны"><g v="plur"/></f></lemma>
     <lemma id="1932" rev="1932"><l t="абсурднее"><g v="COMP"/><g v="Qual"/></l><f t="абсурднее"></f><f t="абсурдней"><g v="V-ej"/></f><f t="поабсурднее"><g v="Cmp2"/></f><f t="поабсурдней"><g v="Cmp2"/><g v="V-ej"/></f></lemma>
     <lemma id="38632" rev="38632"><l t="ванька-встанька"><g v="NOUN"/><g v="anim"/><g v="masc"/></l><f t="ванька-встанька"><g v="nomn"/><g v="sing"/></f><f t="ваньки-встаньки"><g v="sing"/><g v="gent"/></f><f t="ваньке-встаньке"><g v="sing"/><g v="datv"/></f><f t="ваньку-встаньку"><g v="sing"/><g v="accs"/></f><f t="ванькой-встанькой"><g v="sing"/><g v="ablt"/></f><f t="ванькою-встанькою"><g v="sing"/><g v="ablt"/><g v="V-oy"/></f><f t="ваньке-встаньке"><g v="sing"/><g v="loct"/></f><f t="ваньки-встаньки"><g v="plur"/><g v="nomn"/></f><f t="ванек-встанек"><g v="plur"/><g v="gent"/></f><f t="ванькам-встанькам"><g v="plur"/><g v="datv"/></f><f t="ванек-встанек"><g v="plur"/><g v="accs"/></f><f t="ваньками-встаньками"><g v="plur"/><g v="ablt"/></f><f t="ваньках-встаньках"><g v="plur"/><g v="loct"/></f></lemma>
+    <lemma id="390020" rev="394057"><l t="ц"><g v="NOUN"/><g v="anim"/><g v="GNdr"/><g v="Ms-f"/><g v="Sgtm"/><g v="Fixd"/><g v="Abbr"/><g v="Name"/><g v="Init"/></l><f t="ц"><g v="sing"/><g v="nomn"/></f><f t="ц"><g v="sing"/><g v="gent"/></f><f t="ц"><g v="sing"/><g v="datv"/></f><f t="ц"><g v="sing"/><g v="accs"/></f><f t="ц"><g v="sing"/><g v="ablt"/></f><f t="ц"><g v="sing"/><g v="loct"/></f></lemma>
 </lemmata>
 <link_types>
 <type id="1">ADJF-ADJS</type>

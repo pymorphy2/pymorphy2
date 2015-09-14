@@ -32,7 +32,7 @@ class TestToyDictionary:
         assert len(dct.links) == 12
 
         assert dct.grammemes[1] == ('NOUN', 'POST', 'СУЩ', 'имя существительное')
-        assert len(dct.grammemes) == 111
+        assert len(dct.grammemes) == 114
 
         assert dct.lexemes['14'] == [('ёжиться', 'INFN,impf,intr')]
 
@@ -65,6 +65,10 @@ class TestToyDictionary:
 
         # tag simplification should work
         assert morph.tag("ёж")[0] == morph.tag("ванька-встанька")[0]
+
+        # Init tags should be handled correctly
+        assert 'Init' in morph.tag("Ц")[0]
+        assert 'Init' not in morph.tag("ц")[0]
 
 
 class TestToParadigm(object):
