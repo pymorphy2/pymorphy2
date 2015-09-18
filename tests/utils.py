@@ -4,6 +4,7 @@ import pymorphy2
 
 morph = pymorphy2.MorphAnalyzer()
 
+
 def assert_parse_is_correct(parses, word, normal_form, tag):
     """
     Check if one of the word parses has normal form ``normal_form``

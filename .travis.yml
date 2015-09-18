@@ -17,7 +17,7 @@ matrix:
 install:
   - pip install futures psutil
   - pip install coverage pytest-cov coveralls
-  - if [[ $TRAVIS_PYTHON_VERSION != 'pypy' && ! $NO_COMPILER ]]; then pip install dawg; fi
+  - if [[ $TRAVIS_PYTHON_VERSION != 'pypy' && ! $NO_COMPILER ]]; then pip install dawg fastcache; fi
   - python setup.py install
 
 # command to run tests, e.g. python setup.py test

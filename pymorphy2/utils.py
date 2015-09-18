@@ -5,7 +5,6 @@ from __future__ import absolute_import
 import os
 import heapq
 import itertools
-import functools
 import codecs
 import json
 
@@ -133,32 +132,6 @@ def kwargs_repr(**kwargs):
     return ", ".join(
         "%s=%r" % (key, value) for key, value in sorted(kwargs.items())
     )
-
-
-def memoized(cache):
-    """
-    Basic caching decorator.
-
-    >>> cache = {}
-    >>> @memoized(cache)
-    ... def func(x, y):
-    ...     return x + y
-    >>> func(2, 3)
-    5
-    >>> cache
-    {(2, 3): 5}
-    >>> cache[(2, 3)] = 6
-    >>> func(2, 3)
-    6
-    """
-    def decorator(func):
-        @functools.wraps(func)
-        def wrapper(*args):
-            if args not in cache:
-                cache[args] = func(*args)
-            return cache[args]
-        return wrapper
-    return decorator
 
 
 def with_progress(iterable, desc=None, total=None, leave=True):
