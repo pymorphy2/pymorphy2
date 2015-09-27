@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 import sys
+import platform
 from setuptools import setup
 # from Cython.Build import cythonize
 
@@ -23,7 +24,7 @@ def get_version():
 #     ],
 # }
 
-is_pypy = '__pypy__' in sys.builtin_module_names
+is_cpython = platform.python_implementation() == 'CPython'
 py_version = sys.version_info[:2]
 
 
@@ -32,18 +33,17 @@ install_requires = [
     'pymorphy2-dicts-ru >=2.4, <3.0',
     'docopt >= 0.6',
 ]
-extras_require = {'fast': []}
-
-
 if py_version < (3, 0):
     install_requires.append("backports.functools_lru_cache >= 1.0.1")
 
 
-if not is_pypy:
-    extras_require['fast'].extend([
-        "DAWG >= 0.7.7",
-        "fastcache >= 1.0.2",
-    ])
+extras_require = {'fast': []}
+if is_cpython:
+    extras_require['fast'].append("DAWG >= 0.7.7")
+    if py_version < (3, 5):
+        # lru_cache is optimized in Python 3.5
+        extras_require['fast'].append("fastcache >= 1.0.2")
+
 
 setup(
     name='pymorphy2',
