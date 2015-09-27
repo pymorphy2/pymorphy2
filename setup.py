@@ -9,6 +9,20 @@ def get_version():
         return f.readline().split("=")[1].strip(' "\n')
 
 
+# TODO: use environment markres instead of Python code in order to
+# allow building proper wheels. Markers are not enabled right now because
+# of setuptools/wheel incompatibilities and the 'pip >= 6.0' requirement.
+
+# extras_require = {
+#     'fast:platform_python_implementation==CPython': ["DAWG>=0.7.7"],
+#     'fast:platform_python_implementation==CPython and python_version<3.5': [
+#         "fastcache>=1.0.2"
+#     ],
+#     ':python_version<"3.0"': [
+#         "backports.functools_lru_cache>=1.0.1",
+#     ],
+# }
+
 is_pypy = '__pypy__' in sys.builtin_module_names
 py_version = sys.version_info[:2]
 
@@ -30,7 +44,6 @@ if not is_pypy:
         "DAWG >= 0.7.7",
         "fastcache >= 1.0.2",
     ])
-
 
 setup(
     name='pymorphy2',
