@@ -1,8 +1,8 @@
 language: python
 python:
+  - "3.5"
   - "3.4"
   - "3.3"
-  - "3.2"
   - "2.7"
   - "2.6"
   - "pypy"
@@ -17,7 +17,8 @@ matrix:
 install:
   - pip install futures psutil
   - pip install coverage pytest-cov coveralls
-  - if [[ $TRAVIS_PYTHON_VERSION != 'pypy' && ! $NO_COMPILER ]]; then pip install dawg fastcache; fi
+  - if [[ $TRAVIS_PYTHON_VERSION != 'pypy' && ! $NO_COMPILER ]]; then pip install dawg; fi
+  - if [[ $TRAVIS_PYTHON_VERSION != 'pypy' && $TRAVIS_PYTHON_VERSION != '3.5' && ! $NO_COMPILER ]]; then pip install fastcache; fi
   - python setup.py install
 
 # command to run tests, e.g. python setup.py test
