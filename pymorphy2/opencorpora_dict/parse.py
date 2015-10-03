@@ -123,6 +123,9 @@ def _word_forms_from_xml_elem(elem):
     for form_elem in elem.getiterator('f'):
         grammemes = _grammemes_from_elem(form_elem)
         form = form_elem.get('t').lower()
+        if not (base_grammemes + grammemes):
+            logger.warning("no information provided for word %s, dropping the whole lexeme" % form)
+            return lex_id, []
         lexeme.append(
             (form, (base_grammemes + " " + grammemes).strip())
         )
