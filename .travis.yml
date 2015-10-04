@@ -1,29 +1,38 @@
 language: python
-python:
-  - "3.5"
-  - "3.4"
-  - "3.3"
-  - "2.7"
-  - "2.6"
-  - "pypy"
+python: 3.5
+sudo: false
 
-matrix:
-    include:
-        - python: 2.6
-          env: NO_COMPILER="true"
-        - python: 3.3
-          env: NO_COMPILER="true"
+branches:
+    only:
+        - master
+        - /^\d\.\d+$/
+
+env:
+   - TOXENV=py26-fast
+   - TOXENV=py26-slow
+   - TOXENV=py27-fast
+   - TOXENV=py27-slow
+   - TOXENV=py32-fast
+   - TOXENV=py32-slow
+   - TOXENV=py33-fast
+   - TOXENV=py33-slow
+   - TOXENV=py34-fast
+   - TOXENV=py34-slow
+   - TOXENV=py35-fast
+   - TOXENV=py35-slow
+   - TOXENV=pypy-fast
+   - TOXENV=pypy-slow
+   - TOXENV=pypy3-fast
+   - TOXENV=pypy3-slow
 
 install:
-  - pip install futures psutil
-  - pip install coverage pytest-cov coveralls
-  - if [[ $TRAVIS_PYTHON_VERSION != 'pypy' && ! $NO_COMPILER ]]; then pip install dawg; fi
-  - if [[ $TRAVIS_PYTHON_VERSION != 'pypy' && $TRAVIS_PYTHON_VERSION != '3.5' && ! $NO_COMPILER ]]; then pip install fastcache; fi
-  - python setup.py install
+   - pip install -U tox codecov coveralls
 
-# command to run tests, e.g. python setup.py test
-script:
-  - py.test --cov=pymorphy2 --doctest-modules tests pymorphy2
-
+script: tox
 after_success:
-  - coveralls
+   - codecov
+   - coveralls
+
+cache:
+   directories:
+      - $HOME/.cache/pip
