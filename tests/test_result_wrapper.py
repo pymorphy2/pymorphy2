@@ -1,9 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, unicode_literals
 
-from .utils import morph
-
-def test_indexing():
+def test_indexing(morph):
     assert len(morph.parse('стреляли')) == 1
     p = morph.parse('стреляли')[0]
 
@@ -15,18 +13,21 @@ def test_indexing():
     assert p[1] == p.tag
     assert p[2] == p.normal_form
 
-def test_inflect_valid():
+
+def test_inflect_valid(morph):
     p = morph.parse('стреляли')[0]
     assert p.inflect(set(['femn'])).word == 'стреляла'
 
-def test_inflect_invalid():
+
+def test_inflect_invalid(morph):
     p = morph.parse('стреляли')[0]
     assert p.inflect(set(['NOUN'])) == None
 
 
-def test_is_known():
+def test_is_known(morph):
     assert morph.parse('стреляли')[0].is_known
     assert not morph.parse('сптриояли')[0].is_known
 
-def test_normalized():
+
+def test_normalized(morph):
     assert morph.parse('стреляли')[0].normalized.word == 'стрелять'

@@ -4,7 +4,7 @@ import random
 import concurrent.futures
 import pytest
 import pymorphy2
-from .utils import morph, assert_parse_is_correct
+from utils import assert_parse_is_correct
 
 
 def _to_test_data(text):
@@ -153,7 +153,7 @@ def run_for_all(parses):
 # ====== Tests:
 def _test_has_parse(parses):
     @run_for_all(parses)
-    def test_case(word, normal_form, tag):
+    def test_case(word, normal_form, tag, morph):
         parse = morph.parse(word)
         assert_parse_is_correct(parse, word, normal_form, tag)
 
@@ -168,7 +168,7 @@ test_has_parse_systematic_errors = pytest.mark.xfail(_test_has_parse(SYSTEMATIC_
 
 def _test_tag(parses):
     @run_for_all(parses)
-    def test_tag_produces_the_same_as_parse(word, normal_form, tag):
+    def test_tag_produces_the_same_as_parse(word, normal_form, tag, morph):
         """
         Check if morph.tag produces the same results as morph.parse.
         """

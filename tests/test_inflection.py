@@ -2,8 +2,8 @@
 from __future__ import absolute_import, unicode_literals
 import pytest
 
-from .utils import morph
 from pymorphy2.shapes import restore_capitalization
+
 
 def with_test_data(data):
     return pytest.mark.parametrize(
@@ -11,7 +11,8 @@ def with_test_data(data):
         data
     )
 
-def assert_first_inflected_variant(word, grammemes, result):
+
+def assert_first_inflected_variant(word, grammemes, result, morph):
     inflected_variants = [p.inflect(set(grammemes)) for p in morph.parse(word)]
     inflected_variants = [v for v in inflected_variants if v]
     # inflected_variants = morph.inflect(word, grammemes)
@@ -62,12 +63,12 @@ def assert_first_inflected_variant(word, grammemes, result):
     # частицы - не отрезаются
     ('скажи-ка', ['futr'], 'скажу-ка'),
 ])
-def test_first_inflected_value(word, grammemes, result):
-    assert_first_inflected_variant(word, grammemes, result)
+def test_first_inflected_value(word, grammemes, result, morph):
+    assert_first_inflected_variant(word, grammemes, result, morph)
 
 
-def test_orel():
-    assert_first_inflected_variant('орел', ['gent'], 'орла')
+def test_orel(morph):
+    assert_first_inflected_variant('орел', ['gent'], 'орла', morph)
 
 
 @with_test_data([
@@ -75,8 +76,8 @@ def test_orel():
     ('снег', ['gen2'], 'снегу'),
     ('Боря', ['voct'], 'Борь'),
 ])
-def test_second_cases(word, grammemes, result):
-    assert_first_inflected_variant(word, grammemes, result)
+def test_second_cases(word, grammemes, result, morph):
+    assert_first_inflected_variant(word, grammemes, result, morph)
 
 
 @with_test_data([
@@ -87,8 +88,8 @@ def test_second_cases(word, grammemes, result):
     ('хомяк', ['voct'], 'хомяк'),        # there is not voct, nomn should be used
     ('Геннадий', ['voct'], 'Геннадий'),  # there is not voct, nomn should be used
 ])
-def test_case_substitution(word, grammemes, result):
-    assert_first_inflected_variant(word, grammemes, result)
+def test_case_substitution(word, grammemes, result, morph):
+    assert_first_inflected_variant(word, grammemes, result, morph)
 
 
 @pytest.mark.xfail
@@ -98,5 +99,5 @@ def test_case_substitution(word, grammemes, result):
     ('лес', ['loc2'], 'лесу'),   # в лесу
     ('острова', ['datv'], 'островам'),
 ])
-def test_best_guess(word, grammemes, result):
-    assert_first_inflected_variant(word, grammemes, result)
+def test_best_guess(word, grammemes, result, morph):
+    assert_first_inflected_variant(word, grammemes, result, morph)

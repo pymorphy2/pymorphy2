@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, unicode_literals
 import pytest
-from .utils import morph
 
 
 # lexemes are divided by blank lines;
@@ -184,20 +183,20 @@ LEXEMES_FULL = parse_lexemes("""
 # ============ Tests:
 
 @pytest.mark.parametrize("lexeme", LEXEMES)
-def test_has_proper_lexemes(lexeme):
+def test_has_proper_lexemes(lexeme, morph):
     """
     Check if the lexeme of the first word in the lexeme is the same lexeme.
     """
     lexeme_words = get_lexeme_words(lexeme)
 
-    variants = _lexemes_for_word(lexeme_words[0])
+    variants = _lexemes_for_word(lexeme_words[0], morph)
     if lexeme_words not in variants:
         variants_repr = "\n".join([" ".join(v) for v in variants])
         assert False, "%s not in \n%s" % (lexeme, variants_repr)
 
 
 @pytest.mark.parametrize("lexeme", LEXEMES)
-def test_lexemes_sanity(lexeme):
+def test_lexemes_sanity(lexeme, morph):
     """
     Check if parse.lexeme works properly by applying it several times.
     """
@@ -209,7 +208,7 @@ def test_lexemes_sanity(lexeme):
 
 
 @pytest.mark.parametrize("lexeme", LEXEMES)
-def test_normalized_is_first(lexeme):
+def test_normalized_is_first(lexeme, morph):
     """
     Test that parse.normalized is a first form in lexeme.
     """
@@ -225,17 +224,17 @@ def test_normalized_is_first(lexeme):
 
 
 @pytest.mark.parametrize("lexeme", LEXEMES_FULL)
-def test_full_lexemes(lexeme):
+def test_full_lexemes(lexeme, morph):
     """
     Test that full lexemes are correct.
     """
     forms = parse_full_lexeme(lexeme)
     forms_lower = [(w.lower(), tag) for w, tag in forms]
     for word, tag in forms:
-        assert_has_full_lexeme(word, forms_lower)
+        assert_has_full_lexeme(word, forms_lower, morph)
 
 
-def assert_has_full_lexeme(word, forms):
+def assert_has_full_lexeme(word, forms, morph):
     for p in morph.parse(word):
         lexeme_forms = [(f.word, str(f.tag)) for f in p.lexeme]
         if lexeme_forms == forms:
@@ -243,7 +242,7 @@ def assert_has_full_lexeme(word, forms):
     raise AssertionError("Word %s doesn't have lexeme %s" % (word, forms))
 
 
-def _lexemes_for_word(word):
+def _lexemes_for_word(word, morph):
     res = []
     for p in morph.parse(word):
         res.append(tuple(f.word for f in p.lexeme))

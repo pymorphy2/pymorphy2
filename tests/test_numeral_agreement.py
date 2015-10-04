@@ -2,8 +2,6 @@
 from __future__ import absolute_import, unicode_literals
 import pytest
 
-from .utils import morph
-
 
 @pytest.mark.parametrize(('word', 'result'), [
     # прилагательные
@@ -25,7 +23,7 @@ from .utils import morph
     # остальное части речи мы никак не согласовываем с числами
     ("играет", ["играет", "играет", "играет"])
 ])
-def test_plural_forms(word, result):
+def test_plural_forms(word, result, morph):
     parsed = morph.parse(word)
     assert len(parsed)
     for plural, num in zip(result, [1, 2, 5]):
@@ -43,7 +41,7 @@ def test_plural_forms(word, result):
     ("день", "accs", ["день", "дня", "дней"]),
     ("минуту", "accs", ["минуту", "минуты", "минут"]),
 ])
-def test_plural_inflected(word, case, result):
+def test_plural_inflected(word, case, result, morph):
     parsed = [p for p in morph.parse(word) if p.tag.case == case]
     assert len(parsed)
     for plural, num in zip(result, [1, 2, 5]):
@@ -75,7 +73,7 @@ def test_plural_inflected(word, case, result):
     ("лопата", 7613, "лопат"),
     ("лопата", 2111, "лопат"),
 ])
-def test_plural_num(word, num, result):
+def test_plural_num(word, num, result, morph):
     parsed = morph.parse(word)
     assert len(parsed)
     assert parsed[0].make_agree_with_number(num).word == result

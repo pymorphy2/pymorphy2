@@ -4,7 +4,6 @@ import pytest
 import docopt
 
 from pymorphy2 import cli
-from .utils import morph
 
 
 def run_pymorphy2(args=(), stdin=None):
@@ -25,7 +24,7 @@ def test_show_memory_usage(capsys):
     assert 'Memory usage:' in out
 
 
-def test_show_dict_meta(capsys):
+def test_show_dict_meta(capsys, morph):
     meta = morph.dictionary.meta
     run_pymorphy2(['dict', 'meta'])
     out = ' '.join(capsys.readouterr())

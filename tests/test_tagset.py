@@ -5,11 +5,9 @@ import pytest
 
 import pymorphy2
 from pymorphy2.tagset import OpencorporaTag
-from .utils import morph
-Tag = morph.TagClass
 
 
-def test_hashing():
+def test_hashing(Tag):
     tag1 = Tag('NOUN')
     tag2 = Tag('NOUN')
     tag3 = Tag('VERB')
@@ -25,17 +23,17 @@ def test_hashing():
         ['NOUN,sing', 'NOUN'],
         ['NOUN sing', 'NOUN'],
     ])
-def test_cls(tag, cls):
+def test_cls(tag, cls, Tag):
     assert Tag(tag).POS == cls
 
 
-def test_repr():
+def test_repr(Tag):
     assert repr(Tag('NOUN anim,plur')) == "OpencorporaTag('NOUN anim,plur')"
 
 
 # Cloning of the Tag class is disabled to allow pickling
 @pytest.mark.xfail
-def test_extra_grammemes():
+def test_extra_grammemes(Tag):
     m = pymorphy2.MorphAnalyzer()
 
     assert m.TagClass.KNOWN_GRAMMEMES is not Tag.KNOWN_GRAMMEMES
@@ -54,14 +52,14 @@ def test_extra_grammemes():
     assert 'new_grammeme' not in Tag.KNOWN_GRAMMEMES
 
 
-def test_len():
+def test_len(Tag):
     assert len(Tag('NOUN')) == 1
     assert len(Tag('NOUN plur')) == 2
     assert len(Tag('NOUN plur,masc')) == 3
     assert len(Tag('NOUN,plur,masc')) == 3
 
 
-def test_pickle():
+def test_pickle(Tag):
     tag = Tag('NOUN')
     data = pickle.dumps(tag, pickle.HIGHEST_PROTOCOL)
     tag_unpickled = pickle.loads(data)
@@ -79,12 +77,12 @@ def test_pickle_custom():
 
 class TestUpdated:
 
-    def test_number(self):
+    def test_number(self, Tag):
         tag = Tag('NOUN,sing,masc')
         grammemes = tag.updated_grammemes(required=set(['plur']))
         assert grammemes == set(['NOUN', 'plur'])
 
-    def test_order(self):
+    def test_order(self, Tag):
         tag = Tag('VERB,impf,tran sing,3per,pres,indc')
         grammemes = tag.updated_grammemes(required=set(['1per']))
         assert grammemes == set('VERB,sing,impf,tran,1per,pres,indc'.split(','))
@@ -92,7 +90,7 @@ class TestUpdated:
 
 class TestAttributes:
 
-    def test_attributes(self):
+    def test_attributes(self, Tag):
         tag = Tag('VERB,impf,tran sing,3per,pres,indc')
         assert tag.POS == 'VERB'
         assert tag.gender is None
@@ -107,7 +105,7 @@ class TestAttributes:
         assert tag.voice is None # ?
         assert tag.involvement is None
 
-    def test_attributes2(self):
+    def test_attributes2(self, Tag):
         tag = Tag('NOUN,inan,masc plur,accs')
         assert tag.POS == 'NOUN'
         assert tag.gender == 'masc'
@@ -122,15 +120,15 @@ class TestAttributes:
         assert tag.voice is None
         assert tag.involvement is None
 
-    def test_attributes3(self):
+    def test_attributes3(self, Tag):
         tag = Tag('PRTF,impf,tran,pres,pssv inan,masc,sing,accs')
         assert tag.voice == 'pssv'
 
-    def test_attributes4(self):
+    def test_attributes4(self, Tag):
         tag = Tag('VERB,perf,tran plur,impr,excl')
         assert tag.involvement == 'excl'
 
-    def test_attribute_exceptions(self):
+    def test_attribute_exceptions(self, Tag):
         tag = Tag('NOUN,inan,masc plur,accs')
 
         with pytest.raises(ValueError):
@@ -139,7 +137,7 @@ class TestAttributes:
         with pytest.raises(ValueError):
             tag.POS == 'noun'
 
-    def test_attributes_as_set_items(self):
+    def test_attributes_as_set_items(self, Tag):
         tag = Tag('NOUN,inan,masc plur,accs')
 
         # this doesn't raise an exception
@@ -148,13 +146,13 @@ class TestAttributes:
 
 class TestContains:
 
-    def test_contains_correct(self):
+    def test_contains_correct(self, Tag):
         tag_text = 'VERB,perf,tran plur,impr,excl'
         tag = Tag(tag_text)
         for grammeme in tag_text.replace(' ', ',').split(','):
             assert grammeme in tag
 
-    def test_not_contains(self):
+    def test_not_contains(self, Tag):
         # we need to use a prepared Tag class for this to work
         tag = Tag('VERB,perf,tran plur,impr,excl')
 
@@ -163,7 +161,7 @@ class TestContains:
         assert 'sing' not in tag
         assert 'Dist' not in tag
 
-    def test_contains_error(self):
+    def test_contains_error(self, Tag):
         # we need to use a prepared Tag class for this to work
         tag = Tag('VERB,perf,tran plur,impr,excl')
 
@@ -173,7 +171,7 @@ class TestContains:
         with pytest.raises(ValueError):
             assert 'VERP' in tag
 
-    def test_contains_set(self):
+    def test_contains_set(self, Tag):
         tag = Tag('VERB,perf,tran plur,impr,excl')
         assert set(['VERB', 'perf']) in tag
         assert set(['VERB', 'sing']) not in tag
@@ -185,15 +183,15 @@ class TestContains:
 
 
 class TestCyrillic:
-    def test_cyr_repr(self):
+    def test_cyr_repr(self, Tag):
         tag = Tag('VERB,perf,tran plur,impr,excl')
         assert tag.cyr_repr == 'ГЛ,сов,перех мн,повел,выкл'
 
-    def test_grammemes_cyr(self):
+    def test_grammemes_cyr(self, Tag):
         tag = Tag('VERB,perf,tran plur,impr,excl')
         assert tag.grammemes_cyr == frozenset(['ГЛ','сов','перех', 'мн','повел','выкл'])
 
-    def test_cyr_extra_grammemes(self):
+    def test_cyr_extra_grammemes(self, Tag):
         tag = Tag('ROMN')
         assert tag.cyr_repr == 'РИМ'
 
@@ -203,7 +201,7 @@ class TestCyrillic:
         ('ROMN,unknown_grammeme', 'РИМ,unknown_grammeme'),
         ('plur', 'мн'),
     ])
-    def test_lat2cyr(self, lat, cyr):
+    def test_lat2cyr(self, lat, cyr, Tag, morph):
         assert Tag.lat2cyr(lat) == cyr
         assert Tag.cyr2lat(cyr) == lat
         assert morph.lat2cyr(lat) == cyr

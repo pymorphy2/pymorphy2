@@ -4,8 +4,9 @@ import concurrent.futures
 import random
 import pytest
 import pymorphy2
-from .utils import morph, assert_parse_is_correct
-from .test_parsing import PARSES
+
+from utils import assert_parse_is_correct
+from test_parsing import PARSES
 
 
 def _check_analyzer(morph, parses):
@@ -28,7 +29,7 @@ def _create_morph_analyzer(i):
     assert_parse_is_correct(parse, word, normal_form, tag)
 
 
-def test_threading_single_morph_analyzer():
+def test_threading_single_morph_analyzer(morph):
     with concurrent.futures.ThreadPoolExecutor(3) as executor:
         res = list(executor.map(_check_analyzer, [morph]*10, [PARSES]*10))
 
