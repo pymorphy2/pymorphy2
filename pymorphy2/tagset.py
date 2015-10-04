@@ -4,7 +4,6 @@ Utils for working with grammatical tags.
 """
 from __future__ import absolute_import, unicode_literals
 import collections
-import threading
 
 try:
     from sys import intern
@@ -444,35 +443,34 @@ class OpencorporaTag(object):
             ]
 
         """
-        with threading.RLock():
-            cls.KNOWN_GRAMMEMES = set()
-            cls._CYR2LAT = {}
-            cls._LAT2CYR = {}
-            for name, parent, alias, description in dict_grammemes:
-                cls.add_grammemes_to_known(name, alias)
+        cls.KNOWN_GRAMMEMES = set()
+        cls._CYR2LAT = {}
+        cls._LAT2CYR = {}
+        for name, parent, alias, description in dict_grammemes:
+            cls.add_grammemes_to_known(name, alias)
 
-            gr = dict((name, parent) for (name, parent, alias, description) in dict_grammemes)
+        gr = dict((name, parent) for (name, parent, alias, description) in dict_grammemes)
 
-            # figure out parents & children
-            children = collections.defaultdict(set)
-            for index, (name, parent, alias, description) in enumerate(dict_grammemes):
-                if parent:
-                    children[parent].add(name)
-                if gr.get(parent, None):  # parent's parent
-                    children[gr[parent]].add(name)
+        # figure out parents & children
+        children = collections.defaultdict(set)
+        for index, (name, parent, alias, description) in enumerate(dict_grammemes):
+            if parent:
+                children[parent].add(name)
+            if gr.get(parent, None):  # parent's parent
+                children[gr[parent]].add(name)
 
-            # expand EXTRA_INCOMPATIBLE
-            for grammeme, g_set in cls._EXTRA_INCOMPATIBLE.items():
-                for g in g_set.copy():
-                    g_set.update(children[g])
+        # expand EXTRA_INCOMPATIBLE
+        for grammeme, g_set in cls._EXTRA_INCOMPATIBLE.items():
+            for g in g_set.copy():
+                g_set.update(children[g])
 
-            # fill GRAMMEME_INDICES and GRAMMEME_INCOMPATIBLE
-            for index, (name, parent, alias, description) in enumerate(dict_grammemes):
-                cls._GRAMMEME_INDICES[name] = index
-                incompatible = cls._EXTRA_INCOMPATIBLE.get(name, set())
-                incompatible = (incompatible | children[parent]) - set([name])
+        # fill GRAMMEME_INDICES and GRAMMEME_INCOMPATIBLE
+        for index, (name, parent, alias, description) in enumerate(dict_grammemes):
+            cls._GRAMMEME_INDICES[name] = index
+            incompatible = cls._EXTRA_INCOMPATIBLE.get(name, set())
+            incompatible = (incompatible | children[parent]) - set([name])
 
-                cls._GRAMMEME_INCOMPATIBLE[name] = frozenset(incompatible)
+            cls._GRAMMEME_INCOMPATIBLE[name] = frozenset(incompatible)
 
     # XXX: do we still need these methods?
     @classmethod

@@ -167,6 +167,8 @@ class MorphAnalyzer(object):
     DEFAULT_SUBSTITUTES = pymorphy2.lang.ru.CHAR_SUBSTITUTES
     char_substitutes = None
 
+    _lock = threading.RLock()
+
     def __init__(self, path=None, lang='ru', result_type=Parse, units=None,
                  probability_estimator_cls=auto, char_substitutes=auto):
 
@@ -176,7 +178,7 @@ class MorphAnalyzer(object):
         self.lang = None if path is None else lang
         path = self.choose_dictionary_path(path, lang)
 
-        with threading.RLock():
+        with self._lock:
             self.dictionary = opencorpora_dict.Dictionary(path)
             if self.lang is None:
                 # When path is passed explicitly, set language
