@@ -103,10 +103,18 @@ class ProbabilityEstimator(object):
 
 def _lang_dict_paths():
     import pkg_resources
-    return dict(
+    paths = dict(
         (pkg.name, pkg.load().get_path())
         for pkg in pkg_resources.iter_entry_points('pymorphy2_dicts')
     )
+
+    try:
+        import pymorphy2_dicts
+        paths['ru-old'] = pymorphy2_dicts.get_path()
+    except ImportError:
+        pass
+
+    return paths
 
 
 def lang_dict_path(lang):
@@ -114,15 +122,6 @@ def lang_dict_path(lang):
     lang_paths = _lang_dict_paths()
     if lang in lang_paths:
         return lang_paths[lang]
-
-    if lang == 'ru':
-        # backwards compatibility
-        try:
-            import pymorphy2_dicts
-            return pymorphy2_dicts.get_path()
-        except ImportError:
-            raise ValueError("Can't find dictionaries for Russian. "
-                             "Please install 'pymorphy2-dicts-ru' package.")
 
     raise ValueError("Can't find a dictionary for language %r. "
                      "Installed languages: %r" % (lang, list(lang_paths.keys())))
@@ -162,31 +161,28 @@ class MorphAnalyzer(object):
         >>> morph = pymorphy2.MorphAnalyzer(result_type=None)
 
     """
-    ENV_VARIABLE = 'PYMORPHY2_DICT_PATH'
+    DICT_PATH_ENV_VARIABLE = 'PYMORPHY2_DICT_PATH'
     DEFAULT_UNITS = pymorphy2.lang.ru.DEFAULT_UNITS
     DEFAULT_SUBSTITUTES = pymorphy2.lang.ru.CHAR_SUBSTITUTES
     char_substitutes = None
 
     _lock = threading.RLock()
 
-    def __init__(self, path=None, lang='ru', result_type=Parse, units=None,
+    def __init__(self, path=None, lang=None, result_type=Parse, units=None,
                  probability_estimator_cls=auto, char_substitutes=auto):
 
+        # save arguments for pickling/unpickling
         self._path = path
         self._lang = lang
 
-        self.lang = None if path is None else lang
+        if path is None and lang is None:
+            lang = 'ru'
+
         path = self.choose_dictionary_path(path, lang)
 
         with self._lock:
             self.dictionary = opencorpora_dict.Dictionary(path)
-            if self.lang is None:
-                # When path is passed explicitly, set language
-                # to dict language.
-                self.lang = self.dictionary.lang
-            elif self.dictionary.lang != self.lang:
-                warnings.warn("Dictionary language (%r) doesn't match "
-                  "analyzer language (%r)." % (self.dictionary.lang, self.lang))
+            self.lang = self.choose_language(self.dictionary, lang)
 
             self.prob_estimator = self._get_prob_estimator(
                 probability_estimator_cls, self.dictionary, path
@@ -210,7 +206,7 @@ class MorphAnalyzer(object):
 
     def _init_units(self, units_unbound=None):
         if units_unbound is None:
-            units_unbound = getattr(self._lang_defaults(), 'DEFAULT_UNITS', self.DEFAULT_UNITS)
+            units_unbound = self._config_value('DEFAULT_UNITS', self.DEFAULT_UNITS)
 
         self._units_unbound = units_unbound
         self._units = []
@@ -224,7 +220,7 @@ class MorphAnalyzer(object):
 
     def _init_char_substitutes(self, char_substitutes):
         if char_substitutes is auto:
-            char_substitutes = getattr(self._lang_defaults(), 'CHAR_SUBSTITUTES', self.DEFAULT_SUBSTITUTES)
+            char_substitutes = self._config_value('CHAR_SUBSTITUTES', self.DEFAULT_SUBSTITUTES)
         self.char_substitutes = self.dictionary.words.compile_replaces(char_substitutes or {})
 
     def _bound_unit(self, unit):
@@ -232,13 +228,18 @@ class MorphAnalyzer(object):
         unit.init(self)
         return unit
 
-    def _lang_defaults(self):
-        if not self.lang:
+    def _lang_default_config(self):
+        assert self.lang is not None
+        aliases = {'ru-old': 'ru'}
+        lang = aliases.get(self.lang, self.lang)
+        if not hasattr(pymorphy2.lang, lang):
+            warnings.warn("unknown language code: %r" % lang)
             return None
-        if not hasattr(pymorphy2.lang, self.lang):
-            warnings.warn("unkonwn language code: %r" % self.lang)
-            return None
-        return getattr(pymorphy2.lang, self.lang)
+        return getattr(pymorphy2.lang, lang)
+
+    def _config_value(self, key, default):
+        config = self._lang_default_config()
+        return getattr(config, key, default)
 
     @classmethod
     def _get_prob_estimator(cls, estimator_cls, dictionary, path):
@@ -254,10 +255,29 @@ class MorphAnalyzer(object):
         if path is not None:
             return path
 
-        if cls.ENV_VARIABLE in os.environ:
-            return os.environ[cls.ENV_VARIABLE]
+        if cls.DICT_PATH_ENV_VARIABLE in os.environ:
+            return os.environ[cls.DICT_PATH_ENV_VARIABLE]
 
         return lang_dict_path(lang)
+
+    @classmethod
+    def choose_language(cls, dictionary, lang):
+        if lang is None:
+            if dictionary.lang is None:
+                # this could be e.g. old pymorphy2 dictionary
+                warnings.warn("Dictionary doesn't declare its language; "
+                              "assuming 'ru'")
+                return 'ru'
+            return dictionary.lang
+
+        if dictionary.lang != lang:
+            # allow incorrect 'lang' values, but show a warning
+            warnings.warn(
+                "Dictionary language (%r) doesn't match "
+                "analyzer language (%r)." % (dictionary.lang, lang)
+            )
+
+        return lang
 
     def parse(self, word):
         """

@@ -186,7 +186,6 @@ class TestParse:
 
 
 class TestHyphen:
-
     def assert_not_parsed_by_hyphen(self, word, morph):
         for p in morph.parse(word):
             for meth in p.methods_stack:
@@ -278,7 +277,6 @@ class TetsPunctuationPredictor:
 
 
 class TestInitials:
-
     def assertHasFirstName(self, tags):
         assert any(set(['Name', 'Abbr']) in tag for tag in tags), tags
 
