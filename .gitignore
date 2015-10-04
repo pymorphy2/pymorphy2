@@ -11,6 +11,7 @@ pymorphy2.egg-info
 stuff/
 htmlcov/
 .coverage
+.cache/
 
 .idea/
 .rope*
