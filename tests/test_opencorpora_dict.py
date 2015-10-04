@@ -36,6 +36,10 @@ class TestToyDictionary:
 
         assert dct.lexemes['14'] == [('ёжиться', 'INFN,impf,intr')]
 
+        # bad values should be dropped
+        assert dct.lexemes['111111'] == []
+        assert dct.lexemes['222222'] == []
+
     def test_convert_to_pymorphy2(self, tmpdir):
 
         # import logging
