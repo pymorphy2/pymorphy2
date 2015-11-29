@@ -126,6 +126,8 @@ def _word_forms_from_xml_elem(elem):
         if not (base_grammemes + grammemes):
             logger.warning("no information provided for word %s, dropping the whole lexeme" % form)
             return lex_id, []
+        if isinstance(form, bytes):
+            form = form.decode('ascii')
         lexeme.append(
             (form, (base_grammemes + " " + grammemes).strip())
         )
