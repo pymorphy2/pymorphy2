@@ -1,24 +1,11 @@
-pymorphy2
-=========
+.. _citing:
 
-Morphological analyzer (POS tagger + inflection engine)
-for Russian and Ukrainian languages. License is MIT.
+Цитирование
+===========
 
-.. image:: https://travis-ci.org/kmike/pymorphy2.svg?branch=master
-    :target: https://travis-ci.org/kmike/pymorphy2
-.. image:: https://coveralls.io/repos/kmike/pymorphy2/badge.svg?branch=master
-    :target: https://coveralls.io/r/kmike/pymorphy2?branch=master
-
-* docs: https://pymorphy2.readthedocs.org
-* changelog: https://github.com/kmike/pymorphy2/blob/master/CHANGES.rst
-* source code: github_
-* bug tracker: https://github.com/kmike/pymorphy2/issues
-* support: https://groups.google.com/forum/?fromgroups#!forum/pymorphy
-
-.. _github: https://github.com/kmike/pymorphy2
-
-Citing
-------
+Если вы использовали pymorphy2 в научных целях,
+то будет хорошо, если процитируете следующую
+`статью <http://link.springer.com/chapter/10.1007%2F978-3-319-26123-2_31>`_:
 
 ::
 
@@ -26,10 +13,7 @@ Citing
     Ukrainian Languages // Analysis of Images, Social Networks and Texts,
     pp 320-332 (2015).
 
-Links:
-
-* `Springer <http://link.springer.com/chapter/10.1007%2F978-3-319-26123-2_31>`_
-* `PDF <http://arxiv.org/pdf/1503.07283v1.pdf>`_
+Это не обязательно, но автору будет приятно.
 
 BibTeX::
 
@@ -49,3 +33,6 @@ BibTeX::
       pages={320-332},
       language={English}
    }
+
+Препринт статьи доступен для скачивания
+на arxiv (`pdf <http://arxiv.org/pdf/1503.07283v1.pdf>`_).

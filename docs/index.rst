@@ -19,7 +19,8 @@ pymorphy2_ написан на языке Python (работает под 2.x и
 и установленных пакетов); потребление памяти - 10...20Мб;
 полностью :ref:`поддерживается <char-substitutes>` буква ё.
 
-Лицензия - MIT.
+Лицензия - MIT. Если вы используете pymorphy2 в научной работе,
+см. также раздел :ref:`citing`.
 
 Содержание
 ----------
@@ -30,7 +31,7 @@ pymorphy2_ написан на языке Python (работает под 2.x и
    user/index
    internals/index
    misc/index
-
+   misc/citing
    glossary
 
 * :ref:`genindex`
@@ -41,6 +42,7 @@ pymorphy2_ написан на языке Python (работает под 2.x и
 Исходный код - на github_. Если заметили ошибку, то пишите
 в `баг-трекер`_. Для обсуждения есть `гугл-группа`_; если есть какие-то
 вопросы - пишите туда.
+
 
 .. _github: https://github.com/kmike/pymorphy2
 .. _баг-трекер: https://github.com/kmike/pymorphy2/issues
