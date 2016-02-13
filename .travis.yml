@@ -12,8 +12,6 @@ env:
    - TOXENV=py26-slow
    - TOXENV=py27-fast
    - TOXENV=py27-slow
-   - TOXENV=py32-fast
-   - TOXENV=py32-slow
    - TOXENV=py33-fast
    - TOXENV=py33-slow
    - TOXENV=py34-fast
