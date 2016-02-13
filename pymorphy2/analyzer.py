@@ -361,7 +361,7 @@ class MorphAnalyzer(object):
         grammemes = form[1].updated_grammemes(required_grammemes)
         def similarity(frm):
             tag = frm[1]
-            return len(grammemes & tag.grammemes)
+            return len(grammemes & tag.grammemes) - 0.1 * len(grammemes ^ tag.grammemes)
 
         return heapq.nlargest(1, possible_results, key=similarity)
 
