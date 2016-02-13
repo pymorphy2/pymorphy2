@@ -101,3 +101,11 @@ def test_case_substitution(word, grammemes, result, morph):
 ])
 def test_best_guess(word, grammemes, result, morph):
     assert_first_inflected_variant(word, grammemes, result, morph)
+
+
+@with_test_data([
+    ('заснеженный', ['gent'], 'заснеженного'),  # не "заснежённого"
+    ('ведро', ['gent'], 'ведра'),  # не "вёдра"
+])
+def test_not_informal(word, grammemes, result, morph):
+    assert_first_inflected_variant(word, grammemes, result, morph)
