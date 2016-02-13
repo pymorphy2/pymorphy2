@@ -4,7 +4,8 @@ Authors and Contributors
 * Mikhail Korobov;
 * @radixvinni;
 * @ivirabyan;
-* @anti-social.
+* @anti-social;
+* @insolor.
 
 If you contributed to pymorphy2, please add yourself to this list
 (or update your contact information).
