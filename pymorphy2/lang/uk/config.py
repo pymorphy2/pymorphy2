@@ -13,7 +13,7 @@ PARADIGM_PREFIXES = ["", "най", "якнай", "щонай"]
 INITIAL_LETTERS = 'АБВГҐДЕЄЖЗІЇЙКЛМНОПРСТУФХЦЧШЩЮЯ'
 
 # a list of particles which can be attached to a word using a hyphen
-PARTICLES_AFTER_HYPHEN = ["-но", "-таки"]
+PARTICLES_AFTER_HYPHEN = ["-но", "-таки", "-бо", "-от"]
 
 # "ґ" is sometimes written as "г", but not the other way around
 CHAR_SUBSTITUTES = {'г': 'ґ'}
