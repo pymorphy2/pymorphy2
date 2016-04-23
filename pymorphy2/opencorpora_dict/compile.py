@@ -209,8 +209,8 @@ def _join_lexemes(lexemes, links):
 #    <type id="22">ORPHOVAR</type>
 #    </link_types>
 
-    EXCLUDED_LINK_TYPES = set([7, ])
-#    ALLOWED_LINK_TYPES = set([3, 4, 5])
+    EXCLUDED_LINK_TYPES = set(['7', '21'])
+#    ALLOWED_LINK_TYPES = set(['3', '4', '5'])
 
     moves = dict()
 

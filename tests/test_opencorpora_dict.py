@@ -29,7 +29,7 @@ class TestToyDictionary:
         assert dct.revision == '389440'
 
         assert dct.links[0] == ('5', '6', '1')
-        assert len(dct.links) == 12
+        assert len(dct.links) == 13
 
         assert dct.grammemes[1] == ('NOUN', 'POST', 'СУЩ', 'имя существительное')
         assert len(dct.grammemes) == 114
@@ -73,6 +73,10 @@ class TestToyDictionary:
         # Init tags should be handled correctly
         assert 'Init' in morph.tag("Ц")[0]
         assert 'Init' not in morph.tag("ц")[0]
+
+        # normalization tests
+        assert morph.normal_forms('абсурднее') == ['абсурдный']
+        assert morph.normal_forms('а') == ['а']
 
 
 class TestToParadigm(object):
