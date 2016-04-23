@@ -123,8 +123,12 @@ def lang_dict_path(lang):
     if lang in lang_paths:
         return lang_paths[lang]
 
-    raise ValueError("Can't find a dictionary for language %r. "
-                     "Installed languages: %r" % (lang, list(lang_paths.keys())))
+    raise ValueError(
+        "Can't find a dictionary for language %r. Installed languages: %r. "
+        "Try installing pymorphy2-dicts-%s package." % (
+            lang, list(lang_paths.keys()), lang
+        )
+    )
 
 
 class MorphAnalyzer(object):
