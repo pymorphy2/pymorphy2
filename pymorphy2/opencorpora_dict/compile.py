@@ -206,10 +206,15 @@ def _join_lexemes(lexemes, links):
 #    <type id="19">ADJF-SUPR_nai</type>
 #    <type id="20">ADJF-SUPR_slng</type>
 #    <type id="21">FULL-CONTRACTED</type>
-#    <type id="22">ORPHOVAR</type>
+#    <type id="22">NORM-ORPHOVAR</type>
+#    <type id="23">CARDINAL-ORDINAL</type>      # e.g. первый - один
+#    <type id="24">SBST_MASC-SBST_FEMN</type>   # e.g. подсудимый - подсудимая
+#    <type id="25">SBST_MASC-SBST_PLUR</type>   # e.g. подсудимый - подсудимые
+#    <type id="26">ADVB-COMP</type>             # ??
+#    <type id="27">ADJF_TEXT-ADJF_NUMBER</type> # e.g. первый - 1-й
 #    </link_types>
 
-    EXCLUDED_LINK_TYPES = set(['7', '21'])
+    EXCLUDED_LINK_TYPES = set(['7', '21', '23', '27'])
 #    ALLOWED_LINK_TYPES = set(['3', '4', '5'])
 
     moves = dict()
