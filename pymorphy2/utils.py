@@ -122,15 +122,20 @@ def word_splits(word, min_reminder=3, max_prefix_length=5):
     return [(word[:i], word[i:]) for i in split_indexes]
 
 
-def kwargs_repr(**kwargs):
+def kwargs_repr(kwargs=None, dont_show_value=None):
     """
-    >>> kwargs_repr(foo="123", a=5, x=8)
+    >>> kwargs_repr(dict(foo="123", a=5, x=8))
     "a=5, foo='123', x=8"
+    >>> kwargs_repr(dict(foo="123", a=5, x=8), dont_show_value=['foo'])
+    'a=5, foo=<...>, x=8'
     >>> kwargs_repr()
     ''
     """
+    kwargs = kwargs or {}
+    dont_show_value = set(dont_show_value or [])
     return ", ".join(
-        "%s=%r" % (key, value) for key, value in sorted(kwargs.items())
+        "%s=%s" % (k, repr(v) if k not in dont_show_value else "<...>")
+        for k, v in sorted(kwargs.items())
     )
 
 

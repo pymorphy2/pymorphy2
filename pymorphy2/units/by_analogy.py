@@ -46,6 +46,8 @@ class KnownPrefixAnalyzer(_PrefixAnalyzer):
 
     Example: псевдокошка -> (псевдо) + кошка.
     """
+    _repr_skip_value_params = ['known_prefixes']
+
     def __init__(self, known_prefixes, score_multiplier=0.75, min_remainder_length=3):
         self.known_prefixes = known_prefixes
         self.score_multiplier = score_multiplier

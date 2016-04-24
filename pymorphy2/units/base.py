@@ -25,6 +25,7 @@ class BaseAnalyzerUnit(object):
     """
     morph = None
     dict = None
+    _repr_skip_value_params = None
 
     def init(self, morph):
         self.morph = morph
@@ -53,7 +54,8 @@ class BaseAnalyzerUnit(object):
 
     def __repr__(self):
         cls_text = self.__class__.__name__
-        kwargs_text = kwargs_repr(**self._get_params())
+        kwargs_text = kwargs_repr(self._get_params(),
+                                  self._repr_skip_value_params)
         return str("%s(%s)") % (cls_text, kwargs_text)
 
     @classmethod

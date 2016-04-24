@@ -98,7 +98,6 @@ class HyphenAdverbAnalyzer(BaseAnalyzerUnit):
 
     Example: по-западному
     """
-
     def __init__(self, score_multiplier=0.7):
         self.score_multiplier = score_multiplier
 
@@ -149,6 +148,7 @@ class HyphenatedWordsAnalyzer(BaseAnalyzerUnit):
         * человек-гора -> человек + гора
 
     """
+    _repr_skip_value_params = ['skip_prefixes']
     _CONSIDER_THE_SAME = {
         'V-oy': 'V-ey',
         'gen1': 'gent',
