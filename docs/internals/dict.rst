@@ -470,5 +470,5 @@ DAWG достаточно эффективная. Хранение слов в D
 "съедят" эту разницу (особенно при использовании из питоньего кода).
 
 .. _mystem: http://company.yandex.ru/technologies/mystem/
-.. _pymorphy 0.5.6: http://pymorphy.readthedocs.org/en/v0.5.6/index.html
+.. _pymorphy 0.5.6: https://pymorphy.readthedocs.io/en/v0.5.6/index.html
 .. _MAnalyzer: https://github.com/Melkogotto/MAnalyzer
