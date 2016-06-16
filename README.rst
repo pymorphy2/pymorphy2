@@ -9,7 +9,7 @@ for Russian and Ukrainian languages. License is MIT.
 .. image:: https://coveralls.io/repos/kmike/pymorphy2/badge.svg?branch=master
     :target: https://coveralls.io/r/kmike/pymorphy2?branch=master
 
-* docs: https://pymorphy2.readthedocs.org
+* docs: https://pymorphy2.readthedocs.io
 * changelog: https://github.com/kmike/pymorphy2/blob/master/CHANGES.rst
 * source code: github_
 * bug tracker: https://github.com/kmike/pymorphy2/issues

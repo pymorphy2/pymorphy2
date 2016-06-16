@@ -284,4 +284,4 @@ set() довольно велики::
     Длины хранятся 2 раза. Может, это можно как-то улучшить?
 
 .. _mystem: http://company.yandex.ru/technologies/mystem/
-.. _pymorphy 0.5.6: http://pymorphy.readthedocs.org/en/v0.5.6/index.html
+.. _pymorphy 0.5.6: https://pymorphy.readthedocs.io/en/v0.5.6/index.html

@@ -14,7 +14,7 @@
     `aot.ru <http://aot.ru>`_, и на те, что применяются в pymorphy1_,
     но отличаются в деталях и содержат дополнительные эвристики.
 
-.. _pymorphy1: http://pymorphy.readthedocs.org/en/latest/algo.html#prediction-algo
+.. _pymorphy1: https://pymorphy.readthedocs.io/en/latest/algo.html#prediction-algo
 
 
 Отсечение известных префиксов
