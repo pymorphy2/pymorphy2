@@ -95,12 +95,11 @@ I       i       LATN
 ьё      ьё      UNKN
 
 # ============== common lowercased abbreviations
-# should normal forms be expanded?
 
-руб     рубль       NOUN,inan,masc,Fixd,Abbr plur,gent
-млн     миллион     NOUN,inan,masc,Fixd,Abbr plur,gent
-тыс     тысяча      NOUN,inan,femn,Fixd,Abbr plur,gent
-ст      ст          NOUN,inan,femn,Fixd,Abbr sing,accs
+руб     руб     NOUN,inan,masc,Fixd,Abbr plur,gent
+млн     млн     NOUN,inan,masc,Fixd,Abbr plur,gent
+тыс     тыс     NOUN,inan,femn,Fixd,Abbr plur,gent
+ст      ст      NOUN,inan,femn,Fixd,Abbr sing,accs
 """)
 
 PARSES_UPPER = [(w.upper(), norm, tag) for (w, norm, tag) in PARSES]
