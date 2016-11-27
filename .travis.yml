@@ -8,8 +8,6 @@ branches:
         - /^\d\.\d+$/
 
 env:
-   - TOXENV=py26-fast
-   - TOXENV=py26-slow
    - TOXENV=py27-fast
    - TOXENV=py27-slow
    - TOXENV=py33-fast
@@ -20,8 +18,8 @@ env:
    - TOXENV=py35-slow
    - TOXENV=pypy-fast
    - TOXENV=pypy-slow
-   - TOXENV=pypy3-fast
-   - TOXENV=pypy3-slow
+#   - TOXENV=pypy3-fast
+#   - TOXENV=pypy3-slow
 
 install:
    - pip install -U tox codecov coveralls

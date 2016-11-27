@@ -100,9 +100,8 @@ def parse_opencorpora_xml(filename):
     )
 
 
-# TODO: replace elem.getiterator with elem.iter when dropping Python 2.6 support
 def _grammemes_from_elem(elem):
-    return ",".join([g.get('v') for g in elem.getiterator('g')])
+    return ",".join([g.get('v') for g in elem.iter('g')])
 
 
 def _word_forms_from_xml_elem(elem):
@@ -115,12 +114,12 @@ def _word_forms_from_xml_elem(elem):
     if len(elem) == 0:  # deleted lexeme?
         return lex_id, lexeme
 
-    base_info = list(elem.getiterator('l'))
+    base_info = list(elem.iter('l'))
 
     assert len(base_info) == 1
     base_grammemes = _grammemes_from_elem(base_info[0])
 
-    for form_elem in elem.getiterator('f'):
+    for form_elem in elem.iter('f'):
         grammemes = _grammemes_from_elem(form_elem)
         form = form_elem.get('t').lower()
         if not (base_grammemes + grammemes):
