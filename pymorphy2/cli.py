@@ -141,13 +141,6 @@ def show_dict_mem_usage(lang, dict_path=None, verbose=False):
         (mem_usage-initial_mem)/(1024*1024), mem_usage/(1024*1024), end_time-initial_time
     )
 
-    if verbose:
-        try:
-            from guppy import hpy; hp=hpy()
-            logger.debug(hp.heap())
-        except ImportError:
-            logger.warn('guppy is not installed, detailed info is not available')
-
 
 def show_dict_meta(lang, dict_path=None):
     morph = pymorphy2.MorphAnalyzer(path=dict_path, lang=lang)
