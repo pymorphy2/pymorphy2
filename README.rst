@@ -4,10 +4,21 @@ pymorphy2
 Morphological analyzer (POS tagger + inflection engine)
 for Russian and Ukrainian languages. License is MIT.
 
+.. image:: https://img.shields.io/pypi/v/pymorphy2.svg
+   :target: https://pypi.python.org/pypi/pymorphy2
+   :alt: PyPI Version
+
 .. image:: https://travis-ci.org/kmike/pymorphy2.svg?branch=master
-    :target: https://travis-ci.org/kmike/pymorphy2
-.. image:: https://coveralls.io/repos/kmike/pymorphy2/badge.svg?branch=master
-    :target: https://coveralls.io/r/kmike/pymorphy2?branch=master
+   :target: http://travis-ci.org/kmike/pymorphy2
+   :alt: Build Status
+
+.. image:: http://codecov.io/github/kmike/pymorphy2/coverage.svg?branch=master
+   :target: http://codecov.io/github/kmike/pymorphy2?branch=master
+   :alt: Code Coverage
+
+.. image:: https://readthedocs.org/projects/pymorphy2/badge/?version=latest
+   :target: http://pymorphy2.readthedocs.io/en/latest/?badge=latest
+   :alt: Documentation
 
 * docs: https://pymorphy2.readthedocs.io
 * changelog: https://github.com/kmike/pymorphy2/blob/master/CHANGES.rst
