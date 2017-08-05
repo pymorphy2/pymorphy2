@@ -21,19 +21,13 @@ class DictionaryAnalyzer(BaseAnalyzerUnit):
         Parse a word using this dictionary.
         """
         res = []
-        normal_forms_cache = {}
         para_data = self.dict.words.similar_items(word_lower, self.morph.char_substitutes)
 
         for fixed_word, parses in para_data:
             # `fixed_word` is a word with proper substitute (e.g. ё) letters
 
             for para_id, idx in parses:
-                if para_id not in normal_forms_cache:
-                    normal_form = self.dict.build_normal_form(para_id, idx, fixed_word)
-                    normal_forms_cache[para_id] = normal_form
-                else:
-                    normal_form = normal_forms_cache[para_id]
-
+                normal_form = self.dict.build_normal_form(para_id, idx, fixed_word)
                 tag = self.dict.build_tag_info(para_id, idx)
                 method = ((self, fixed_word, para_id, idx),)
                 res.append((fixed_word, tag, normal_form, 1.0, method))

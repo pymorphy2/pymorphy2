@@ -70,7 +70,7 @@ class Dictionary(object):
         Build a normal form.
         """
 
-        if idx == 0: # a shortcut: normal form is a word itself
+        if idx == 0:  # a shortcut: normal form is a word itself
             return fixed_word
 
         paradigm = self.paradigms[para_id]

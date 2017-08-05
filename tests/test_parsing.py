@@ -57,6 +57,9 @@ pdf-документов          pdf-документ        NOUN,inan,masc plu
 подростками-практикантами   подросток-практикант    NOUN,anim,masc plur,ablt
 подводников-североморцев    подводник-североморец   NOUN,anim,masc plur,gent
 
+# issue with normal form caching
+залом   зал     NOUN,inan,masc sing,ablt
+
 # cities
 санкт-петербурга    санкт-петербург     NOUN,inan,masc,Geox sing,gent
 ростове-на-дону     ростов-на-дону      NOUN,inan,masc,Sgtm,Geox sing,loct
