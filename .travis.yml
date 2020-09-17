@@ -37,8 +37,10 @@ matrix:
       env: TOXENV=py38-slow
     - python: pypy
       env: TOXENV=pypy-fast
+      dist: xenial
     - python: pypy
       env: TOXENV=pypy-slow
+      dist: xenial
     - python: pypy3
       env: TOXENV=pypy3-fast
     - python: pypy3
