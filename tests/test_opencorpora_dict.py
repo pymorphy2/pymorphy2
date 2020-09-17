@@ -50,7 +50,7 @@ class TestToyDictionary:
         try:
             assert_can_create()
         except NotImplementedError as e:
-            raise pytest.skip(e)
+            raise pytest.skip(str(e))
 
         # create a dictionary
         out_path = str(tmpdir.join('dicts'))
