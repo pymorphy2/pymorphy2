@@ -39,7 +39,7 @@ if py_version < (3, 0):
 
 extras_require = {'fast': []}
 if is_cpython:
-    extras_require['fast'].append("DAWG >= 0.7.7")
+    extras_require['fast'].append("DAWG >= 0.8")
     if py_version < (3, 5):
         # lru_cache is optimized in Python 3.5
         extras_require['fast'].append("fastcache >= 1.0.2")
@@ -67,11 +67,6 @@ setup(
     entry_points={
         'console_scripts': ['pymorphy = pymorphy2.cli:main']
     },
-    requires=[
-        'dawg_python (>= 0.7.1)',
-        'pymorphy2_dicts_ru (>=2.4, <3.0)',
-        'docopt (>= 0.6)',
-    ],
     install_requires=install_requires,
     extras_require=extras_require,
     zip_safe=False,
@@ -92,9 +87,10 @@ setup(
         'Programming Language :: Python :: 2',
         'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.4',
         'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
+        'Programming Language :: Python :: 3.7',
+        'Programming Language :: Python :: 3.8',
         'Programming Language :: Python :: Implementation :: CPython',
         'Programming Language :: Python :: Implementation :: PyPy',
         'Topic :: Software Development :: Libraries :: Python Modules',
