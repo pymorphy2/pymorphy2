@@ -17,7 +17,7 @@ for Russian and Ukrainian languages. License is MIT.
    :alt: Code Coverage
 
 .. image:: https://readthedocs.org/projects/pymorphy2/badge/?version=latest
-   :target: https://pymorphy2.readthedocs.io/en/latest/?badge=latest
+   :target: https://pymorphy2.readthedocs.io/
    :alt: Documentation
 
 * docs: https://pymorphy2.readthedocs.io
