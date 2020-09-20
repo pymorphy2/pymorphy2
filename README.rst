@@ -8,16 +8,16 @@ for Russian and Ukrainian languages. License is MIT.
    :target: https://pypi.python.org/pypi/pymorphy2
    :alt: PyPI Version
 
-.. image:: https://travis-ci.org/kmike/pymorphy2.svg?branch=master
-   :target: http://travis-ci.org/kmike/pymorphy2
+.. image:: https://travis-ci.com/kmike/pymorphy2.svg?branch=master
+   :target: https://travis-ci.com/kmike/pymorphy2
    :alt: Build Status
 
-.. image:: http://codecov.io/github/kmike/pymorphy2/coverage.svg?branch=master
-   :target: http://codecov.io/github/kmike/pymorphy2?branch=master
+.. image:: https://codecov.io/github/kmike/pymorphy2/coverage.svg?branch=master
+   :target: https://codecov.io/github/kmike/pymorphy2?branch=master
    :alt: Code Coverage
 
 .. image:: https://readthedocs.org/projects/pymorphy2/badge/?version=latest
-   :target: http://pymorphy2.readthedocs.io/en/latest/?badge=latest
+   :target: https://pymorphy2.readthedocs.io/en/latest/?badge=latest
    :alt: Documentation
 
 * docs: https://pymorphy2.readthedocs.io
@@ -39,8 +39,8 @@ Citing
 
 Links:
 
-* `Springer <http://link.springer.com/chapter/10.1007%2F978-3-319-26123-2_31>`_
-* `PDF <http://arxiv.org/pdf/1503.07283v1.pdf>`_
+* `Springer <https://link.springer.com/chapter/10.1007%2F978-3-319-26123-2_31>`_
+* `PDF <https://arxiv.org/pdf/1503.07283v1.pdf>`_
 
 BibTeX::
 
