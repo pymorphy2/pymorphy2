@@ -67,8 +67,8 @@ https://github.com/kmike/pymorphy2-dicts
 
 из папки с исходным кодом.
 
-.. _tox: http://tox.testrun.org
-.. _pytest: http://pytest.org
+.. _tox: https://tox.readthedocs.io/en/latest/
+.. _pytest: https://pytest.org
 
 .. _benchmarking:
 

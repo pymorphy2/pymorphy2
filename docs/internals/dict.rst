@@ -148,7 +148,7 @@
 (индексация с 0) будет лежать в элементе массива с номером ``N + 2``,
 а номер префикса для этой же формы - в элементе ``N*2 + 2``.
 
-.. _array.array: http://docs.python.org/3/library/array.html
+.. _array.array: https://docs.python.org/3/library/array.html
 
 .. note:: Особенности реализации в Python:
 
@@ -190,7 +190,7 @@
 
 Для хранения данных о словах используется конечный автомат
 (Deterministic Acyclic Finite State Automaton,
-`wiki <http://en.wikipedia.org/wiki/Deterministic_acyclic_finite_state_automaton>`__)
+`wiki <https://en.wikipedia.org/wiki/Deterministic_acyclic_finite_state_automaton>`__)
 с использованием библиотек DAWG_ (это обертка над C++ библиотекой dawgdic_)
 или DAWG-Python_ (это написанная на питоне реализация DAWG, которая не требует
 компилятора для установки и работает быстрее DAWG_ под PyPy).
@@ -445,7 +445,7 @@ DAWG достаточно эффективная. Хранение слов в D
   `отсюда <http://www.aot.ru/docs/sokirko/Dialog2004.htm>`_),
   скорость > 200тыс слов/сек.;
 * в варианте морф. анализатора на конечных автоматах с питоновской оберткой
-  к openfst (http://habrahabr.ru/post/109736/) сообщается, что словарь
+  к openfst (https://habrahabr.ru/post/109736/) сообщается, что словарь
   занимал 35/3 = 11Мб после сжатия, скорость порядка 2 тыс слов/сек
   без оптимизаций;
 * написанный на питоне вариант морф. анализатора на конечных автоматах
@@ -469,6 +469,6 @@ DAWG достаточно эффективная. Хранение слов в D
 на обработку и применение результатов разбора все равно, скорее всего,
 "съедят" эту разницу (особенно при использовании из питоньего кода).
 
-.. _mystem: http://company.yandex.ru/technologies/mystem/
+.. _mystem: https://company.yandex.ru/technologies/mystem/
 .. _pymorphy 0.5.6: https://pymorphy.readthedocs.io/en/v0.5.6/index.html
 .. _MAnalyzer: https://github.com/Melkogotto/MAnalyzer
