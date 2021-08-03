@@ -72,7 +72,7 @@ class OpencorporaTag(object):
 
         >>> from pymorphy2 import MorphAnalyzer
         >>> morph = MorphAnalyzer()
-        >>> Tag = morph.TagClass  # get an initialzed Tag class
+        >>> Tag = morph.TagClass  # get an initialized Tag class
         >>> tag = Tag('VERB,perf,tran plur,impr,excl')
         >>> tag
         OpencorporaTag('VERB,perf,tran plur,impr,excl')
