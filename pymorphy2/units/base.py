@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, unicode_literals, division
 import inspect
+import sys
 
 from pymorphy2.utils import kwargs_repr
 from pymorphy2.units.utils import (
@@ -67,7 +68,10 @@ class BaseAnalyzerUnit(object):
         """
         if cls.__init__ is object.__init__:
             return []
-        args, varargs, kw, default = inspect.getargspec(cls.__init__)
+        if sys.version_info[0] == 2:
+            args = inspect.getargspec(cls.__init__)[0]
+        else:
+            args = inspect.getfullargspec(cls.__init__)[0]
         return sorted(args[1:])
 
     def _get_params(self):
