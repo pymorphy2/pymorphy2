@@ -69,9 +69,9 @@ class BaseAnalyzerUnit(object):
         if cls.__init__ is object.__init__:
             return []
         if sys.version_info[0] == 2:
-            args, _, _, _ = inspect.getargspec(cls.__init__)
+            args = inspect.getargspec(cls.__init__)[0]
         else:
-            args, _, _, _, _, _, _ = inspect.getfullargspec(cls.__init__)
+            args = inspect.getfullargspec(cls.__init__)[0]
         return sorted(args[1:])
 
     def _get_params(self):
