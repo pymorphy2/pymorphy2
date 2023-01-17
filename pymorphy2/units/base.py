@@ -13,7 +13,7 @@ try:
     from inspect import getargspec
     
     def inspect_args(func):
-        args, varargs, kw, default = getargspec
+        args, varargs, kw, default = getargspec(func)
         return args
 
 except ImportError:
