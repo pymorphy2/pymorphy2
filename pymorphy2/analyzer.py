@@ -35,11 +35,12 @@ class Parse(_Parse):
         res = self._morph._inflect(self, required_grammemes)
         return None if not res else res[0]
 
-    def make_agree_with_number(self, num):
+    def make_agree_with_number(self, num, animacy = None):
         """
         Inflect the word so that it agrees with ``num``
         """
-        return self.inflect(self.tag.numeral_agreement_grammemes(num))
+        # see tagset.py for animacy comments
+        return self.inflect(self.tag.numeral_agreement_grammemes(num, animacy))
 
     @property
     def lexeme(self):

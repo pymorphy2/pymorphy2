@@ -241,14 +241,6 @@ class OpencorporaTag(object):
     _CYR2LAT = None
     KNOWN_GRAMMEMES = set()
 
-    _NUMERAL_AGREEMENT_GRAMMEMES = (
-        set(['sing', 'nomn']),
-        set(['sing', 'accs']),
-        set(['sing', 'gent']),
-        set(['plur', 'nomn']),
-        set(['plur', 'gent']),
-    )
-
     RARE_CASES = {
         'gen1': 'gent',
         'gen2': 'gent',
@@ -482,7 +474,7 @@ class OpencorporaTag(object):
     def _from_internal_grammeme(cls, grammeme):
         return grammeme
 
-    def numeral_agreement_grammemes(self, num):
+    def numeral_agreement_grammemes(self, num, animacy = None):
         if (num % 10 == 1) and (num % 100 != 11):
             index = 0
         elif (num % 10 >= 2) and (num % 10 <= 4) and (num % 100 < 10 or num % 100 >= 20):
@@ -493,23 +485,29 @@ class OpencorporaTag(object):
         if self.POS not in ('NOUN', 'ADJF', 'PRTF'):
             return set([])
 
-        if self.POS == 'NOUN' and self.case not in ('nomn', 'accs'):
-            if index == 0:
-                grammemes = set(['sing', self.case])
-            else:
-                grammemes = set(['plur', self.case])
-        elif index == 0:
-            if self.case == 'nomn':
-                grammemes = self._NUMERAL_AGREEMENT_GRAMMEMES[0]
-            else:
-                grammemes = self._NUMERAL_AGREEMENT_GRAMMEMES[1]
-        elif self.POS == 'NOUN' and index == 1:
-            grammemes = self._NUMERAL_AGREEMENT_GRAMMEMES[2]
-        elif self.POS in ('ADJF', 'PRTF') and self.gender == 'femn' and index == 1:
-            grammemes = self._NUMERAL_AGREEMENT_GRAMMEMES[3]
-        else:
-            grammemes = self._NUMERAL_AGREEMENT_GRAMMEMES[4]
-        return grammemes
+        case = self.case
+        # animacy make sense in accs case, unfortunately, you cant always get animacy from the tag (sing,femn)
+        if self.animacy: # prefer animacy from the tag
+            animacy = self.animacy # fallback to the argument
+        if index == 0:
+            return set(['sing', case])
+        elif index == 1:
+            if case == 'accs':
+                if animacy == 'inan':
+                    case = 'nomn'
+                elif animacy == 'anim':
+                    case = 'gent'
+            if case in ('nomn', 'accs'):
+                if self.POS == 'NOUN':
+                    return set(['sing', 'gent'])
+                if self.gender == 'femn':
+                    return set(['plur', 'nomn'])
+                return set(['plur', 'gent'])
+            return set(['plur', case])
+        elif index == 2:
+            if case in ('nomn', 'accs'):
+                return set(['plur', 'gent'])
+            return set(['plur', case])
 
     #@classmethod
     #def _clone_class(cls):
