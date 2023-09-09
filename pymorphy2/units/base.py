@@ -65,10 +65,16 @@ class BaseAnalyzerUnit(object):
         It works by introspecting `__init__` arguments.
         `__init__` method must not use *args.
         """
+        # if cls.__init__ is object.__init__:
+        #     return []
+        # args, varargs, kw, default = inspect.getargspec(cls.__init__)
+        # return sorted(args[1:])
+    
         if cls.__init__ is object.__init__:
-            return []
-        args, varargs, kw, default = inspect.getargspec(cls.__init__)
-        return sorted(args[1:])
+                return []
+        init_signature = inspect.signature(cls.__init__)
+        args = [param.name for param in init_signature.parameters.values() if param.default == inspect.Parameter.empty and param.name != 'self']
+        return sorted(args)
 
     def _get_params(self):
         """ Return a dict with the parameters for this analyzer unit. """
